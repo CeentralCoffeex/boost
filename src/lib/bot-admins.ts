@@ -43,6 +43,17 @@ export function getBotAdminIds(): Set<string> {
     /* ignore */
   }
 
+  // Fallback : ADMIN_TELEGRAM_IDS en env si config.json absent ou vide (ex: prod)
+  if (ids.size === 0) {
+    const envIds = process.env.ADMIN_TELEGRAM_IDS || process.env.BOT_ADMIN_IDS;
+    if (envIds && typeof envIds === 'string') {
+      envIds.split(',').forEach((id) => {
+        const t = id.trim();
+        if (t) ids.add(t);
+      });
+    }
+  }
+
   cachedIds = ids;
   return ids;
 }
