@@ -23,13 +23,10 @@ export function sanitizeHtml(dirty: string): string {
 // Fonction de sanitisation pour texte brut
 export function sanitizeText(text: string): string {
   return text
-    .replace(/[<>"'&]/g, (match) => {
+    .replace(/[<>]/g, (match) => {
       const entities: Record<string, string> = {
         '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#x27;',
-        '&': '&amp;'
+        '>': '&gt;'
       }
       return entities[match] || match
     })
