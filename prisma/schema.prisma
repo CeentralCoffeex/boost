@@ -198,12 +198,8 @@ model Product {
   tag               String?
   image             String?
   videoUrl          String?
-  icon1             String?
-  icon2             String?
-  icon3             String?
-  icon4             String?
+  defaultUnit       String?  // 'gramme' ou 'ml'
   section           String   @default("DECOUVRIR") // 'PHARE', 'DECOUVRIR', 'CATEGORIE'
-  defaultUnit       String?  @default("gramme") // 'gramme' ou 'ml'
   likesCount        Int      @default(0)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -322,8 +318,6 @@ model SiteSettings {
   profileBlock1Content String?
   profileBlock2Title   String?
   profileBlock2Content String?
-  featuredRecentIds    String?  // JSON array d'IDs produits (Récents)
-  featuredTrendingIds  String?  // JSON array d'IDs produits (Tendances)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
