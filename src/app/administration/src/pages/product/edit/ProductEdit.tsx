@@ -11,11 +11,6 @@ import {
   Grid,
   MenuItem,
   LinearProgress,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Card,
-  CardContent,
 } from '@mui/material';
 import IconifyIcon from '../../../components/base/IconifyIcon';
 import { fetchWithCSRF, uploadWithProgress } from '../../../utils/csrf';
@@ -231,22 +226,16 @@ const ProductEdit = (): ReactElement => {
           })),
       };
 
-      console.log('Payload envoyé:', JSON.stringify(payload, null, 2));
-
       const method = isEditing ? 'PUT' : 'POST';
       const url = isEditing ? `/api/products/${id}` : '/api/products';
 
       const result = await fetchWithCSRF(url, { method, body: JSON.stringify(payload) });
       if (result.ok) {
         setSuccess('Produit enregistré avec succès');
-        setTimeout(() => navigate(-1), 1500);
+        setTimeout(() => navigate(-1), 1000);
       } else {
         const data = await result.json();
-        console.error('Erreur API:', data);
         setError(data.error || 'Erreur lors de la sauvegarde');
-        if (data.details) {
-          console.error('Détails validation:', data.details);
-        }
       }
     } catch (error) {
       console.error('Error saving product:', error);
@@ -309,35 +298,8 @@ const ProductEdit = (): ReactElement => {
       {error && <Alert severity="error" sx={{ m: 0, borderRadius: 0 }} onClose={() => setError('')}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ m: 0, borderRadius: 0 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
-      <Box sx={{ width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
-        {/* ACCORDION FORMULAIRE */}
-        <Accordion 
-          defaultExpanded 
-          sx={{ 
-            bgcolor: '#0a0a0a', 
-            border: 'none',
-            borderBottom: '1px solid #222',
-            borderRadius: 0,
-            m: 0,
-            '&:before': { display: 'none' }
-          }}
-        >
-          <AccordionSummary
-            expandIcon={<IconifyIcon icon="mdi:chevron-down" width={20} color="white" />}
-            sx={{ 
-              bgcolor: '#000',
-              borderBottom: '1px solid #222',
-              '&:hover': { bgcolor: '#111' },
-              minHeight: '48px',
-              '& .MuiAccordionSummary-content': { my: 1 }
-            }}
-          >
-            <Typography variant="subtitle1" fontWeight={600} color="white" sx={{ fontSize: '0.95rem' }}>
-              📝 CRÉATION PRODUIT
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails sx={{ p: 1.5 }}>
-            <Grid container spacing={1.5} sx={{ width: '100%', m: 0 }}>
+      <Box sx={{ width: '100%', boxSizing: 'border-box', overflowX: 'hidden', p: 2, bgcolor: '#0a0a0a', minHeight: 'calc(100vh - 70px)' }}>
+        <Grid container spacing={2} sx={{ width: '100%', m: 0 }}>
           {/* MÉDIAS */}
           <Grid item xs={12}>
             <Stack direction="row" spacing={1.5}>
@@ -557,118 +519,6 @@ const ProductEdit = (): ReactElement => {
             )}
           </Grid>
         </Grid>
-          </AccordionDetails>
-        </Accordion>
-
-        {/* ACCORDION PRÉVISUALISATION */}
-        <Accordion 
-          sx={{ 
-            bgcolor: '#0a0a0a', 
-            border: 'none',
-            borderBottom: '1px solid #222',
-            borderRadius: 0,
-            m: 0,
-            '&:before': { display: 'none' }
-          }}
-        >
-          <AccordionSummary
-            expandIcon={<IconifyIcon icon="mdi:chevron-down" width={20} color="white" />}
-            sx={{ 
-              bgcolor: '#000',
-              borderBottom: '1px solid #222',
-              '&:hover': { bgcolor: '#111' },
-              minHeight: '48px',
-              '& .MuiAccordionSummary-content': { my: 1 }
-            }}
-          >
-            <Typography variant="subtitle1" fontWeight={600} color="white" sx={{ fontSize: '0.95rem' }}>
-              👁️ PRÉVISUALISATION
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails sx={{ p: 1.5, display: 'flex', justifyContent: 'center' }}>
-            <Card sx={{
-              maxWidth: 200,
-              borderRadius: 3,
-              boxShadow: '0 2px 10px rgba(255,255,255,0.1)',
-              border: '1px solid #222',
-              overflow: 'hidden',
-              bgcolor: '#0a0a0a'
-            }}>
-              {(previewImage || previewVideo) && (
-                <Box sx={{ 
-                  height: 160, 
-                  bgcolor: '#111',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  {formData.tag && (
-                    <Box sx={{
-                      position: 'absolute',
-                      top: 8,
-                      left: 8,
-                      bgcolor: '#000',
-                      color: 'white',
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: 1,
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      zIndex: 2
-                    }}>
-                      {formData.tag}
-                    </Box>
-                  )}
-                  {previewVideo ? (
-                    <video style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted playsInline>
-                      <source src={previewVideo} type={getVideoMimeType(previewVideo)} />
-                    </video>
-                  ) : (
-                    <img src={previewImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  )}
-                </Box>
-              )}
-              <CardContent sx={{ p: 1.5, bgcolor: '#0a0a0a' }}>
-                <Typography variant="subtitle2" fontWeight={700} color="white" sx={{ fontSize: '0.9rem', mb: 0.5, lineHeight: 1.3 }}>
-                  {formData.title || 'Titre du produit'}
-                </Typography>
-                <Box 
-                  sx={{ 
-                    fontSize: '0.75rem', 
-                    color: '#999', 
-                    mb: 1.5,
-                    '& p': { margin: 0, lineHeight: 1.4 },
-                    '& strong': { fontWeight: 700 },
-                    '& ul, & ol': { paddingLeft: '16px', margin: 0 }
-                  }}
-                  dangerouslySetInnerHTML={{ 
-                    __html: formData.description || '<p style="color: #666;">Description</p>' 
-                  }}
-                />
-                <Button
-                  fullWidth
-                  sx={{
-                    bgcolor: '#000',
-                    color: 'white',
-                    py: 0.8,
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    border: '1px solid #333',
-                    '&:hover': { bgcolor: '#111', borderColor: '#444' }
-                  }}
-                >
-                  Voir les détails
-                </Button>
-                {variants.length > 0 && (
-                  <Typography variant="caption" sx={{ display: 'block', mt: 1, color: '#666', textAlign: 'center' }}>
-                    Prix : {Math.min(...variants.map(v => parseFloat(v.price) || 0))}€
-                  </Typography>
-                )}
-              </CardContent>
-            </Card>
-          </AccordionDetails>
-        </Accordion>
       </Box>
     </Box>
   );

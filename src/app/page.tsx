@@ -7,7 +7,6 @@ import MobileHero from '@/components/home/MobileHero'
 import MobileServiceCarousel from '@/components/home/MobileServiceCarousel'
 import MenuBar from '@/components/home/MenuBar'
 import ProductThumbnail from '@/components/product/ProductThumbnail'
-import { stripFormattedText } from '@/lib/formatted-text'
 import '@/styles/index-mobile.css'
 
 // Composant Carte Produit - étiquette sur image, bouton Détails redesigné, like
@@ -59,7 +58,7 @@ const ProductCard = ({
         const data = await res.json();
         setLiked(data.liked || false);
       } catch (error) {
-        console.error('Error checking like status:', error);
+        // Erreur silencieuse
       }
     };
 
@@ -68,12 +67,8 @@ const ProductCard = ({
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (liked || !productId || loading) {
-      console.log('[handleLike] Blocked:', { liked, productId, loading });
-      return;
-    }
+    if (liked || !productId || loading) return;
     
-    console.log('[handleLike] Starting like for product:', productId);
     setLoading(true);
     const previousLiked = liked;
     const previousLikes = likes;
@@ -88,8 +83,6 @@ const ProductCard = ({
         sessionStorage.getItem('tgInitData') || 
         localStorage.getItem('tgInitData');
       
-      console.log('[handleLike] initData available:', !!initData);
-      
       if (initData) {
         headers['Authorization'] = `tma ${initData}`;
         headers['X-Telegram-Init-Data'] = initData;
@@ -102,25 +95,18 @@ const ProductCard = ({
       });
 
       const data = await res.json();
-      console.log('[handleLike] Response:', { ok: res.ok, data });
       
       if (!res.ok) {
-        console.error('[handleLike] Error:', data.error);
         if (data.alreadyLiked) {
-          // Déjà liké, garder l'état liké
           setLiked(true);
         } else {
-          // Autre erreur, restaurer l'état précédent
           setLiked(previousLiked);
           setLikes(previousLikes);
-          console.error('Erreur like:', data.error);
         }
       } else if (data.likesCount !== undefined) {
         setLikes(data.likesCount);
-        console.log('[handleLike] Success! New count:', data.likesCount);
       }
     } catch (error) {
-      console.error('[handleLike] Exception:', error);
       setLiked(previousLiked);
       setLikes(previousLikes);
     } finally {
@@ -288,11 +274,6 @@ export default function HomePage() {
 
               </div>
 
-              {/* Barre Menu (au-dessus des catégories) */}
-              <div className="flex-shrink-0 w-full">
-                <MenuBar />
-              </div>
-
               {/* Section 1: Catégories */}
               <div className="my-projects-section">
                 <h2>Catégories</h2>
@@ -379,6 +360,11 @@ export default function HomePage() {
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Barre Menu (en bas de page après Tendances) */}
+              <div className="flex-shrink-0 w-full" style={{ marginTop: '20px', marginBottom: '20px' }}>
+                <MenuBar />
               </div>
 
             </div>

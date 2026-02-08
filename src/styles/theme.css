@@ -327,15 +327,20 @@
     rgba(var(--separator-rgb, 190, 242, 100), 0.3),
     rgba(var(--separator-rgb, 190, 242, 100), 0.6),
     rgba(var(--separator-rgb, 190, 242, 100), 0.3)
-  );
-  background-size: 400% 100%;
-  animation: profil-border-glow 3s linear infinite;
-  filter: drop-shadow(0 0 6px rgba(var(--separator-rgb, 190, 242, 100), 0.4));
+  ) !important;
+  background-size: 400% 100% !important;
+  animation: profil-border-glow 3s linear infinite !important;
+  filter: drop-shadow(0 0 6px rgba(var(--separator-rgb, 190, 242, 100), 0.4)) !important;
+  will-change: background-position;
+  z-index: 1;
 }
 
 @keyframes profil-border-glow {
   0% {
     background-position: 0% 50%;
+  }
+  50% {
+    background-position: 200% 50%;
   }
   100% {
     background-position: 400% 50%;
@@ -348,6 +353,8 @@
   border-radius: 11px;
   overflow: hidden;
   font-family: 'Montserrat', 'Arial', sans-serif;
+  position: relative;
+  z-index: 2;
 }
 .page-profil-info-rect-header {
   background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);

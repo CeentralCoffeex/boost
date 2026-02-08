@@ -51,10 +51,11 @@ export default function MenuBar() {
         <div className="menu-bar" style={{ 
           display: 'flex', 
           alignItems: 'center', 
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           minHeight: '56px',
           position: 'relative',
-          padding: '8px 16px'
+          padding: '8px 16px',
+          paddingLeft: '24px'
         }}>
           <div
             ref={menuRef}
@@ -87,7 +88,7 @@ export default function MenuBar() {
             style={{
               position: 'absolute',
               right: '16px',
-              top: '50%',
+              top: '40%',
               transform: 'translateY(-50%)',
               background: '#1a1a1a',
               color: 'white',
@@ -106,7 +107,6 @@ export default function MenuBar() {
               e.stopPropagation();
               const urlToNavigate = selectedUrl || (categories.length > 0 && categories[0] ? `/categorie/${categories[0].id}` : '');
               if (urlToNavigate) {
-                console.log('Navigation vers:', urlToNavigate);
                 window.location.href = urlToNavigate;
               }
             }}

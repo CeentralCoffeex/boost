@@ -142,166 +142,152 @@ const Settings = (): ReactElement => {
 
       <Paper sx={{ p: { xs: 3, sm: 4 } }}>
         <Grid container spacing={4}>
-          {/* Section Hero */}
+          {/* Section Hero - Édition directe sur le visuel */}
           <Grid item xs={12}>
-            <Grid container spacing={3}>
-                  {/* Formulaire Hero */}
-                  <Grid item xs={12} md={6}>
-                    <Stack spacing={2}>
-                      <TextField
-                        label="Titre principal"
-                        fullWidth
-                        value={formData.heroTitle}
-                        onChange={(e) => setFormData({ ...formData, heroTitle: e.target.value })}
-                        placeholder="PROPULSEZ VOTRE BUSINESS!"
-                      />
-                      <TextField
-                        label="Sous-titre 1"
-                        fullWidth
-                        value={formData.heroSubtitle1}
-                        onChange={(e) => setFormData({ ...formData, heroSubtitle1: e.target.value })}
-                        placeholder="Exclusive"
-                      />
-                      <TextField
-                        label="Sous-titre 2"
-                        fullWidth
-                        value={formData.heroSubtitle2}
-                        onChange={(e) => setFormData({ ...formData, heroSubtitle2: e.target.value })}
-                        placeholder="Boutique"
-                      />
-                      <TextField
-                        label="Sous-titre 3"
-                        fullWidth
-                        value={formData.heroSubtitle3}
-                        onChange={(e) => setFormData({ ...formData, heroSubtitle3: e.target.value })}
-                        placeholder="Hotel"
-                      />
-                      <TextField
-                        label="Slogan"
-                        fullWidth
-                        value={formData.heroTagline}
-                        onChange={(e) => setFormData({ ...formData, heroTagline: e.target.value })}
-                        placeholder="Luxury Experience"
-                      />
-                      <TextField
-                        label="URL de l'image"
-                        fullWidth
-                        value={formData.heroImage}
-                        onChange={(e) => setFormData({ ...formData, heroImage: e.target.value })}
-                        placeholder="/hero.png"
-                      />
-                    </Stack>
-                  </Grid>
+            <Typography variant="h6" color="common.white" mb={2}>
+              Hero de la page d'accueil
+            </Typography>
+            <Typography variant="body2" color="grey.400" mb={3}>
+              Cliquez sur les textes pour les modifier directement
+            </Typography>
+            
+            {/* Hero éditable */}
+            <Box
+              sx={{
+                position: 'relative',
+                width: '100%',
+                height: '320px',
+                borderRadius: 2,
+                overflow: 'hidden',
+                bgcolor: '#000',
+                border: '2px solid rgba(255,255,255,0.2)',
+              }}
+            >
+              {/* Image de fond */}
+              {formData.heroImage && (
+                <img
+                  src={formData.heroImage}
+                  alt="Hero"
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    objectPosition: 'center',
+                  }}
+                />
+              )}
 
-                  {/* Prévisualisation Hero */}
-                  <Grid item xs={12} md={6}>
-                    <Box
-                      sx={{
-                        position: 'relative',
-                        width: '100%',
-                        height: '400px',
-                        borderRadius: 2,
-                        overflow: 'hidden',
-                        bgcolor: '#000',
-                        border: '2px solid rgba(255,255,255,0.1)',
-                      }}
-                    >
-                      {formData.heroImage && (
-                        <Box
-                          component="img"
-                          src={formData.heroImage}
-                          alt="Hero"
-                          sx={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            opacity: 0.7,
-                          }}
-                        />
-                      )}
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          textAlign: 'center',
-                          p: 3,
-                        }}
-                      >
-                        {formData.heroTitle && (
-                          <Typography
-                            variant="h3"
-                            sx={{
-                              color: 'white',
-                              fontWeight: 900,
-                              mb: 2,
-                              textShadow: '2px 2px 8px rgba(0,0,0,0.8)',
-                              fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
-                            }}
-                          >
-                            {formData.heroTitle}
-                          </Typography>
-                        )}
-                        <Stack direction="row" spacing={1} mb={1} flexWrap="wrap" justifyContent="center">
-                          {formData.heroSubtitle1 && (
-                            <Typography
-                              sx={{
-                                color: 'white',
-                                fontWeight: 600,
-                                fontSize: '1.2rem',
-                                textShadow: '1px 1px 4px rgba(0,0,0,0.8)',
-                              }}
-                            >
-                              {formData.heroSubtitle1}
-                            </Typography>
-                          )}
-                          {formData.heroSubtitle2 && (
-                            <Typography
-                              sx={{
-                                color: 'white',
-                                fontWeight: 600,
-                                fontSize: '1.2rem',
-                                textShadow: '1px 1px 4px rgba(0,0,0,0.8)',
-                              }}
-                            >
-                              {formData.heroSubtitle2}
-                            </Typography>
-                          )}
-                          {formData.heroSubtitle3 && (
-                            <Typography
-                              sx={{
-                                color: 'white',
-                                fontWeight: 600,
-                                fontSize: '1.2rem',
-                                textShadow: '1px 1px 4px rgba(0,0,0,0.8)',
-                              }}
-                            >
-                              {formData.heroSubtitle3}
-                            </Typography>
-                          )}
-                        </Stack>
-                        {formData.heroTagline && (
-                          <Typography
-                            sx={{
-                              color: 'rgba(255,255,255,0.9)',
-                              fontSize: '1rem',
-                              fontStyle: 'italic',
-                              textShadow: '1px 1px 4px rgba(0,0,0,0.8)',
-                            }}
-                          >
-                            {formData.heroTagline}
-                          </Typography>
-                        )}
-                      </Box>
-                    </Box>
-                  </Grid>
-                </Grid>
+              {/* Contenu éditable */}
+              <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, p: 2 }}>
+                <Box
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => setFormData({ ...formData, heroSubtitle1: e.currentTarget.textContent || '' })}
+                  sx={{
+                    color: 'white',
+                    fontSize: '1.8rem',
+                    fontWeight: 300,
+                    textShadow: '2px 2px 8px rgba(0,0,0,0.9)',
+                    fontFamily: "'Orbitron', sans-serif",
+                    outline: 'none',
+                    cursor: 'text',
+                    mb: 0.5,
+                    '&:focus': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 1, p: 0.5 },
+                    '&:empty:before': { content: '"Sous-titre 1"', color: 'rgba(255,255,255,0.5)' }
+                  }}
+                >
+                  {formData.heroSubtitle1}
+                </Box>
+                <Box
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => setFormData({ ...formData, heroSubtitle3: e.currentTarget.textContent || '' })}
+                  sx={{
+                    color: 'white',
+                    fontSize: '1.8rem',
+                    fontWeight: 700,
+                    textShadow: '2px 2px 8px rgba(0,0,0,0.9)',
+                    fontFamily: "'Orbitron', sans-serif",
+                    outline: 'none',
+                    cursor: 'text',
+                    mb: 1,
+                    '&:focus': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 1, p: 0.5 },
+                    '&:empty:before': { content: '"Sous-titre 3"', color: 'rgba(255,255,255,0.5)' }
+                  }}
+                >
+                  {formData.heroSubtitle3}
+                </Box>
+                <Box
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => setFormData({ ...formData, heroTagline: e.currentTarget.textContent || '' })}
+                  sx={{
+                    color: 'white',
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.3em',
+                    textShadow: '2px 2px 8px rgba(0,0,0,0.9)',
+                    fontFamily: "'Montserrat', sans-serif",
+                    outline: 'none',
+                    cursor: 'text',
+                    borderLeft: '2px solid rgba(255,255,255,0.5)',
+                    pl: 1.5,
+                    '&:focus': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 1, p: 0.5, pl: 1.5 },
+                    '&:empty:before': { content: '"Slogan"', color: 'rgba(255,255,255,0.5)' }
+                  }}
+                >
+                  {formData.heroTagline}
+                </Box>
+              </Box>
+
+              {/* Titre bas + URL image */}
+              <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, p: 2 }}>
+                <Box
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => setFormData({ ...formData, heroTitle: e.currentTarget.textContent || '' })}
+                  sx={{
+                    color: 'white',
+                    fontSize: '1rem',
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    fontStyle: 'italic',
+                    letterSpacing: '-0.02em',
+                    textShadow: '2px 2px 8px rgba(0,0,0,0.9)',
+                    fontFamily: "'Orbitron', sans-serif",
+                    outline: 'none',
+                    cursor: 'text',
+                    textAlign: 'center',
+                    mb: 1,
+                    '&:focus': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 1, p: 0.5 },
+                    '&:empty:before': { content: '"Titre principal"', color: 'rgba(255,255,255,0.5)' }
+                  }}
+                >
+                  {formData.heroTitle}
+                </Box>
+                <TextField
+                  fullWidth
+                  size="small"
+                  value={formData.heroImage}
+                  onChange={(e) => setFormData({ ...formData, heroImage: e.target.value })}
+                  placeholder="URL de l'image (/hero.png)"
+                  sx={{
+                    '& .MuiInputBase-root': { 
+                      bgcolor: 'rgba(0,0,0,0.7)', 
+                      color: 'white',
+                      fontSize: '0.8rem',
+                      backdropFilter: 'blur(8px)'
+                    },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' },
+                    '& input::placeholder': { color: 'rgba(255,255,255,0.5)', opacity: 1 }
+                  }}
+                />
+              </Box>
+            </Box>
           </Grid>
 
           {/* Section Thème */}

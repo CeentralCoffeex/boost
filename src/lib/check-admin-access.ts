@@ -6,9 +6,9 @@ import { isBotAdmin } from '@/lib/bot-admins';
 import { prisma } from '@/lib/prisma';
 import { validateTelegramWebAppData } from '@/lib/telegram-webapp';
 
-/** Cache admin check - DÉSACTIVÉ pour forcer vérification en temps réel */
+/** Cache admin check - 30 secondes pour performances */
 const adminCache = new Map<string, { ok: boolean; expires: number }>();
-const CACHE_TTL_MS = 0; // Pas de cache pour sécurité
+const CACHE_TTL_MS = 30000; // 30 secondes
 
 /** Invalide le cache admin pour un userId et/ou email (appelé après retrait des droits) */
 export function invalidateAdminCacheForUser(userId?: string, email?: string): void {

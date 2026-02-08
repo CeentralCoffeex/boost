@@ -61,8 +61,24 @@ export function stripFormattedText(text: string): string {
 /**
  * Affiche un texte formaté avec retours à la ligne préservés.
  * Format: **gras**, [c=#hex]couleur[/c], \n pour les sauts de ligne.
+ * Supporte aussi le HTML direct généré par le RichTextEditor.
  */
 export function FormattedTextWithBreaks({ text, className }: { text: string; className?: string }) {
+  // Si le texte contient des balises HTML (<b>, <i>, <u>, <span style=...>), on l'affiche directement
+  const hasHtmlTags = /<[^>]+>/.test(text);
+  
+  if (hasHtmlTags) {
+    // Remplacer les \n par <br> pour le HTML
+    const htmlWithBreaks = text.replace(/\n/g, '<br>');
+    return (
+      <span 
+        className={className} 
+        dangerouslySetInnerHTML={{ __html: htmlWithBreaks }}
+      />
+    );
+  }
+  
+  // Sinon, parser les balises custom **bold** et [c=#hex]...[/c]
   const lines = text.split('\n');
   const items: React.ReactNode[] = [];
   let key = 0;

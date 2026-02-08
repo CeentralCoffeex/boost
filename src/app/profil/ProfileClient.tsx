@@ -26,8 +26,15 @@ function hexToRgb(hex: string): string {
   return `${r}, ${g}, ${b}`;
 }
 
-/** Parse **bold** et [c=#hex]texte coloré[/c] */
-function parseFormattedText(text: string): React.ReactNode[] {
+/** Parse **bold**, [c=#hex]texte coloré[/c] et HTML */
+function parseFormattedText(text: string): React.ReactNode {
+  // Si le texte contient des balises HTML, l'afficher directement
+  const hasHtmlTags = /<[^>]+>/.test(text);
+  if (hasHtmlTags) {
+    return <span dangerouslySetInnerHTML={{ __html: text }} />;
+  }
+  
+  // Sinon, parser les balises custom
   const parts: React.ReactNode[] = [];
   let remaining = text;
   let key = 0;
@@ -73,6 +80,14 @@ function parseFormattedText(text: string): React.ReactNode[] {
 }
 
 function renderBlockContent(content: string) {
+  // Si le contenu contient des balises HTML, l'afficher directement
+  const hasHtmlTags = /<[^>]+>/.test(content);
+  if (hasHtmlTags) {
+    const htmlWithBreaks = content.replace(/\n/g, '<br>');
+    return <div dangerouslySetInnerHTML={{ __html: htmlWithBreaks }} />;
+  }
+  
+  // Sinon, parser les listes et formatage custom
   const lines = content.split('\n');
   const items: React.ReactNode[] = [];
   let listBuffer: string[] = [];
