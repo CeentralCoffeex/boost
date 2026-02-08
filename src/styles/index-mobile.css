@@ -1,0 +1,232 @@
+/* Hero mobile - contenu superposé sur l'image, pas d'arrondi */
+.hero-mobile-container {
+  flex-shrink: 0;
+  min-height: 380px;
+  border-radius: 0 !important;
+}
+.hero-mobile-container img {
+  border-radius: 0 !important;
+}
+
+/* Hero typography mobile - subtitles et tagline (heroTitle inchangé) */
+.hero-subtitle-default { font-size: clamp(2rem, 7.5vw, 2.75rem); }
+.hero-subtitle-long { font-size: clamp(1.85rem, 6.5vw, 2.5rem); }
+.hero-tagline-default { font-size: 11px; }
+.hero-tagline-small { font-size: 10px; }
+
+/* Barre animée hero - pleine largeur bord à bord */
+.hero-separator-full {
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  position: relative;
+}
+
+/* MobileHeroClient - Animated separator via CSS variables (CSP-safe) */
+.animated-separator {
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--separator-rgb, 190, 242, 100), 0) 0%,
+    rgba(var(--separator-rgb, 190, 242, 100), 0.2) 20%,
+    rgba(var(--separator-rgb, 190, 242, 100), 0.9) 100%
+  );
+  background-size: 200% 100%;
+  filter: drop-shadow(0 0 6px rgba(var(--separator-rgb, 190, 242, 100), 0.6));
+}
+
+/* MobileHeroClient - Scrollbar cachée pour dropdown */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hero-title-default { font-size: clamp(1.75rem, 6vw, 2.25rem); }
+.hero-title-long { font-size: clamp(1.5rem, 5vw, 2rem); }
+.font-montserrat { font-family: 'Montserrat', 'Arial', sans-serif; }
+.hero-footer-offset { transform: translateY(-15px); }
+
+/* ========================================
+   CSS SPÉCIFIQUE POUR LES STATISTIQUES DE LA PAGE PRINCIPALE
+   ======================================== */
+
+/* CONTENEUR PRINCIPAL DES STATISTIQUES */
+.page-stats-grid {
+  display: flex;                    /* Disposition en ligne horizontale */
+  justify-content: center;          /* Centre les éléments */
+  align-items: center;              /* Centre verticalement les éléments */
+  margin-top: 15px;                 /* Espacement au-dessus */
+  margin-bottom: 0;                 /* Pas d'espacement en bas */
+  gap: 20px;                       /* Espacement réduit pour le conteneur */
+  width: 100%;                     /* Largeur = 100% du parent */
+  margin-left: 0;                  /* Pas de marge négative */
+  overflow: visible;               /* Laisser visible */
+  padding: 0;                      /* Aucun espacement intérieur */
+  box-sizing: border-box;          /* Inclut le padding dans la largeur totale */
+}
+
+/* ÉLÉMENT INDIVIDUEL DE STATISTIQUE */
+.page-stat-item {
+  text-align: center;              /* Centre le texte horizontalement */
+  display: flex;                   /* Disposition flexible */
+  flex-direction: column;          /* Empile verticalement (nombre au-dessus du label) */
+  align-items: center;             /* Centre horizontalement le contenu */
+  justify-content: center;         /* Centre verticalement le contenu */
+  padding: 0;                      /* Pas d'espacement intérieur */
+  flex: 0 0 auto;                 /* Ne grandit/rétrécit pas, taille automatique */
+  min-width: 0;                   /* Largeur minimale = 0 pour éviter les débordements */
+}
+
+/* PREMIÈRE STATISTIQUE (CENTRÉE) */
+.page-stat-item:first-child {
+  align-items: center;            /* Centre le contenu */
+  text-align: center;             /* Texte centré */
+}
+
+/* DERNIÈRE STATISTIQUE (CENTRÉE) */
+.page-stat-item:last-child {
+  align-items: center;            /* Centre le contenu */
+  text-align: center;             /* Texte centré */
+}
+
+/* NOMBRE DE LA STATISTIQUE (50+, 8, 100%) */
+.page-stat-number {
+  font-size: 28px;                /* Taille de police augmentée */
+  font-weight: 700;               /* Texte en gras */
+  color: #ffffff;                 /* Couleur blanche */
+  margin-bottom: 3px;             /* Espacement sous le nombre augmenté */
+  white-space: nowrap;            /* Empêche le retour à la ligne */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); /* Ombre pour améliorer la lisibilité */
+}
+
+/* LABEL DE LA STATISTIQUE (PROJETS, ANNÉES, SATISFACTION) */
+.page-stat-label {
+  font-size: 14px;                /* Taille de police augmentée */
+  color: #cccccc;                 /* Couleur gris clair */
+  text-transform: uppercase;       /* Transforme en majuscules */
+  letter-spacing: 0.8px;          /* Espacement entre les lettres augmenté */
+  white-space: nowrap;            /* Empêche le retour à la ligne */
+}
+
+/* about-section styles moved to mobile-responsive.css to avoid duplication */
+
+/* ========================================
+   STYLES RESPONSIVE POUR MOBILE
+   Appliqué sur écrans de 768px et moins
+   ======================================== */
+@media (max-width: 768px) {
+  /* CONTENEUR PRINCIPAL - VERSION MOBILE */
+  .page-stats-grid {
+    gap: 15px;                     /* Espacement réduit pour mobile */
+    padding: 0;                    /* Aucun espacement intérieur pour mobile */
+    margin-left: 0;                /* Pas de marge négative */
+    justify-content: space-around; /* Répartir l'espace */
+  }
+  
+  /* NOMBRES - VERSION MOBILE */
+  .page-stat-number {
+    font-size: 24px;               /* Taille augmentée de 20px à 24px pour mobile */
+  }
+  
+  /* LABELS - VERSION MOBILE */
+  .page-stat-label {
+    font-size: 12px;               /* Taille augmentée de 10px à 12px pour mobile */
+    letter-spacing: 0.6px;         /* Espacement des lettres augmenté */
+  }
+
+  /* Services Banners Mobile */
+  .mobile-services-banners {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 90%;
+    max-width: 355px;
+    margin: 30px auto;
+  }
+
+  .service-banner-item {
+    position: relative;
+    width: 100%;
+    border-radius: 24px; /* Plus arrondi */
+    overflow: hidden;
+    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.2); /* Ombre plus douce */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #111;
+    transform: translateZ(0);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .service-banner-item:active {
+    transform: scale(0.98);
+  }
+
+  .service-banner-image {
+    width: 100%;
+    height: 140px;
+    position: relative;
+  }
+
+  .service-banner-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center; /* Center the image to show the skin clearly */
+    display: block;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  
+  .service-banner-item:hover .service-banner-image img {
+    opacity: 1;
+  }
+
+  /* Lighter overlay to ensure skin is visible while keeping text readable */
+  .service-banner-image::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent; /* Overlay removed */
+    z-index: 1;
+  }
+
+  .service-banner-text {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    transform: translateY(-50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center align items */
+    text-align: center; /* Center text */
+  }
+
+  .service-main {
+    font-family: 'Orbitron', sans-serif; /* PC Font */
+    font-size: 24px;
+    font-weight: 900; /* Bold like PC */
+    color: #ffffff; /* Pure white */
+    letter-spacing: 2px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8); /* Strong shadow for contrast over skin */
+    background: none; /* Remove gradient text */
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: #ffffff;
+    margin-bottom: 5px;
+  }
+
+  .service-sub {
+    font-family: 'Orbitron', sans-serif; /* Consistent font */
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffffff;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+  }
+}

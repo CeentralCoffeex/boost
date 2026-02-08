@@ -1,0 +1,146 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/!(api|administration)/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/api/**/*.{js,ts,jsx,tsx,mdx}',
+    '!./src/app/administration/**/*',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          DEFAULT: '#000000',
+          50: '#f6f6f6',
+          100: '#e7e7e7',
+          200: '#d1d1d1',
+          300: '#b0b0b0',
+          400: '#888888',
+          500: '#6d6d6d',
+          600: '#5d5d5d',
+          700: '#4f4f4f',
+          800: '#454545',
+          900: '#3d3d3d',
+          950: '#000000',
+        },
+        secondary: {
+          DEFAULT: '#4a90ff',
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#4a90ff',
+          600: '#2563eb',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
+          950: '#172554',
+        },
+        glass: {
+          light: 'rgba(255, 255, 255, 0.1)',
+          medium: 'rgba(255, 255, 255, 0.05)',
+          dark: 'rgba(0, 0, 0, 0.1)',
+        },
+        service: {
+          web: '#4CAF50',
+          design: '#9C27B0',
+          ecommerce: '#FF9800',
+          marketing: '#FF9800',
+          mobile: '#2196F3',
+        },
+      },
+      fontFamily: {
+        sans: ['Roboto', 'sans-serif'],
+        display: ['Orbitron', 'sans-serif'],
+        ubuntu: ['Ubuntu', 'sans-serif'],
+      },
+      fontSize: {
+        'xs': ['0.75rem', { lineHeight: '1rem' }],
+        'sm': ['0.875rem', { lineHeight: '1.25rem' }],
+        'base': ['1rem', { lineHeight: '1.5rem' }],
+        'lg': ['1.125rem', { lineHeight: '1.75rem' }],
+        'xl': ['1.25rem', { lineHeight: '1.75rem' }],
+        '2xl': ['1.5rem', { lineHeight: '2rem' }],
+        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
+        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
+        '5xl': ['3rem', { lineHeight: '1' }],
+        '6xl': ['3.75rem', { lineHeight: '1' }],
+      },
+      borderRadius: {
+        'glass': '25px',
+        'card': '15px',
+        'button': '12px',
+      },
+      backdropBlur: {
+        'glass': '15px',
+        'strong': '20px',
+      },
+      boxShadow: {
+        'glass': '0 8px 32px rgba(0, 0, 0, 0.1)',
+        'glass-inset': 'inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+        'card': '0 4px 15px rgba(0, 0, 0, 0.1)',
+        'button': '0 2px 8px rgba(0, 0, 0, 0.15)',
+        'hover': '0 8px 25px rgba(0, 0, 0, 0.15)',
+      },
+      animation: {
+        'fade-in': 'fadeIn 0.5s ease-in-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+        'slide-down': 'slideDown 0.3s ease-out',
+        'scale-in': 'scaleIn 0.2s ease-out',
+        'bounce-gentle': 'bounceGentle 0.6s ease-in-out',
+        'glow': 'glow 2s ease-in-out infinite alternate',
+        'trail': 'trail var(--duration) linear infinite',
+      },
+      keyframes: {
+        trail: {
+          '0%': { '--angle': '0deg' },
+          '100%': { '--angle': '360deg' },
+        },
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        slideDown: {
+          '0%': { transform: 'translateY(-10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        scaleIn: {
+          '0%': { transform: 'scale(0.95)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        bounceGentle: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-4px)' },
+        },
+        glow: {
+          '0%': { boxShadow: '0 0 5px rgba(74, 144, 255, 0.5)' },
+          '100%': { boxShadow: '0 0 20px rgba(74, 144, 255, 0.8)' },
+        },
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+        '128': '32rem',
+      },
+      zIndex: {
+        '60': '60',
+        '70': '70',
+        '80': '80',
+        '90': '90',
+        '100': '100',
+      },
+      transitionTimingFunction: {
+        'bounce-in': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'smooth': 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+      },
+    },
+  },
+  plugins: [],
+}

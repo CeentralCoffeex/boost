@@ -1,0 +1,304 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+  body {
+    @apply bg-white text-gray-900;
+  }
+}
+
+/* Styles personnalisés pour l'effet glassmorphism */
+@layer components {
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-lg;
+  }
+  
+  .glass-dark {
+    @apply bg-black/20 backdrop-blur-md border border-white/10 shadow-lg;
+  }
+  
+  .glass-card {
+    @apply glass rounded-lg p-6;
+  }
+  
+  .glass-button {
+    @apply glass rounded-md px-4 py-2 transition-all duration-300 hover:bg-white/20 hover:shadow-xl;
+  }
+}
+
+/* Animations personnalisées */
+@layer utilities {
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .animate-pulse-slow {
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .animate-gradient {
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Ligne animée du hero (séparateur) - animation persistante */
+@keyframes heroSeparatorMove {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+.animated-separator {
+  width: 100%;
+  height: 4px;
+  border-radius: 9999px;
+  background-size: 200% 100%;
+  animation: heroSeparatorMove 2.4s linear infinite;
+}
+
+/* Styles pour le background vidéo */
+.bg-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+
+/* Styles pour les particules */
+.particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .glass {
+    @apply backdrop-blur-sm;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(74, 144, 255, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(74, 144, 255, 0.7);
+}
+
+/* Focus styles */
+.focus-visible:focus-visible {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2 ring-offset-black;
+}
+
+/* Version mobile uniquement - desktop-only masqué, mobile toujours visible */
+.desktop-only {
+  display: none !important;
+}
+
+/* Navigation link effect */
+.nav-link[data-active="true"] {
+  transition: all 0.3s ease !important;
+}
+
+/* Règle de base pour les liens de navigation */
+.nav-link {
+  position: relative;
+}
+
+/* Effet de brillance pour les icônes mobiles actives - DÉSACTIVÉ */
+.mobile-icon-item,
+.mobile-icon-item[data-active="true"],
+.mobile-icon-item.current-page {
+  filter: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  transition: all 0.3s ease !important;
+}
+
+.mobile-icon-item img {
+  box-shadow: none !important;
+}
+
+.mobile-icon-item[data-active="true"] img,
+.mobile-icon-item.current-page img {
+  box-shadow: none !important;
+}
+
+.mobile-icon-item[data-active="true"] span {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+/* Fallback avec classe pour compatibilité */
+.nav-text-glow {
+  text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff, 0 0 30px #ffffff;
+  color: #ffffff !important;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #000000 !important;
+}
+
+/* Styles pour le contenu supplémentaire mobile */
+.mobile-extra-content {
+  display: none;
+  padding: 2rem 1rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  margin: 2rem 1rem;
+}
+
+@media (max-width: 768px) {
+  .mobile-extra-content {
+    display: block;
+  }
+
+  .about-section {
+    margin-bottom: 2rem;
+    background: #000000;
+    padding: 2rem;
+    border-radius: 12px;
+  }
+
+  .about-section h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: white;
+    text-align: center;
+  }
+
+  .about-section p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+  }
+
+  .features-section {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .feature {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .feature h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 0.5rem;
+  }
+
+  .feature p {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.5;
+  }
+}

@@ -1,0 +1,365 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String           @id @default(cuid())
+  email            String           @unique
+  emailVerified    DateTime?
+  name             String?
+  image            String?
+  password         String?
+  role             String           @default("USER")
+  status           String           @default("ACTIVE")
+  avatar           String?
+  bio              String?
+  website          String?
+  location         String?
+  phone            String?
+  twoFactorEnabled Boolean          @default(false)
+  twoFactorSecret  String?
+  telegramId        String?          @unique
+  telegramUsername  String?
+  telegramFirstName String?
+  telegramPhoto     String?
+  telegramLinkedAt  DateTime?
+  lastLoginAt      DateTime?
+  loginAttempts    Int              @default(0)
+  lockedUntil      DateTime?
+  deletedAt        DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  accounts         Account[]
+  auditLogs        AuditLog[]
+  comments         Comment[]
+  messages         ContactMessage[]
+  likes            Like[]
+  projects         Project[]
+  sessions         Session[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId], map: "accounts_userId_fkey")
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "sessions_userId_fkey")
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  userId       String?
+  targetUserId String?
+  action       String
+  resource     String?
+  resourceId   String?
+  details      String?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+  user         User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "audit_logs_userId_fkey")
+  @@map("audit_logs")
+}
+
+model Project {
+  id               String         @id @default(cuid())
+  title            String
+  description      String
+  shortDescription String?
+  content          String?
+  slug             String         @unique
+  status           String         @default("DRAFT")
+  category         String
+  tags             String?
+  technologies     String?
+  featured         Boolean        @default(false)
+  published        Boolean        @default(false)
+  publishedAt      DateTime?
+  startDate        DateTime?
+  endDate          DateTime?
+  duration         String?
+  clientName       String?
+  clientWebsite    String?
+  projectUrl       String?
+  githubUrl        String?
+  demoUrl          String?
+  thumbnail        String?
+  price            Float?
+  budget           Float?
+  teamSize         Int?
+  myRole           String?
+  challenges       String?
+  solutions        String?
+  results          String?
+  testimonial      String?
+  views            Int            @default(0)
+  likes            Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  userId           String?
+  comments         Comment[]
+  likedBy          Like[]
+  images           ProjectImage[]
+  user             User?          @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "projects_userId_fkey")
+  @@map("projects")
+}
+
+model ProjectImage {
+  id        String  @id @default(cuid())
+  url       String
+  alt       String?
+  caption   String?
+  order     Int     @default(0)
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId], map: "project_images_projectId_fkey")
+  @@map("project_images")
+}
+
+model Service {
+  id               String   @id @default(cuid())
+  title            String
+  description      String
+  shortDescription String?
+  slug             String   @unique
+  category         String
+  price            Float
+  priceType        String   @default("PROJECT")
+  currency         String   @default("EUR")
+  duration         String?
+  features         String?
+  deliverables     String?
+  requirements     String?
+  tags             String?
+  difficulty       String   @default("INTERMEDIATE")
+  popular          Boolean  @default(false)
+  available        Boolean  @default(true)
+  icon             String?
+  image            String?
+  order            Int      @default(0)
+  ctaText          String   @default("Commander")
+  ctaLink          String   @default("/contact")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("services")
+}
+
+model Product {
+  id                String   @id @default(cuid())
+  title             String
+  description       String
+  basePrice         String?  // Prix de base (optionnel, pour affichage)
+  tag               String?
+  image             String?
+  videoUrl          String?
+  icon1             String?
+  icon2             String?
+  icon3             String?
+  icon4             String?
+  section           String   @default("DECOUVRIR") // 'PHARE', 'DECOUVRIR', 'CATEGORIE'
+  featuredInRecent  Boolean  @default(false)
+  featuredInTrending Boolean @default(false)
+  likesCount        Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  categoryId        String?
+  category          Category? @relation(fields: [categoryId], references: [id])
+
+  // Relations pour les grammages et variétés
+  variants          ProductVariant[]
+
+  @@map("products")
+}
+
+model ProductVariant {
+  id          String   @id @default(cuid())
+  productId   String
+  name        String   // Ex: "5g", "10g", "Myrtille", "Pêche", "2ml"
+  type        String   // 'weight' ou 'flavor'
+  unit        String?  // 'gramme' ou 'ml' pour les vapes
+  price       String   // Prix pour cette variante
+  // Champs vape (optionnels)
+  power       String?  // Puissance en W (ex: "40W")
+  capacity    String?  // Capacité en ml (ex: "2ml")
+  resistance  String?  // Résistance (ex: "0.2Ω")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_variants")
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  company   String?
+  subject   String
+  message   String
+  status    String   @default("UNREAD")
+  priority  String   @default("NORMAL")
+  source    String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "contact_messages_userId_fkey")
+  @@map("contact_messages")
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  projectId String?
+  createdAt DateTime @default(now())
+  project   Project? @relation(fields: [projectId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+  @@index([projectId], map: "likes_projectId_fkey")
+  @@index([userId], map: "likes_userId_fkey")
+  @@map("likes")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  userId    String
+  projectId String
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  parent    Comment? @relation("CommentToComment", fields: [parentId], references: [id])
+  replies   Comment[] @relation("CommentToComment")
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([parentId], map: "comments_parentId_fkey")
+  @@index([projectId], map: "comments_projectId_fkey")
+  @@index([userId], map: "comments_userId_fkey")
+  @@map("comments")
+}
+
+model SiteSettings {
+  id                String   @id @default(cuid())
+  heroTitle         String   @default("PROPULSEZ VOTRE BUISNESS!")
+  heroSubtitle1     String   @default("Exclusive")
+  heroSubtitle2     String   @default("Boutique")
+  heroSubtitle3     String   @default("Hotel")
+  heroTagline       String   @default("Luxury Experience")
+  heroImage         String   @default("/hero.png")
+  heroSeparatorColor String  @default("#bef264")
+  facebookUrl       String   @default("https://facebook.com")
+  twitterUrl        String   @default("https://twitter.com")
+  instagramUrl      String   @default("https://instagram.com")
+  theme             String   @default("blanc")
+  profileBlock1Title   String?
+  profileBlock1Content String?
+  profileBlock2Title   String?
+  profileBlock2Content String?
+  featuredRecentIds    String?  // JSON array d'IDs produits (Récents)
+  featuredTrendingIds  String?  // JSON array d'IDs produits (Tendances)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+model TelegramAdmin {
+  id                String   @id @default(cuid())
+  telegramId        String?  @unique
+  username          String?
+  firstName         String?
+  lastName          String?
+  isActive          Boolean  @default(true)
+  addedBy           String?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("telegram_admins")
+}
+
+model Category {
+  id              String    @id @default(cuid())
+  name            String
+  subtitle        String
+  icon            String?
+  backgroundColor String    @default("#000000")
+  url             String
+  order           Int       @default(0)
+  isActive        Boolean   @default(true)
+  parentId        String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  products        Product[]
+  parent          Category?  @relation("CategoryToSubcategory", fields: [parentId], references: [id], onDelete: SetNull)
+  subcategories   Category[] @relation("CategoryToSubcategory")
+
+  @@map("categories")
+}
+
+model SliderImage {
+  id        String   @id @default(cuid())
+  title     String
+  subtitle  String
+  image     String
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("slider_images")
+}
+

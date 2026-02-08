@@ -1,0 +1,436 @@
+/*
+  admin-theme.css
+  Thèmes admin : Blanc, Bleu, Noir, Orange, Violet, Rouge, Jaune
+  Appliqué via data-theme sur html
+*/
+
+/* ========== THÈME BLEU ========== */
+[data-theme="blue-white"] {
+  --admin-bg: #0d47a1;
+  --admin-header: #1565c0;
+  --admin-card: #1565c0;
+  --admin-text: #ffffff;
+  --admin-border: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="blue-white"] html,
+[data-theme="blue-white"] body,
+[data-theme="blue-white"] #root {
+  background: linear-gradient(165deg, #0d47a1 0%, #1565c0 50%, #0a3d7a 100%) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="blue-white"] .MuiAppBar-root,
+[data-theme="blue-white"] .MuiDrawer-paper {
+  background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="blue-white"] .MuiPaper-root,
+[data-theme="blue-white"] .MuiCard-root,
+[data-theme="blue-white"] .MuiDialog-paper {
+  background: linear-gradient(135deg, rgba(21, 101, 192, 0.95) 0%, rgba(25, 118, 210, 0.9) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="blue-white"] .MuiTypography-root,
+[data-theme="blue-white"] .MuiListItemText-primary,
+[data-theme="blue-white"] .MuiInputBase-input,
+[data-theme="blue-white"] .MuiInputLabel-root,
+[data-theme="blue-white"] .MuiTableCell-root {
+  color: #ffffff !important;
+}
+
+[data-theme="blue-white"] .MuiButton-contained {
+  background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="blue-white"] .MuiOutlinedInput-root,
+[data-theme="blue-white"] .MuiFilledInput-root {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-theme="blue-white"] .MuiAccordion-root {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ========== THÈME NOIR ========== */
+[data-theme="noir"] {
+  --admin-bg: #0a0a0a;
+  --admin-header: #171717;
+  --admin-card: #171717;
+  --admin-text: #ffffff;
+}
+
+[data-theme="noir"] html,
+[data-theme="noir"] body,
+[data-theme="noir"] #root {
+  background: linear-gradient(165deg, #0a0a0a 0%, #171717 100%) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="noir"] .MuiAppBar-root,
+[data-theme="noir"] .MuiDrawer-paper {
+  background: linear-gradient(135deg, #1a1a1a 0%, #171717 100%) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="noir"] .MuiPaper-root,
+[data-theme="noir"] .MuiCard-root,
+[data-theme="noir"] .MuiDialog-paper {
+  background: linear-gradient(135deg, #1f1f1f 0%, #171717 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="noir"] .MuiTypography-root,
+[data-theme="noir"] .MuiListItemText-primary,
+[data-theme="noir"] .MuiInputBase-input,
+[data-theme="noir"] .MuiInputLabel-root,
+[data-theme="noir"] .MuiTableCell-root {
+  color: #ffffff !important;
+}
+
+[data-theme="noir"] .MuiButton-contained {
+  background: linear-gradient(135deg, #2e2e2e 0%, #171717 100%) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="noir"] .MuiOutlinedInput-root,
+[data-theme="noir"] .MuiFilledInput-root {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Thème noir (affiché quand site = blanc) : sélectionné = fond blanc, texte noir | non sélectionné = fond noir, texte blanc */
+[data-theme="noir"] .nav-item-active.MuiListItemButton-root {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+[data-theme="noir"] .nav-item-active.MuiListItemButton-root:hover {
+  background-color: #f0f0f0 !important;
+  color: #000000 !important;
+}
+[data-theme="noir"] .nav-item-active .MuiListItemIcon-root,
+[data-theme="noir"] .nav-item-active .MuiListItemText-primary {
+  color: #000000 !important;
+}
+[data-theme="noir"] .MuiDrawer-paper .MuiListItemButton-root:not(.nav-item-active) .MuiListItemIcon-root,
+[data-theme="noir"] .MuiDrawer-paper .MuiListItemButton-root:not(.nav-item-active) .MuiListItemText-primary {
+  color: #ffffff !important;
+}
+
+/* ========== THÈME ORANGE ========== */
+[data-theme="orange"] html,
+[data-theme="orange"] body,
+[data-theme="orange"] #root {
+  background: linear-gradient(165deg, #c2410c 0%, #ea580c 50%, #9a3412 100%) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="orange"] .MuiAppBar-root,
+[data-theme="orange"] .MuiDrawer-paper {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="orange"] .MuiPaper-root,
+[data-theme="orange"] .MuiCard-root,
+[data-theme="orange"] .MuiDialog-paper {
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.95) 0%, rgba(249, 115, 22, 0.9) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="orange"] .MuiTypography-root,
+[data-theme="orange"] .MuiListItemText-primary,
+[data-theme="orange"] .MuiInputBase-input,
+[data-theme="orange"] .MuiInputLabel-root,
+[data-theme="orange"] .MuiTableCell-root {
+  color: #ffffff !important;
+}
+
+[data-theme="orange"] .MuiButton-contained {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%) !important;
+  color: #ffffff !important;
+}
+
+/* ========== THÈME VIOLET ========== */
+[data-theme="violet"] html,
+[data-theme="violet"] body,
+[data-theme="violet"] #root {
+  background: linear-gradient(165deg, #6b21a8 0%, #7c3aed 50%, #5b21b6 100%) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="violet"] .MuiAppBar-root,
+[data-theme="violet"] .MuiDrawer-paper {
+  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="violet"] .MuiPaper-root,
+[data-theme="violet"] .MuiCard-root,
+[data-theme="violet"] .MuiDialog-paper {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.95) 0%, rgba(139, 92, 246, 0.9) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="violet"] .MuiTypography-root,
+[data-theme="violet"] .MuiListItemText-primary,
+[data-theme="violet"] .MuiInputBase-input,
+[data-theme="violet"] .MuiInputLabel-root,
+[data-theme="violet"] .MuiTableCell-root {
+  color: #ffffff !important;
+}
+
+[data-theme="violet"] .MuiButton-contained {
+  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%) !important;
+  color: #ffffff !important;
+}
+
+/* ========== THÈME ROUGE ========== */
+[data-theme="rouge"] html,
+[data-theme="rouge"] body,
+[data-theme="rouge"] #root {
+  background: linear-gradient(165deg, #b91c1c 0%, #dc2626 50%, #991b1b 100%) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="rouge"] .MuiAppBar-root,
+[data-theme="rouge"] .MuiDrawer-paper {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="rouge"] .MuiPaper-root,
+[data-theme="rouge"] .MuiCard-root,
+[data-theme="rouge"] .MuiDialog-paper {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.95) 0%, rgba(239, 68, 68, 0.9) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="rouge"] .MuiTypography-root,
+[data-theme="rouge"] .MuiListItemText-primary,
+[data-theme="rouge"] .MuiInputBase-input,
+[data-theme="rouge"] .MuiInputLabel-root,
+[data-theme="rouge"] .MuiTableCell-root {
+  color: #ffffff !important;
+}
+
+[data-theme="rouge"] .MuiButton-contained {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
+  color: #ffffff !important;
+}
+
+/* ========== THÈME JAUNE ========== */
+[data-theme="jaune"] html,
+[data-theme="jaune"] body,
+[data-theme="jaune"] #root {
+  background: linear-gradient(165deg, #a16207 0%, #ca8a04 50%, #854d0e 100%) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="jaune"] .MuiAppBar-root,
+[data-theme="jaune"] .MuiDrawer-paper {
+  background: linear-gradient(135deg, #ca8a04 0%, #eab308 100%) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="jaune"] .MuiPaper-root,
+[data-theme="jaune"] .MuiCard-root,
+[data-theme="jaune"] .MuiDialog-paper {
+  background: linear-gradient(135deg, rgba(202, 138, 4, 0.95) 0%, rgba(234, 179, 8, 0.9) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="jaune"] .MuiTypography-root,
+[data-theme="jaune"] .MuiListItemText-primary,
+[data-theme="jaune"] .MuiInputBase-input,
+[data-theme="jaune"] .MuiInputLabel-root,
+[data-theme="jaune"] .MuiTableCell-root {
+  color: #ffffff !important;
+}
+
+[data-theme="jaune"] .MuiButton-contained {
+  background: linear-gradient(135deg, #ca8a04 0%, #eab308 100%) !important;
+  color: #ffffff !important;
+}
+
+/* ========== THÈME BLANC (défaut admin) ========== */
+[data-theme="blanc"] html,
+[data-theme="blanc"] body,
+[data-theme="blanc"] #root {
+  background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 100%) !important;
+  color: #1a1a1a !important;
+}
+
+[data-theme="blanc"] .MuiAppBar-root,
+[data-theme="blanc"] .MuiDrawer-paper {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="blanc"] .MuiPaper-root,
+[data-theme="blanc"] .MuiCard-root,
+[data-theme="blanc"] .MuiDialog-paper {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="blanc"] .MuiTypography-root,
+[data-theme="blanc"] .MuiListItemText-primary,
+[data-theme="blanc"] .MuiInputBase-input,
+[data-theme="blanc"] .MuiInputLabel-root,
+[data-theme="blanc"] .MuiTableCell-root {
+  color: #1a1a1a !important;
+}
+
+/* Thème blanc : sélectionné = fond blanc, texte noir, icône noire | non sélectionné = fond noir, texte blanc */
+[data-theme="blanc"] .nav-item-active.MuiListItem-root {
+  border-right: 3px solid #000000 !important;
+}
+[data-theme="blanc"] .nav-item-active.MuiListItemButton-root {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+[data-theme="blanc"] .nav-item-active.MuiListItemButton-root:hover {
+  background-color: #f0f0f0 !important;
+  color: #000000 !important;
+}
+[data-theme="blanc"] .nav-item-active .MuiListItemIcon-root,
+[data-theme="blanc"] .nav-item-active .MuiListItemText-primary {
+  color: #000000 !important;
+}
+[data-theme="blanc"] .MuiDrawer-paper .MuiListItemButton-root:not(.nav-item-active) {
+  background-color: #171717 !important;
+  color: #ffffff !important;
+}
+[data-theme="blanc"] .MuiDrawer-paper .MuiListItemButton-root:not(.nav-item-active) .MuiListItemIcon-root,
+[data-theme="blanc"] .MuiDrawer-paper .MuiListItemButton-root:not(.nav-item-active) .MuiListItemText-primary {
+  color: #ffffff !important;
+}
+
+/* Éléments communs - icônes et liens */
+[data-theme="blue-white"] .MuiIconButton-root,
+[data-theme="noir"] .MuiIconButton-root,
+[data-theme="orange"] .MuiIconButton-root,
+[data-theme="violet"] .MuiIconButton-root,
+[data-theme="rouge"] .MuiIconButton-root,
+[data-theme="jaune"] .MuiIconButton-root {
+  color: #ffffff !important;
+}
+
+[data-theme="blue-white"] .MuiListItemButton-root:hover,
+[data-theme="noir"] .MuiListItemButton-root:hover,
+[data-theme="orange"] .MuiListItemButton-root:hover,
+[data-theme="violet"] .MuiListItemButton-root:hover,
+[data-theme="rouge"] .MuiListItemButton-root:hover,
+[data-theme="jaune"] .MuiListItemButton-root:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* SimpleBar scrollbar pour thèmes colorés */
+[data-theme="blue-white"] .simplebar-scrollbar::before,
+[data-theme="noir"] .simplebar-scrollbar::before,
+[data-theme="orange"] .simplebar-scrollbar::before,
+[data-theme="violet"] .simplebar-scrollbar::before,
+[data-theme="rouge"] .simplebar-scrollbar::before,
+[data-theme="jaune"] .simplebar-scrollbar::before {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Toolbar sidebar, Menu, Alert */
+[data-theme="blue-white"] .MuiToolbar-root,
+[data-theme="noir"] .MuiToolbar-root,
+[data-theme="orange"] .MuiToolbar-root,
+[data-theme="violet"] .MuiToolbar-root,
+[data-theme="rouge"] .MuiToolbar-root,
+[data-theme="jaune"] .MuiToolbar-root {
+  background: transparent !important;
+}
+
+[data-theme="blue-white"] .MuiMenu-paper { background: linear-gradient(180deg, #1976d2 0%, #1565c0 100%) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; }
+[data-theme="noir"] .MuiMenu-paper { background: linear-gradient(180deg, #1f1f1f 0%, #171717 100%) !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; }
+[data-theme="orange"] .MuiMenu-paper { background: linear-gradient(180deg, #f97316 0%, #ea580c 100%) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; }
+[data-theme="violet"] .MuiMenu-paper { background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; }
+[data-theme="rouge"] .MuiMenu-paper { background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; }
+[data-theme="jaune"] .MuiMenu-paper { background: linear-gradient(180deg, #eab308 0%, #ca8a04 100%) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; }
+
+[data-theme="blue-white"] .MuiAlert-standardSuccess,
+[data-theme="blue-white"] .MuiAlert-standardError,
+[data-theme="noir"] .MuiAlert-standardSuccess,
+[data-theme="noir"] .MuiAlert-standardError,
+[data-theme="orange"] .MuiAlert-standardSuccess,
+[data-theme="orange"] .MuiAlert-standardError,
+[data-theme="violet"] .MuiAlert-standardSuccess,
+[data-theme="violet"] .MuiAlert-standardError,
+[data-theme="rouge"] .MuiAlert-standardSuccess,
+[data-theme="rouge"] .MuiAlert-standardError,
+[data-theme="jaune"] .MuiAlert-standardSuccess,
+[data-theme="jaune"] .MuiAlert-standardError {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+
+/* DataGrid / Table */
+[data-theme="blue-white"] .MuiDataGrid-root,
+[data-theme="noir"] .MuiDataGrid-root,
+[data-theme="orange"] .MuiDataGrid-root,
+[data-theme="violet"] .MuiDataGrid-root,
+[data-theme="rouge"] .MuiDataGrid-root,
+[data-theme="jaune"] .MuiDataGrid-root {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="blue-white"] .MuiDataGrid-cell,
+[data-theme="blue-white"] .MuiDataGrid-columnHeader,
+[data-theme="noir"] .MuiDataGrid-cell,
+[data-theme="noir"] .MuiDataGrid-columnHeader,
+[data-theme="orange"] .MuiDataGrid-cell,
+[data-theme="orange"] .MuiDataGrid-columnHeader,
+[data-theme="violet"] .MuiDataGrid-cell,
+[data-theme="violet"] .MuiDataGrid-columnHeader,
+[data-theme="rouge"] .MuiDataGrid-cell,
+[data-theme="rouge"] .MuiDataGrid-columnHeader,
+[data-theme="jaune"] .MuiDataGrid-cell,
+[data-theme="jaune"] .MuiDataGrid-columnHeader {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Switch, Checkbox */
+[data-theme="blue-white"] .MuiSwitch-track,
+[data-theme="noir"] .MuiSwitch-track,
+[data-theme="orange"] .MuiSwitch-track,
+[data-theme="violet"] .MuiSwitch-track,
+[data-theme="rouge"] .MuiSwitch-track,
+[data-theme="jaune"] .MuiSwitch-track {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Accordion */
+[data-theme="blue-white"] .MuiAccordionSummary-root,
+[data-theme="noir"] .MuiAccordionSummary-root,
+[data-theme="orange"] .MuiAccordionSummary-root,
+[data-theme="violet"] .MuiAccordionSummary-root,
+[data-theme="rouge"] .MuiAccordionSummary-root,
+[data-theme="jaune"] .MuiAccordionSummary-root {
+  color: #ffffff !important;
+}
+
+/* Header (AppBar) : flat UI, pleine largeur, touche le haut et les côtés - tous les thèmes */
+[data-theme="blue-white"] .MuiAppBar-root,
+[data-theme="noir"] .MuiAppBar-root,
+[data-theme="orange"] .MuiAppBar-root,
+[data-theme="violet"] .MuiAppBar-root,
+[data-theme="rouge"] .MuiAppBar-root,
+[data-theme="jaune"] .MuiAppBar-root,
+[data-theme="blanc"] .MuiAppBar-root {
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+}

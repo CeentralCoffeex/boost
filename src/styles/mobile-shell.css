@@ -1,0 +1,164 @@
+:root {
+  --primary-color: #FF4E24;
+  --bg-dark: #0a0a0f;
+  --bg-card: #12121a;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0b0;
+}
+
+/* MOBILE RESET GLOBAL - Force everything clean */
+@media (max-width: 768px) {
+  /* Reset body - scroll autorisé */
+  body {
+    font-family: 'Rajdhani', sans-serif !important;
+    background: #ffffff !important;
+    min-height: 100vh;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  /* Remove any ::before or ::after on body */
+  body::before,
+  body::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  /* Rond de navigation - toujours visible sur mobile */
+  .mobile-bottom-box {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: 99999 !important;
+  }
+  
+  /* Hide the fixed wrapper for the old mobile bottom box */
+  div[style*="position: fixed"][style*="bottom: 30px"]:not(.mobile-bottom-box) {
+    display: none !important;
+  }
+
+  /* Header visible sur mobile (sauf page d'accueil via .home-header dans mobile-responsive.css) */
+}
+
+/* Mobile Bottom Nav Styles */
+.footer-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .footer-nav {
+    display: block;
+    background: transparent;
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+  }
+
+  .nav-items {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 6px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    text-decoration: none;
+    color: var(--text-secondary);
+    flex: 1;
+    min-width: 0;
+    max-width: 70px;
+  }
+
+  .nav-label {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-family: 'Orbitron', sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .nav-item.active {
+    color: var(--primary-color);
+  }
+
+  .nav-item.active .nav-icon {
+    filter: drop-shadow(0 0 8px var(--primary-color));
+    transform: scale(1.1);
+  }
+
+  .nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 3px;
+    background: var(--primary-color);
+    border-radius: 3px;
+    box-shadow: 0 0 10px var(--primary-color);
+  }
+
+  .nav-icon {
+    width: 24px;
+    height: 24px;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .nav-item:active {
+    transform: scale(0.95);
+  }
+
+  /* Admin button special style */
+  .nav-item.admin-btn {
+    color: #FFD700;
+  }
+
+  .nav-item.admin-btn.active {
+    color: #FFD700;
+  }
+
+  .nav-item.admin-btn .nav-icon {
+    filter: drop-shadow(0 0 8px #FFD700);
+  }
+
+  .nav-item.admin-btn.active::after {
+    background: #FFD700;
+    box-shadow: 0 0 10px #FFD700;
+  }
+
+  /* Glitch effect on hover - controlled */
+  .nav-item:hover .nav-icon {
+    animation: glitch-icon 0.3s ease;
+  }
+
+  @keyframes glitch-icon {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    20% { transform: translate(-0.5px, 0.5px) scale(1.02); }
+    40% { transform: translate(0.5px, -0.5px) scale(1.02); }
+    60% { transform: translate(-0.5px, -0.5px) scale(1.02); }
+    80% { transform: translate(0.5px, 0.5px) scale(1.02); }
+  }
+}

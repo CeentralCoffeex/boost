@@ -1,0 +1,8 @@
+node_modules/
+.next/
+__pycache__/
+*.pyc
+
+# Config locale - ne jamais commiter
+.env
+bots/config.json

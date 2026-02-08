@@ -1,0 +1,30 @@
+export const rootPaths = {
+  homeRoot: '/',
+  errorRoot: 'error',
+  profileRoot: 'profile',
+  orderRoot: 'order',
+  productRoot: 'product',
+  servicesRoot: 'services',
+  settingsRoot: 'settings',
+};
+
+export default {
+  home: `/${rootPaths.homeRoot}`,
+  profile: `/${rootPaths.profileRoot}`,
+  profil: '/profil',
+  order: `/${rootPaths.orderRoot}`,
+  product: `/${rootPaths.productRoot}`,
+  productNew: `/product/new`,
+  productEdit: `/product/edit/:id`,
+  categories: '/categories',
+  categoryNew: '/categories/new',
+  categoryEdit: '/categories/edit/:id',
+  subcategoryNew: '/categories/subcategory/new',
+  subcategoryEdit: '/categories/subcategory/edit/:id',
+  telegram: '/telegram',
+  services: `/${rootPaths.servicesRoot}`,
+  servicesNew: `/services/new`,
+  servicesEdit: `/services/edit/:slug`,
+  settings: `/${rootPaths.settingsRoot}`,
+  404: `/${rootPaths.errorRoot}/404`,
+};

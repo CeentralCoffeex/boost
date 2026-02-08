@@ -1,0 +1,6 @@
+# Ignore files with ESLint stack overflow issues
+src/app/unauthorized/page.tsx
+src/app/vos-besoins/page.tsx
+src/components/auth/TwoFactorVerification.tsx
+src/components/features/Slider.tsx
+src/components/Footer.tsx

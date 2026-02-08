@@ -1,0 +1,2 @@
+nohup: ignoring input
+python3: can't open file '/var/www/world13/bot.py': [Errno 2] No such file or directory
