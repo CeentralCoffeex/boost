@@ -2042,9 +2042,8 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
                 [InlineKeyboardButton("📜 Liste boutons", callback_data="adm_btn_list")],
                 [InlineKeyboardButton("➕ Ajouter", callback_data="adm_btn_add"), InlineKeyboardButton("✏️ Modifier", callback_data="adm_btn_edit")],
                 [InlineKeyboardButton("🗑️ Supprimer", callback_data="adm_btn_delete")],
-                [InlineKeyboardButton("🙈 Masquer défaut", callback_data="adm_btn_hide"), InlineKeyboardButton("👀 Afficher défaut", callback_data="adm_btn_show")],
             ])
-            await _admin_edit("Gérez les boutons: ajoutez/modifiez/supprimez, ou masquez/affichez les boutons par défaut.", reply_markup=_with_back(kb))
+            await _admin_edit("🎛️ Gestion des boutons\n\nCréez, modifiez ou supprimez des boutons personnalisés.", reply_markup=_with_back(kb))
             return
         kind = parts[2]
         ident = parts[3] if len(parts) > 3 else ""
@@ -2124,9 +2123,8 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
                 [InlineKeyboardButton("📜 Liste boutons", callback_data="adm_btn_list")],
                 [InlineKeyboardButton("➕ Ajouter", callback_data="adm_btn_add"), InlineKeyboardButton("✏️ Modifier", callback_data="adm_btn_edit")],
                 [InlineKeyboardButton("🗑️ Supprimer", callback_data="adm_btn_delete")],
-                [InlineKeyboardButton("🙈 Masquer défaut", callback_data="adm_btn_hide"), InlineKeyboardButton("👀 Afficher défaut", callback_data="adm_btn_show")],
             ])
-            await _admin_edit("Gérez les boutons: ajoutez/modifiez/supprimez, ou masquez/affichez les boutons par défaut.", reply_markup=_with_back(kb))
+            await _admin_edit("🎛️ Gestion des boutons\n\nCréez, modifiez ou supprimez des boutons personnalisés.", reply_markup=_with_back(kb))
             return
         ident = parts[2]
         cfgv = _load_config()
@@ -2143,33 +2141,8 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
             [InlineKeyboardButton("📜 Liste boutons", callback_data="adm_btn_list")],
             [InlineKeyboardButton("➕ Ajouter", callback_data="adm_btn_add"), InlineKeyboardButton("✏️ Modifier", callback_data="adm_btn_edit")],
             [InlineKeyboardButton("🗑️ Supprimer", callback_data="adm_btn_delete")],
-            [InlineKeyboardButton("🙈 Masquer défaut", callback_data="adm_btn_hide"), InlineKeyboardButton("👀 Afficher défaut", callback_data="adm_btn_show")],
         ])
         await _admin_edit(f"✅ Bouton #{ident} supprimé avec succès.", reply_markup=_with_back(kb))
-        return
-    if data.startswith("adm_pick_hide:"):
-        _, kind, ident = data.split(":", 2)
-        if kind != "def":
-            await _admin_edit("Opération non prise en charge.", reply_markup=_with_back(_admin_keyboard()))
-            return
-        cfgv = _load_config()
-        hidden = set(cfgv.get("hidden_buttons", []))
-        hidden.add(ident)
-        cfgv["hidden_buttons"] = sorted(hidden)
-        _save_config(cfgv)
-        await _admin_edit(f"Bouton par défaut masqué: {ident}.", reply_markup=_with_back(None))
-        return
-    if data.startswith("adm_pick_show:"):
-        _, kind, ident = data.split(":", 2)
-        if kind != "def":
-            await _admin_edit("Opération non prise en charge.", reply_markup=_with_back(_admin_keyboard()))
-            return
-        cfgv = _load_config()
-        hidden = list(cfgv.get("hidden_buttons", []))
-        hidden = [k for k in hidden if k != ident]
-        cfgv["hidden_buttons"] = hidden
-        _save_config(cfgv)
-        await _admin_edit(f"Bouton par défaut affiché: {ident}.", reply_markup=_with_back(None))
         return
     # Links submenu: uniquement les vrais boutons affichés à l'accueil
     if data == "adm_links":
