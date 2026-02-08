@@ -59,17 +59,29 @@ export function stripFormattedText(text: string): string {
 }
 
 /**
+ * Décode les entités HTML
+ */
+function decodeHtmlEntities(text: string): string {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}
+
+/**
  * Affiche un texte formaté avec retours à la ligne préservés.
  * Format: **gras**, [c=#hex]couleur[/c], \n pour les sauts de ligne.
  * Supporte aussi le HTML direct généré par le RichTextEditor.
  */
 export function FormattedTextWithBreaks({ text, className }: { text: string; className?: string }) {
+  // Décoder les entités HTML si elles existent
+  const decodedText = decodeHtmlEntities(text);
+  
   // Si le texte contient des balises HTML (<b>, <i>, <u>, <span style=...>), on l'affiche directement
-  const hasHtmlTags = /<[^>]+>/.test(text);
+  const hasHtmlTags = /<[^>]+>/.test(decodedText);
   
   if (hasHtmlTags) {
     // Remplacer les \n par <br> pour le HTML
-    const htmlWithBreaks = text.replace(/\n/g, '<br>');
+    const htmlWithBreaks = decodedText.replace(/\n/g, '<br>');
     return (
       <span 
         className={className} 

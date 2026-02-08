@@ -35,6 +35,7 @@ const ProductCard = ({
   const [loading, setLoading] = useState(false);
 
   const hasCheckedRef = useRef(false);
+  const decodedSubtitle = decodeHtmlEntities(subtitle);
 
   useEffect(() => {
     if (!productId || hasCheckedRef.current) return;
@@ -154,7 +155,7 @@ const ProductCard = ({
         <h3>{title}</h3>
         <div 
           className="project-subtitle" 
-          dangerouslySetInnerHTML={{ __html: subtitle }}
+          dangerouslySetInnerHTML={{ __html: decodedSubtitle }}
           style={{ 
             overflow: 'hidden',
             textOverflow: 'ellipsis',

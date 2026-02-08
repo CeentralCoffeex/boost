@@ -310,8 +310,12 @@ const ProductEdit = (): ReactElement => {
       {error && <Alert severity="error" sx={{ m: 0, borderRadius: 0 }} onClose={() => setError('')}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ m: 0, borderRadius: 0 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
-      <Box sx={{ width: '100%', boxSizing: 'border-box', overflowX: 'hidden', p: 0, m: 0, minHeight: 'calc(100vh - 70px)' }}>
-        <Grid container spacing={2} sx={{ width: '100%', m: 0, p: 0, px: 1.5, pt: 1.5 }}>
+      {/* ESPACE DE SÉPARATION */}
+      <Box sx={{ height: '20px', bgcolor: '#000' }} />
+
+      {/* CONTENU */}
+      <Box sx={{ width: '100%', boxSizing: 'border-box', overflowX: 'hidden', p: 0, m: 0, minHeight: 'calc(100vh - 100px)', bgcolor: '#0a0a0a', pt: 3 }}>
+        <Grid container spacing={2} sx={{ width: '100%', m: 0, p: 0, px: 2 }}>
           {/* MÉDIAS */}
           <Grid item xs={12} sx={{ pl: '0 !important', pr: '0 !important' }}>
             <Stack direction="row" spacing={1.5}>
