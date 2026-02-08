@@ -24,9 +24,6 @@ function cleanupCache(): void {
   }
 }
 
-// Nettoyage périodique du cache (toutes les 5 minutes)
-setInterval(cleanupCache, 5 * 60 * 1000);
-
 /**
  * Crée une instance de rate limiter
  * @param config Configuration du rate limiting

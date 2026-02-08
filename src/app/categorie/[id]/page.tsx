@@ -51,30 +51,23 @@ export default function CategoryPage() {
     }
     const generation = ++fetchRef.current;
     setLoading(true);
-    const doFetch = (attempt: number) => {
-      fetch(`/api/categories/${encodeURIComponent(id)}`, { cache: 'no-store' })
-        .then(res => res.json())
-        .then(data => {
-          if (generation !== fetchRef.current) return;
-          if (data?.error) {
-            setCategory(null);
-          } else {
-            setCategory(data);
-            setSelectedSubcategoryId(null);
-          }
-          setLoading(false);
-        })
-        .catch(() => {
-          if (generation !== fetchRef.current) return;
-          if (attempt < 2) {
-            setTimeout(() => doFetch(attempt + 1), 200 * (attempt + 1));
-            return;
-          }
+    fetch(`/api/categories/${encodeURIComponent(id)}`, { cache: 'no-store' })
+      .then(res => res.json())
+      .then(data => {
+        if (generation !== fetchRef.current) return;
+        if (data?.error) {
           setCategory(null);
-          setLoading(false);
-        });
-    };
-    doFetch(0);
+        } else {
+          setCategory(data);
+          setSelectedSubcategoryId(null);
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        if (generation !== fetchRef.current) return;
+        setCategory(null);
+        setLoading(false);
+      });
   }, [id]);
 
   const handleBack = () => {

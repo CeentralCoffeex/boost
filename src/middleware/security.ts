@@ -229,6 +229,9 @@ export async function securityMiddleware(
 ): Promise<NextResponse | null> {
   const clientIP = getClientIP(request)
   const pathname = request.nextUrl.pathname
+
+  // Nettoyage lazy des caches expirés (pas de setInterval)
+  cleanupSecurityCaches()
   
   // Charger les règles IP (avec cache)
   if (ipRulesCache.length === 0) {
@@ -326,6 +329,3 @@ export function cleanupSecurityCaches(): void {
     }
   })
 }
-
-// Nettoyer les caches toutes les 5 minutes
-setInterval(cleanupSecurityCaches, 5 * 60 * 1000)

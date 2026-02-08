@@ -44,15 +44,7 @@ export default function MobileServiceCarousel() {
       });
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % services.length);
-    }, 4000); // 4 seconds per slide
-
-    return () => clearInterval(timer);
-  }, [services.length]);
-
-  const currentService = services[currentIndex];
+  const currentService = services[currentIndex] ?? services[0];
 
   if (!currentService) return null;
 

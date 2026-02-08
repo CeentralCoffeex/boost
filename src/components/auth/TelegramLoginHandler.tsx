@@ -14,24 +14,8 @@ export default function TelegramLoginHandler() {
   const [initDataReady, setInitDataReady] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-    let attempts = 0;
-    const maxAttempts = 80;
-    const check = () => {
-      if (cancelled || attempts++ > maxAttempts) return;
-      const id = getInitData();
-      if (id) {
-        setInitDataReady(true);
-        return;
-      }
-      (window as Window & { Telegram?: { WebApp?: { ready: () => void } } }).Telegram?.WebApp?.ready?.();
-      setTimeout(check, 150);
-    };
-    const t = setTimeout(check, 50);
-    return () => {
-      cancelled = true;
-      clearTimeout(t);
-    };
+    const id = getInitData();
+    setInitDataReady(!!id);
   }, []);
 
   const doSignIn = (initData: string) => {

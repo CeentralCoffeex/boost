@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { getInitData } from '@/lib/telegram-client';
 
 // Injected at build time via next.config.js env (from TELEGRAM_ONLY in .env)
@@ -8,14 +8,13 @@ const TELEGRAM_ONLY = process.env.NEXT_PUBLIC_TELEGRAM_ONLY === 'true';
 
 /**
  * Bloque l'accès au site si l'utilisateur n'ouvre pas via Telegram WebApp.
- * Vérifie initData depuis Telegram.WebApp ou hash/query (tgWebAppData).
+ * initData disponible dès le chargement (script beforeInteractive).
  */
 export default function TelegramAccessGuard({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [isViaTelegram, setIsViaTelegram] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -23,30 +22,12 @@ export default function TelegramAccessGuard({
       setIsViaTelegram(true);
       return;
     }
-
-    let cancelled = false;
-    const check = () => {
-      if (cancelled || typeof window === 'undefined') return;
-      try {
-        const initData = getInitData();
-        if (initData) {
-          setIsViaTelegram(true);
-          return;
-        }
-        window.Telegram?.WebApp?.ready?.();
-        timersRef.current.push(setTimeout(check, 200));
-      } catch {
-        setIsViaTelegram(false);
-      }
-    };
-    check();
-    timersRef.current.push(setTimeout(check, 300), setTimeout(check, 800));
-
-    return () => {
-      cancelled = true;
-      timersRef.current.forEach(clearTimeout);
-      timersRef.current = [];
-    };
+    try {
+      const initData = getInitData();
+      setIsViaTelegram(!!initData);
+    } catch {
+      setIsViaTelegram(false);
+    }
   }, []);
 
   useEffect(() => {

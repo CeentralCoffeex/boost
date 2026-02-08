@@ -128,35 +128,30 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
       .catch(() => {});
   }, []);
 
-  // Doc Telegram : "transmit initData at each request" — pas de cookies/session
+  // Doc Telegram : initData disponible dès le chargement (script beforeInteractive)
   const [profileLoading, setProfileLoading] = useState(!initialTelegramInfo);
   useEffect(() => {
     let cancelled = false;
-    const run = (attempt = 0) => {
-      if (cancelled) return;
-      const initData = getInitData();
-      if (!initData) {
-        if (attempt < 20) setTimeout(() => run(attempt + 1), 100);
-        else setProfileLoading(false);
-        return;
-      }
-      fetch('/api/telegram/me', {
-        headers: { Authorization: `tma ${initData}` },
+    const initData = getInitData();
+    if (!initData) {
+      setProfileLoading(false);
+      return;
+    }
+    fetch('/api/telegram/me', {
+      headers: { Authorization: `tma ${initData}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (data?.success && data?.telegramInfo) {
+          setTelegramInfo((prev) =>
+            prev ? { ...prev, ...data.telegramInfo } : data.telegramInfo
+          );
+          if (data.telegramInfo?.telegramPhoto) setPhotoKey((k) => k + 1);
+        }
+        setProfileLoading(false);
       })
-        .then((res) => res.json())
-        .then((data) => {
-          if (cancelled) return;
-          if (data?.success && data?.telegramInfo) {
-            setTelegramInfo((prev) =>
-              prev ? { ...prev, ...data.telegramInfo } : data.telegramInfo
-            );
-            if (data.telegramInfo?.telegramPhoto) setPhotoKey((k) => k + 1);
-          }
-          setProfileLoading(false);
-        })
-        .catch(() => setProfileLoading(false));
-    };
-    run();
+      .catch(() => setProfileLoading(false));
     return () => { cancelled = true; };
   }, []);
 
