@@ -80,6 +80,8 @@ export function decodeHtmlEntities(text: string | null | undefined): string {
  * Supporte aussi le HTML direct généré par le RichTextEditor.
  */
 export function FormattedTextWithBreaks({ text, className }: { text: string; className?: string }) {
+  if (!text) return <span className={className}></span>;
+  
   // Décoder les entités HTML si elles existent
   const decodedText = decodeHtmlEntities(text);
   
@@ -92,7 +94,7 @@ export function FormattedTextWithBreaks({ text, className }: { text: string; cla
     return (
       <span 
         className={className} 
-        dangerouslySetInnerHTML={{ __html: htmlWithBreaks || '' }}
+        dangerouslySetInnerHTML={{ __html: htmlWithBreaks }}
       />
     );
   }

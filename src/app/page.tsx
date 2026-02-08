@@ -9,6 +9,13 @@ import MenuBar from '@/components/home/MenuBar'
 import ProductThumbnail from '@/components/product/ProductThumbnail'
 import '@/styles/index-mobile.css'
 
+// Fonction pour gérer l'affichage HTML en toute sécurité
+const safeHtmlContent = (content: any): string => {
+  if (!content) return '';
+  if (typeof content !== 'string') return '';
+  return content;
+};
+
 // Composant Carte Produit - étiquette sur image, bouton Détails redesigné, like
 const ProductCard = ({ 
   title, 
@@ -154,7 +161,7 @@ const ProductCard = ({
         <h3>{title}</h3>
         <div 
           className="project-subtitle" 
-          dangerouslySetInnerHTML={{ __html: subtitle || '' }}
+          dangerouslySetInnerHTML={{ __html: safeHtmlContent(subtitle) }}
           style={{ 
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -304,7 +311,7 @@ export default function HomePage() {
                         )}
                       </div>
                       <h3>{category.name}</h3>
-                      <div dangerouslySetInnerHTML={{ __html: category.subtitle || '' }} />
+                      <div dangerouslySetInnerHTML={{ __html: safeHtmlContent(category.subtitle) }} />
                     </div>
                   ))}
                 </div>

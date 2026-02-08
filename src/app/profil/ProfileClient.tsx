@@ -27,13 +27,20 @@ function hexToRgb(hex: string): string {
   return `${r}, ${g}, ${b}`;
 }
 
+// Fonction pour gérer l'affichage HTML en toute sécurité
+const safeHtmlContent = (content: any): string => {
+  if (!content) return '';
+  if (typeof content !== 'string') return '';
+  return content;
+};
+
 /** Parse **bold**, [c=#hex]texte coloré[/c] et HTML */
 function parseFormattedText(text: string): React.ReactNode {
   // Si le texte contient des balises HTML, l'afficher directement
-  const decodedText = decodeHtmlEntities(text);
+  const decodedText = safeHtmlContent(decodeHtmlEntities(text));
   const hasHtmlTags = /<[^>]+>/.test(decodedText);
   if (hasHtmlTags) {
-    return <span dangerouslySetInnerHTML={{ __html: decodedText || '' }} />;
+    return <span dangerouslySetInnerHTML={{ __html: decodedText }} />;
   }
   
   // Sinon, parser les balises custom
@@ -83,11 +90,11 @@ function parseFormattedText(text: string): React.ReactNode {
 
 function renderBlockContent(content: string) {
   // Si le contenu contient des balises HTML, l'afficher directement
-  const decodedContent = decodeHtmlEntities(content);
+  const decodedContent = safeHtmlContent(decodeHtmlEntities(content));
   const hasHtmlTags = /<[^>]+>/.test(decodedContent);
   if (hasHtmlTags) {
     const htmlWithBreaks = decodedContent.replace(/\n/g, '<br>');
-    return <div dangerouslySetInnerHTML={{ __html: htmlWithBreaks || '' }} />;
+    return <div dangerouslySetInnerHTML={{ __html: htmlWithBreaks }} />;
   }
   
   // Sinon, parser les listes et formatage custom
