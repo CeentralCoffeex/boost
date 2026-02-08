@@ -244,7 +244,7 @@ const ProductEdit = (): ReactElement => {
   return (
     <Box sx={{ pb: 4, bgcolor: '#000', minHeight: '100vh', width: '100%', overflowX: 'hidden' }}>
       {/* Header */}
-      <Box sx={{ bgcolor: '#000', borderBottom: '1px solid #222', py: 2, px: 2, mb: 3, width: '100%', boxSizing: 'border-box' }}>
+      <Box sx={{ bgcolor: '#000', borderBottom: '1px solid #222', py: 1.5, px: { xs: 1, sm: 2 }, mb: 2, width: '100%', boxSizing: 'border-box' }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <IconButton onClick={() => navigate(-1)} size="medium" sx={{ color: 'white' }}>
@@ -265,10 +265,10 @@ const ProductEdit = (): ReactElement => {
         </Stack>
       </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 2, mx: 2 }} onClose={() => setError('')}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 2, mx: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 1, mx: { xs: 0.5, sm: 1 } }} onClose={() => setError('')}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mb: 1, mx: { xs: 0.5, sm: 1 } }} onClose={() => setSuccess('')}>{success}</Alert>}
 
-      <Box sx={{ px: 2, width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
+      <Box sx={{ width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
         {/* ACCORDION FORMULAIRE */}
         <Accordion 
           defaultExpanded 
@@ -291,8 +291,8 @@ const ProductEdit = (): ReactElement => {
               📝 FORMULAIRE PRODUIT
             </Typography>
           </AccordionSummary>
-          <AccordionDetails sx={{ p: 1.5 }}>
-            <Grid container spacing={1.5}>
+          <AccordionDetails sx={{ p: { xs: 1, sm: 1.5 } }}>
+            <Grid container spacing={1.5} sx={{ width: '100%', margin: 0 }}>
           {/* MÉDIAS */}
           <Grid item xs={12} md={6}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
@@ -370,18 +370,53 @@ const ProductEdit = (): ReactElement => {
             )}
           </Grid>
 
+          {/* TITRE & FARMZ */}
+          <Grid item xs={12}>
+            <Stack direction="row" spacing={1.5}>
+              <TextField 
+                fullWidth 
+                value={formData.title} 
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
+                placeholder="Titre du produit"
+                sx={{ 
+                  flex: 2,
+                  '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, 
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
+                  '& input::placeholder': { color: '#555', opacity: 1 }
+                }} 
+              />
+              <TextField 
+                fullWidth 
+                value={formData.tag} 
+                onChange={(e) => setFormData({ ...formData, tag: e.target.value })} 
+                placeholder="Farmz"
+                sx={{ 
+                  flex: 1,
+                  '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, 
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
+                  '& input::placeholder': { color: '#555', opacity: 1 }
+                }} 
+              />
+            </Stack>
+          </Grid>
+
           {/* CATÉGORIES */}
-          <Grid item xs={12} md={6}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+          <Grid item xs={12}>
+            <Stack direction="row" spacing={1.5}>
               <TextField
                 select
-                label="Catégorie"
                 fullWidth
                 value={selectedParent?.id ?? ''}
                 onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                sx={{ '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, '& .MuiInputLabel-root': { color: '#666' }, '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' } }}
+                placeholder="Catégorie"
+                displayEmpty
+                sx={{ 
+                  '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, 
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
+                  '& .MuiSelect-select': { color: selectedParent?.id ? 'white' : '#555' }
+                }}
               >
-                <MenuItem value="">Aucune</MenuItem>
+                <MenuItem value=""><em style={{ color: '#999' }}>Catégorie</em></MenuItem>
                 {parentCategories.map((cat) => (
                   <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
                 ))}
@@ -389,26 +424,22 @@ const ProductEdit = (): ReactElement => {
               {subcategories.length > 0 && (
                 <TextField
                   select
-                  label="Sous-catégorie"
                   fullWidth
                   value={selectedSubcategoryId || selectedParent?.id || ''}
                   onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                  sx={{ '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, '& .MuiInputLabel-root': { color: '#666' }, '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' } }}
+                  displayEmpty
+                  sx={{ 
+                    '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, 
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
+                    '& .MuiSelect-select': { color: selectedSubcategoryId ? 'white' : '#555' }
+                  }}
                 >
-                  <MenuItem value={selectedParent?.id ?? ''}>{selectedParent?.name ?? '— Principale'}</MenuItem>
+                  <MenuItem value={selectedParent?.id ?? ''}><em style={{ color: '#999' }}>Sous-catégorie</em></MenuItem>
                   {subcategories.map((sub) => (
                     <MenuItem key={sub.id} value={sub.id}>{sub.name}</MenuItem>
                   ))}
                 </TextField>
               )}
-            </Stack>
-          </Grid>
-
-          {/* TITRE & TAG */}
-          <Grid item xs={12} md={8}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-              <TextField label="Titre" fullWidth value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} sx={{ flex: { sm: 2 }, '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, '& .MuiInputLabel-root': { color: '#666' }, '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' } }} />
-              <TextField label="Tag" fullWidth value={formData.tag} onChange={(e) => setFormData({ ...formData, tag: e.target.value })} placeholder="Nouveau, Promo..." sx={{ flex: { sm: 1 }, '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, '& .MuiInputLabel-root': { color: '#666' }, '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' } }} />
             </Stack>
           </Grid>
 
@@ -419,17 +450,27 @@ const ProductEdit = (): ReactElement => {
 
           {/* TARIFS */}
           <Grid item xs={12}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
-              <Typography variant="body2" color="#999" sx={{ fontSize: '12px', fontWeight: 600 }}>
-                💰 {variants.length} tarif(s)
-              </Typography>
-              <Button size="small" onClick={addVariant} sx={{ bgcolor: 'white', color: 'black', py: 0.5, px: 1.5, fontSize: '0.7rem', '&:hover': { bgcolor: '#ddd' } }} startIcon={<IconifyIcon icon="material-symbols:add" width={16} />}>
-                Ajouter
+            <Stack direction="row" justifyContent="flex-end" alignItems="center" sx={{ mb: 1 }}>
+              <Button 
+                size="small" 
+                onClick={addVariant} 
+                sx={{ 
+                  bgcolor: 'white', 
+                  color: 'black', 
+                  py: 0.5, 
+                  px: 1.5, 
+                  fontSize: '0.7rem', 
+                  minWidth: 'auto',
+                  '&:hover': { bgcolor: '#ddd' } 
+                }} 
+                startIcon={<IconifyIcon icon="material-symbols:add" width={14} />}
+              >
+                Tarif
               </Button>
             </Stack>
             {variants.length === 0 ? (
-              <Box sx={{ py: 3, textAlign: 'center', color: '#444' }}>
-                <Typography variant="body2" fontSize="12px">Aucun tarif</Typography>
+              <Box sx={{ py: 2, textAlign: 'center', color: '#444', border: '1px dashed #222', borderRadius: 1 }}>
+                <Typography variant="body2" fontSize="11px">Cliquez sur "Ajouter" pour créer un tarif</Typography>
               </Box>
             ) : (
               <Stack spacing={1.5}>
@@ -439,27 +480,44 @@ const ProductEdit = (): ReactElement => {
                       size="small"
                       value={variant.name}
                       onChange={(e) => updateVariant(index, 'name', e.target.value)}
-                      placeholder="Qté"
-                      sx={{ width: { xs: '60px', sm: '80px' }, flexShrink: 0, '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '0.8rem' }, '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' } }}
+                      placeholder="Quantité"
+                      sx={{ 
+                        width: { xs: '70px', sm: '90px' }, 
+                        flexShrink: 0, 
+                        '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '0.8rem' }, 
+                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
+                        '& input::placeholder': { color: '#555', opacity: 1 }
+                      }}
                     />
                     <TextField
                       select
                       size="small"
-                      value={variant.unit || ''}
-                      onChange={(e) => updateVariant(index, 'unit', e.target.value || null)}
-                      sx={{ width: { xs: '50px', sm: '65px' }, flexShrink: 0, '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '0.8rem' }, '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' } }}
+                      value={variant.unit || 'gramme'}
+                      onChange={(e) => updateVariant(index, 'unit', e.target.value || 'gramme')}
+                      sx={{ 
+                        width: { xs: '55px', sm: '70px' }, 
+                        flexShrink: 0, 
+                        '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '0.9rem', fontWeight: 600 }, 
+                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
+                        '& .MuiSelect-select': { color: 'white', textAlign: 'center' }
+                      }}
                     >
-                      <MenuItem value="">—</MenuItem>
-                      <MenuItem value="gramme">g</MenuItem>
-                      <MenuItem value="ml">ml</MenuItem>
+                      <MenuItem value="gramme" sx={{ fontSize: '0.9rem', fontWeight: 600 }}>g</MenuItem>
+                      <MenuItem value="ml" sx={{ fontSize: '0.9rem', fontWeight: 600 }}>ml</MenuItem>
                     </TextField>
                     <TextField
                       size="small"
                       value={variant.price}
                       type="number"
                       onChange={(e) => updateVariant(index, 'price', e.target.value)}
-                      placeholder="Prix"
-                      sx={{ flex: 1, minWidth: 0, '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '0.8rem' }, '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' } }}
+                      placeholder="Prix €"
+                      sx={{ 
+                        flex: 1, 
+                        minWidth: 0, 
+                        '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '0.8rem' }, 
+                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
+                        '& input::placeholder': { color: '#555', opacity: 1 }
+                      }}
                     />
                     <IconButton onClick={() => removeVariant(index)} size="small" sx={{ color: '#666', '&:hover': { color: '#ff4444' }, flexShrink: 0, p: 0.5 }}>
                       <IconifyIcon icon="material-symbols:delete" width={16} />
@@ -493,7 +551,7 @@ const ProductEdit = (): ReactElement => {
               👁️ PRÉVISUALISATION
             </Typography>
           </AccordionSummary>
-          <AccordionDetails sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+          <AccordionDetails sx={{ p: { xs: 1, sm: 2 }, display: 'flex', justifyContent: 'center' }}>
             <Card sx={{
               maxWidth: 200,
               borderRadius: 3,

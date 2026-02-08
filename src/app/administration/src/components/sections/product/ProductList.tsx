@@ -194,43 +194,49 @@ export default function ProductList() {
   return (
     <Container maxWidth="xl" sx={{ py: 2 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2} sx={{ gap: 2, flexWrap: 'wrap' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-          <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1rem' }}>
-            Produits
-          </Typography>
+        <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1rem' }}>
+          Produits
+        </Typography>
+        <Stack direction="row" spacing={1.5} alignItems="center">
           <TextField
             select
             size="small"
-            label="Filtrer par catégorie"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            sx={{ minWidth: 180 }}
+            displayEmpty
+            sx={{ 
+              minWidth: 200,
+              '& .MuiSelect-select': { 
+                py: 0.75,
+                fontSize: '0.875rem'
+              }
+            }}
           >
-            <MenuItem value="">Toutes</MenuItem>
+            <MenuItem value=""><em>Filtrer par catégorie</em></MenuItem>
             {flatCategories.map((cat) => (
               <MenuItem key={cat.id} value={cat.id}>
                 {cat.name}
               </MenuItem>
             ))}
           </TextField>
-        </Box>
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<IconifyIcon icon="fluent:add-24-filled" width={16} />}
-          onClick={handleCreate}
-          sx={{ 
-            borderRadius: 2,
-            px: 1.5,
-            py: 0.5,
-            boxShadow: 'none',
-            fontSize: '0.75rem',
-            whiteSpace: 'nowrap',
-            height: 32
-          }}
-        >
-          Nouveau
-        </Button>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<IconifyIcon icon="fluent:add-24-filled" width={16} />}
+            onClick={handleCreate}
+            sx={{ 
+              borderRadius: 2,
+              px: 1.5,
+              py: 0.5,
+              boxShadow: 'none',
+              fontSize: '0.75rem',
+              whiteSpace: 'nowrap',
+              height: 32
+            }}
+          >
+            Nouveau
+          </Button>
+        </Stack>
       </Stack>
 
       <Stack spacing={1.5}>

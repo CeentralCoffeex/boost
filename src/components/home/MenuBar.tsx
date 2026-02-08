@@ -48,21 +48,59 @@ export default function MenuBar() {
   return (
     <div className="menu-bar-section w-full px-4 mb-4 relative z-50">
       <div className="menu-bar-wrapper bg-white/95 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 relative">
-        <div className="menu-bar relative min-h-[56px] sm:min-h-[64px] px-4 py-2">
+        <div className="menu-bar" style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          minHeight: '56px',
+          position: 'relative',
+          padding: '8px 16px'
+        }}>
           <div
             ref={menuRef}
-            className="cursor-pointer flex flex-col items-center justify-center gap-0.5 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            className="cursor-pointer"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '2px'
+            }}
             onClick={() => setIsOpen(!isOpen)}
           >
-            <span className="font-montserrat font-semibold text-gray-800 text-base">
+            <span style={{
+              fontFamily: 'Montserrat, sans-serif',
+              fontWeight: 600,
+              color: '#1f2937',
+              fontSize: '16px'
+            }}>
               Menu
             </span>
-            <ChevronDown className={`w-5 h-5 text-gray-800 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown 
+              className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+              style={{ width: '20px', height: '20px', color: '#1f2937' }}
+            />
           </div>
 
           <button
-            className="menu-bar-voir-btn bg-[#1a1a1a] font-montserrat text-white py-2 px-5 border-none rounded-lg font-semibold text-xs cursor-pointer hover:bg-neutral-800 transition-colors whitespace-nowrap absolute right-4 top-1/2 -translate-y-1/2"
-            style={{ maxWidth: '70px', minWidth: '60px' }}
+            className="menu-bar-voir-btn"
+            style={{
+              position: 'absolute',
+              right: '16px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: '#1a1a1a',
+              color: 'white',
+              padding: '8px 16px',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: 600,
+              fontSize: '12px',
+              cursor: 'pointer',
+              fontFamily: 'Montserrat, sans-serif',
+              minWidth: '60px',
+              maxWidth: '70px'
+            }}
             onClick={() => {
               if (selectedUrl) {
                 router.push(selectedUrl);

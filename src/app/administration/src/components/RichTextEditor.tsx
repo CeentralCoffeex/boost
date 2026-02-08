@@ -17,6 +17,11 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [formatStates, setFormatStates] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+  });
 
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== value) {
@@ -24,11 +29,35 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     }
   }, [value]);
 
+  const updateFormatStates = () => {
+    try {
+      setFormatStates({
+        bold: document.queryCommandState('bold'),
+        italic: document.queryCommandState('italic'),
+        underline: document.queryCommandState('underline'),
+      });
+    } catch (e) {
+      // Ignore errors
+    }
+  };
+
   const handleInput = () => {
     if (editorRef.current) {
       onChange(editorRef.current.innerHTML);
     }
+    updateFormatStates();
   };
+
+  const handleSelectionChange = () => {
+    updateFormatStates();
+  };
+
+  useEffect(() => {
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
+    };
+  }, []);
 
   const execCommand = (command: string, value: string | undefined = undefined) => {
     document.execCommand(command, false, value);
@@ -59,7 +88,11 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <IconButton 
             size="small" 
             onClick={() => execCommand('bold')}
-            sx={{ bgcolor: '#0a0a0a', color: 'white', '&:hover': { bgcolor: '#1a1a1a' } }}
+            sx={{ 
+              bgcolor: formatStates.bold ? '#2563eb' : '#0a0a0a', 
+              color: 'white', 
+              '&:hover': { bgcolor: formatStates.bold ? '#1d4ed8' : '#1a1a1a' } 
+            }}
           >
             <IconifyIcon icon="mdi:format-bold" width={16} />
           </IconButton>
@@ -69,7 +102,11 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <IconButton 
             size="small" 
             onClick={() => execCommand('italic')}
-            sx={{ bgcolor: '#0a0a0a', color: 'white', '&:hover': { bgcolor: '#1a1a1a' } }}
+            sx={{ 
+              bgcolor: formatStates.italic ? '#2563eb' : '#0a0a0a', 
+              color: 'white', 
+              '&:hover': { bgcolor: formatStates.italic ? '#1d4ed8' : '#1a1a1a' } 
+            }}
           >
             <IconifyIcon icon="mdi:format-italic" width={16} />
           </IconButton>
@@ -79,7 +116,11 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <IconButton 
             size="small" 
             onClick={() => execCommand('underline')}
-            sx={{ bgcolor: '#0a0a0a', color: 'white', '&:hover': { bgcolor: '#1a1a1a' } }}
+            sx={{ 
+              bgcolor: formatStates.underline ? '#2563eb' : '#0a0a0a', 
+              color: 'white', 
+              '&:hover': { bgcolor: formatStates.underline ? '#1d4ed8' : '#1a1a1a' } 
+            }}
           >
             <IconifyIcon icon="mdi:format-underline" width={16} />
           </IconButton>
