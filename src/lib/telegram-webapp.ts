@@ -18,8 +18,7 @@ export function validateTelegramWebAppData(
     .map(([key, value]) => `${key}=${value}`)
     .join('\n');
 
-  // Telegram docs: secret_key = HMAC_SHA256(bot_token, "WebAppData")
-  const secretKey = crypto.createHmac('sha256', botToken).update('WebAppData').digest();
+  const secretKey = crypto.createHmac('sha256', 'WebAppData').update(botToken).digest();
   const calculatedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
 
   if (hash && calculatedHash.toLowerCase() === hash.toLowerCase()) {

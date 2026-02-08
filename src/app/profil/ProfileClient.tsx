@@ -5,7 +5,6 @@ import { ChevronLeft, Share2, Send, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useTelegramProfile, type TelegramInfo } from '@/contexts/TelegramProfileContext';
-import { getInitData } from '@/lib/telegram-client';
 
 interface ProfileClientProps {
   initialTelegramInfo: TelegramInfo | null;
@@ -185,14 +184,7 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
           {telegramInfo?.isAdmin && (
             <button
               className="page-profil-admin-btn"
-              onClick={() => {
-                const initData = (typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData) || '';
-                if (initData) {
-                  window.location.href = `/administration/index.html#/?tgWebAppData=${encodeURIComponent(initData)}`;
-                } else {
-                  router.push('/admin');
-                }
-              }}
+              onClick={() => router.push('/admin')}
               title="Administration"
               style={{
                 background: 'transparent',
