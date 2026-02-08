@@ -68,8 +68,12 @@ const ProductCard = ({
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (liked || !productId || loading) return;
+    if (liked || !productId || loading) {
+      console.log('[handleLike] Blocked:', { liked, productId, loading });
+      return;
+    }
     
+    console.log('[handleLike] Starting like for product:', productId);
     setLoading(true);
     const previousLiked = liked;
     const previousLikes = likes;
@@ -84,6 +88,8 @@ const ProductCard = ({
         sessionStorage.getItem('tgInitData') || 
         localStorage.getItem('tgInitData');
       
+      console.log('[handleLike] initData available:', !!initData);
+      
       if (initData) {
         headers['Authorization'] = `tma ${initData}`;
         headers['X-Telegram-Init-Data'] = initData;
@@ -96,21 +102,26 @@ const ProductCard = ({
       });
 
       const data = await res.json();
+      console.log('[handleLike] Response:', { ok: res.ok, data });
       
       if (!res.ok) {
+        console.error('[handleLike] Error:', data.error);
         if (data.alreadyLiked) {
           setLiked(true);
         } else {
           setLiked(previousLiked);
           setLikes(previousLikes);
+          alert('Erreur: ' + (data.error || 'Impossible de liker'));
         }
       } else if (data.likesCount !== undefined) {
         setLikes(data.likesCount);
+        console.log('[handleLike] Success! New count:', data.likesCount);
       }
     } catch (error) {
-      console.error('Error liking product:', error);
+      console.error('[handleLike] Exception:', error);
       setLiked(previousLiked);
       setLikes(previousLikes);
+      alert('Erreur réseau');
     } finally {
       setLoading(false);
     }

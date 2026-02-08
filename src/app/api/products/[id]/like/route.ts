@@ -68,6 +68,8 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
+    console.log('[like POST] productId:', id);
+    
     if (!id) {
       return NextResponse.json({ error: 'ID requis' }, { status: 400 });
     }
@@ -75,6 +77,7 @@ export async function POST(
     // Récupérer l'utilisateur (session ou initData)
     const session = await getServerSession(authOptions);
     let userId = session?.user?.id;
+    console.log('[like POST] session userId:', userId);
 
     if (!userId) {
       const authHeader = request.headers.get('authorization');
@@ -82,22 +85,28 @@ export async function POST(
         ? authHeader.substring(4) 
         : request.headers.get('x-telegram-init-data');
 
+      console.log('[like POST] initData present:', !!initData);
+
       if (initData) {
         const botToken = process.env.TELEGRAM_BOT_TOKEN;
         if (botToken) {
           const telegramUser = validateTelegramWebAppData(initData, botToken);
+          console.log('[like POST] telegram user:', telegramUser?.id);
+          
           if (telegramUser) {
             const user = await prisma.user.findUnique({
               where: { telegramId: telegramUser.id.toString() },
               select: { id: true },
             });
             userId = user?.id;
+            console.log('[like POST] found userId from telegram:', userId);
           }
         }
       }
     }
 
     if (!userId) {
+      console.log('[like POST] ERROR: No userId found');
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
@@ -106,7 +115,9 @@ export async function POST(
       return NextResponse.json({ error: 'Produit non trouvé' }, { status: 404 });
     }
 
-    // Vérifier si l'utilisateur a déjà liké
+    // Vérifier si l'utilisateur a déjà liké CE PRODUIT
+    console.log('[like POST] checking existing like for user:', userId, 'product:', id);
+    
     const existingLike = await prisma.productLike.findUnique({
       where: {
         userId_productId: {
@@ -117,9 +128,12 @@ export async function POST(
     });
 
     if (existingLike) {
+      console.log('[like POST] User already liked this product');
       return NextResponse.json({ error: 'Déjà liké', alreadyLiked: true }, { status: 400 });
     }
 
+    console.log('[like POST] Creating new like...');
+    
     // Créer le like et incrémenter le compteur
     await prisma.$transaction([
       prisma.productLike.create({
@@ -133,6 +147,8 @@ export async function POST(
         data: { likesCount: { increment: 1 } },
       }),
     ]);
+    
+    console.log('[like POST] Like created successfully');
 
     const updated = await prisma.product.findUnique({
       where: { id },
