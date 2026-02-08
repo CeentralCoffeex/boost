@@ -39,6 +39,7 @@ model User {
   comments         Comment[]
   messages         ContactMessage[]
   likes            Like[]
+  productLikes     ProductLike[]
   projects         Project[]
   sessions         Session[]
 
@@ -213,8 +214,22 @@ model Product {
 
   // Relations pour les grammages et variétés
   variants          ProductVariant[]
+  likes             ProductLike[]
 
   @@map("products")
+}
+
+model ProductLike {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("product_likes")
 }
 
 model ProductVariant {

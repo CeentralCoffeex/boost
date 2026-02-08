@@ -50,22 +50,15 @@ export async function checkAdminAccess(request?: NextRequest | null): Promise<bo
       : (initDataHeader?.trim() || '');
     if (initData) {
       const botToken = process.env.TELEGRAM_BOT_TOKEN;
-      console.log('[checkAdmin] has botToken:', !!botToken, 'initData length:', initData.length);
       if (botToken) {
         const telegramUser = validateTelegramWebAppData(initData, botToken);
-        console.log('[checkAdmin] validateTelegramWebAppData result:', telegramUser ? `user ${telegramUser.id}` : 'null');
         if (telegramUser) {
           const telegramIdStr = telegramUser.id.toString();
           const cacheKey = `tg:${telegramIdStr}`;
           const cached = getCachedAdmin(cacheKey);
-          if (cached !== null) {
-            console.log('[checkAdmin] cached result:', cached);
-            return cached;
-          }
+          if (cached !== null) return cached;
           const isBotAdm = isBotAdmin(telegramIdStr);
           const dbAdmin = await prisma.telegramAdmin.findFirst({ where: { telegramId: telegramIdStr, isActive: true } });
-          console.log('[checkAdmin] checks: isBotAdmin=', isBotAdm, 'dbAdmin=', !!dbAdmin);
-          // UNIQUEMENT config.json ou TelegramAdmin actif - PAS de role ADMIN
           const ok = isBotAdm || dbAdmin !== null;
           setCachedAdmin(cacheKey, ok);
           return ok;
@@ -129,23 +122,17 @@ async function checkUserAdminAccess(userId?: string, email?: string): Promise<bo
             select: { id: true, telegramId: true, role: true },
           })
         : null;
-    console.log('[checkUserAdminAccess] user:', user ? `${user.id} role=${user.role}` : 'null');
     if (!user) return false;
 
     // config.json (bot) ou TelegramAdmin
     if (user.telegramId) {
-      const isBotAdm = isBotAdmin(user.telegramId);
-      console.log('[checkUserAdminAccess] isBotAdmin:', isBotAdm);
-      if (isBotAdm) return true;
+      if (isBotAdmin(user.telegramId)) return true;
       const dbAdmin = await prisma.telegramAdmin.findFirst({
         where: { telegramId: user.telegramId, isActive: true },
       });
-      console.log('[checkUserAdminAccess] dbAdmin:', !!dbAdmin);
       if (dbAdmin) return true;
     }
 
-    // PLUS DE SECOURS par role ADMIN : UNIQUEMENT config.json ou TelegramAdmin actif
-    console.log('[checkUserAdminAccess] FINAL RESULT: false (not in config or TelegramAdmin)');
     return false;
   } catch (error) {
     console.error('[checkUserAdminAccess] ERROR:', error);

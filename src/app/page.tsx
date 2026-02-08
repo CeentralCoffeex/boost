@@ -33,16 +33,87 @@ const ProductCard = ({
   const hasMedia = !!image || !!videoUrl;
   const [likes, setLikes] = useState(likesCount);
   const [liked, setLiked] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLike = (e: React.MouseEvent) => {
+  useEffect(() => {
+    if (!productId) return;
+    
+    const checkLikeStatus = async () => {
+      try {
+        const headers: HeadersInit = {};
+        const tgWebApp = (window as any)?.Telegram?.WebApp;
+        const initData = tgWebApp?.initData || 
+          sessionStorage.getItem('tgInitData') || 
+          localStorage.getItem('tgInitData');
+        
+        if (initData) {
+          headers['Authorization'] = `tma ${initData}`;
+          headers['X-Telegram-Init-Data'] = initData;
+        }
+
+        const res = await fetch(`/api/products/${productId}/like`, { 
+          method: 'GET',
+          headers,
+          credentials: 'include'
+        });
+        const data = await res.json();
+        setLiked(data.liked || false);
+      } catch (error) {
+        console.error('Error checking like status:', error);
+      }
+    };
+
+    checkLikeStatus();
+  }, [productId]);
+
+  const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (liked || !productId) return;
+    if (liked || !productId || loading) return;
+    
+    setLoading(true);
+    const previousLiked = liked;
+    const previousLikes = likes;
+    
     setLiked(true);
-    setLikes(prev => prev + 1);
-    fetch(`/api/products/${productId}/like`, { method: 'POST' }).catch(() => {
-      setLiked(false);
-      setLikes(likesCount);
-    });
+    setLikes(prev => (prev || 0) + 1);
+
+    try {
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      const tgWebApp = (window as any)?.Telegram?.WebApp;
+      const initData = tgWebApp?.initData || 
+        sessionStorage.getItem('tgInitData') || 
+        localStorage.getItem('tgInitData');
+      
+      if (initData) {
+        headers['Authorization'] = `tma ${initData}`;
+        headers['X-Telegram-Init-Data'] = initData;
+      }
+
+      const res = await fetch(`/api/products/${productId}/like`, { 
+        method: 'POST',
+        headers,
+        credentials: 'include'
+      });
+
+      const data = await res.json();
+      
+      if (!res.ok) {
+        if (data.alreadyLiked) {
+          setLiked(true);
+        } else {
+          setLiked(previousLiked);
+          setLikes(previousLikes);
+        }
+      } else if (data.likesCount !== undefined) {
+        setLikes(data.likesCount);
+      }
+    } catch (error) {
+      console.error('Error liking product:', error);
+      setLiked(previousLiked);
+      setLikes(previousLikes);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -74,7 +145,17 @@ const ProductCard = ({
       )}
       <div className="project-content">
         <h3>{title}</h3>
-        <p className="project-subtitle">{subtitle}</p>
+        <div 
+          className="project-subtitle" 
+          dangerouslySetInnerHTML={{ __html: subtitle }}
+          style={{ 
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical' as any
+          }}
+        />
         <button className="project-button project-button-details">Voir les détails</button>
       </div>
     </div>
@@ -237,7 +318,7 @@ export default function HomePage() {
                       productId={product.id}
                       likesCount={product.likesCount ?? 0}
                       title={product.title}
-                      subtitle={stripFormattedText(product.description || '').substring(0, 20)}
+                      subtitle={product.description || ''}
                       tag={product.category?.name ?? product.category?.parent?.name ?? product.tag ?? undefined}
                       image={product.image || undefined}
                       videoUrl={product.videoUrl || undefined}
@@ -269,7 +350,7 @@ export default function HomePage() {
                       productId={product.id}
                       likesCount={product.likesCount ?? 0}
                       title={product.title}
-                      subtitle={stripFormattedText(product.description || '').substring(0, 20)}
+                      subtitle={product.description || ''}
                       tag={product.category?.name ?? product.category?.parent?.name ?? product.tag ?? undefined}
                       image={product.image || undefined}
                       videoUrl={product.videoUrl || undefined}

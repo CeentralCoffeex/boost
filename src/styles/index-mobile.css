@@ -52,6 +52,8 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  position: relative;
+  z-index: 100;
 }
 .menu-bar-wrapper {
   width: 100%;
@@ -72,6 +74,12 @@
   max-width: 70px;
   flex-shrink: 0;
 }
+
+.menu-dropdown-portal {
+  z-index: 9999 !important;
+  position: absolute !important;
+}
+
 @media (max-width: 360px) {
   .menu-bar-voir-btn {
     min-width: 50px;

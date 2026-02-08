@@ -46,18 +46,18 @@ export default function MenuBar() {
   }, []);
 
   return (
-    <div className="menu-bar-section w-full px-4 mb-4">
+    <div className="menu-bar-section w-full px-4 mb-4 relative z-50">
       <div className="menu-bar-wrapper bg-white/95 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 relative">
         <div className="menu-bar flex items-center justify-between gap-3 min-h-[56px] sm:min-h-[64px] px-4 py-2">
           <div
             ref={menuRef}
-            className="cursor-pointer flex items-center flex-1 min-w-0 overflow-visible"
+            className="cursor-pointer flex flex-col items-center justify-center flex-1 min-w-0 overflow-visible gap-0.5"
             onClick={() => setIsOpen(!isOpen)}
           >
-            <span className="font-montserrat font-semibold text-gray-800 text-base truncate">
+            <span className="font-montserrat font-semibold text-gray-800 text-sm truncate">
               Menu
             </span>
-            <ChevronDown className={`w-5 h-5 text-gray-800 ml-2 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-5 h-5 text-gray-800 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </div>
 
           <button

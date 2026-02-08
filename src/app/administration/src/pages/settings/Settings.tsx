@@ -15,44 +15,24 @@ import {
   AccordionDetails,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import IconButton from '@mui/material/IconButton';
 import IconifyIcon from '../../components/base/IconifyIcon';
 import { fetchWithCSRF } from '../../utils/csrf';
 
 type ThemeId = 'blanc' | 'blue-white' | 'noir' | 'orange' | 'violet' | 'rouge' | 'jaune';
 
 interface SettingsForm {
-  heroTitle: string;
-  heroSubtitle1: string;
-  heroSubtitle2: string;
-  heroSubtitle3: string;
-  heroTagline: string;
-  heroImage: string;
-  heroSeparatorColor: string;
   facebookUrl: string;
   twitterUrl: string;
   instagramUrl: string;
   theme: ThemeId;
-  featuredRecentIds: string;
-  featuredTrendingIds: string;
 }
 
 const Settings = (): ReactElement => {
   const [formData, setFormData] = useState<SettingsForm>({
-    heroTitle: '',
-    heroSubtitle1: '',
-    heroSubtitle2: '',
-    heroSubtitle3: '',
-    heroTagline: '',
-    heroImage: '',
-    heroSeparatorColor: '#bef264',
     facebookUrl: '',
     twitterUrl: '',
     instagramUrl: '',
     theme: 'blanc',
-    featuredRecentIds: '',
-    featuredTrendingIds: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -67,29 +47,10 @@ const Settings = (): ReactElement => {
       const response = await fetch('/api/settings');
       const data = await response.json();
       setFormData({
-        heroTitle: data.heroTitle || '',
-        heroSubtitle1: data.heroSubtitle1 || '',
-        heroSubtitle2: data.heroSubtitle2 || '',
-        heroSubtitle3: data.heroSubtitle3 || '',
-        heroTagline: data.heroTagline || '',
-        heroImage: data.heroImage || '',
-        heroSeparatorColor: data.heroSeparatorColor || '#bef264',
         facebookUrl: data.facebookUrl || '',
         twitterUrl: data.twitterUrl || '',
         instagramUrl: data.instagramUrl || '',
         theme: ['blue-white', 'noir', 'orange', 'violet', 'rouge', 'jaune'].includes(data.theme) ? data.theme : 'blanc',
-        featuredRecentIds: (() => {
-          try {
-            const arr = JSON.parse(data.featuredRecentIds || '[]');
-            return Array.isArray(arr) ? arr.join(', ') : '';
-          } catch { return ''; }
-        })(),
-        featuredTrendingIds: (() => {
-          try {
-            const arr = JSON.parse(data.featuredTrendingIds || '[]');
-            return Array.isArray(arr) ? arr.join(', ') : '';
-          } catch { return ''; }
-        })(),
       });
     } catch {
       setError('Erreur lors du chargement des paramètres');
@@ -102,21 +63,10 @@ const Settings = (): ReactElement => {
     setSuccess('');
 
     try {
-      const idsRecent = formData.featuredRecentIds
-        ? JSON.stringify(formData.featuredRecentIds.split(',').map((s) => s.trim()).filter(Boolean))
-        : null;
-      const idsTrending = formData.featuredTrendingIds
-        ? JSON.stringify(formData.featuredTrendingIds.split(',').map((s) => s.trim()).filter(Boolean))
-        : null;
-      const payload = {
-        ...formData,
-        featuredRecentIds: idsRecent,
-        featuredTrendingIds: idsTrending,
-      };
       const response = await fetchWithCSRF('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
@@ -259,215 +209,7 @@ const Settings = (): ReactElement => {
             </ToggleButtonGroup>
           </Grid>
 
-          {/* Section Hero - Éditeur visuel */}
-          <Grid item xs={12}>
-            <Typography variant="h6" color="common.white" mb={2}>
-              Hero de la page d'accueil
-            </Typography>
-            <Typography variant="body2" color="grey.400" mb={3}>
-              Cliquez sur les textes pour les modifier directement dans la preview.
-            </Typography>
-            
-            {/* Preview Box - Visuel du Hero */}
-            <Box
-              sx={{
-                position: 'relative',
-                width: '100%',
-                height: '380px',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                backgroundImage: `url(${formData.heroImage || '/hero.png'})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                mb: 3,
-                border: '2px solid rgba(255,255,255,0.1)',
-              }}
-            >
-              {/* Bouton modifier photo hero */}
-              <IconButton
-                component="label"
-                sx={{
-                  position: 'absolute',
-                  top: 12,
-                  right: 12,
-                  zIndex: 20,
-                  bgcolor: 'rgba(0,0,0,0.5)',
-                  color: 'white',
-                  '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
-                }}
-              >
-                <PhotoCameraIcon />
-                <input
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    try {
-                      const fd = new FormData();
-                      fd.append('file', file);
-                      const res = await fetchWithCSRF('/api/upload', { method: 'POST', body: fd });
-                      const data = await res.json();
-                      if (data?.url) setFormData(prev => ({ ...prev, heroImage: data.url }));
-                    } catch (err) {
-                      console.error(err);
-                    }
-                    e.target.value = '';
-                  }}
-                />
-              </IconButton>
-              {/* Overlay */}
-              <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.2)' }} />
-              
-              {/* Contenu éditable */}
-              <Box sx={{ position: 'relative', zIndex: 10, p: 3, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                {/* Top */}
-                <Box>
-                  <TextField
-                    fullWidth
-                    variant="standard"
-                    multiline
-                    minRows={1}
-                    maxRows={3}
-                    value={formData.heroSubtitle1}
-                    onChange={(e) => setFormData({ ...formData, heroSubtitle1: e.target.value })}
-                    placeholder="Ligne 1 (ex. BIENVENUE ✨)"
-                    InputProps={{
-                      disableUnderline: true,
-                      sx: {
-                        color: 'white',
-                        fontSize: formData.heroSubtitle1.length > 20 ? 'clamp(1.5rem, 5vw, 2rem)' : 'clamp(1.75rem, 6vw, 2.25rem)',
-                        fontWeight: 300,
-                        fontFamily: "'Orbitron', sans-serif",
-                        textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                        whiteSpace: 'pre-line',
-                      }
-                    }}
-                  />
-                  <TextField
-                    fullWidth
-                    variant="standard"
-                    multiline
-                    minRows={1}
-                    maxRows={3}
-                    value={formData.heroSubtitle3}
-                    onChange={(e) => setFormData({ ...formData, heroSubtitle3: e.target.value })}
-                    placeholder="Ligne 2 (ex. L'EXCELLENCE À VOTRE SERVICE — Entrée = retour à la ligne)"
-                    InputProps={{
-                      disableUnderline: true,
-                      sx: {
-                        color: 'white',
-                        fontSize: formData.heroSubtitle3.length > 15 ? 'clamp(1.5rem, 5vw, 2rem)' : 'clamp(1.75rem, 6vw, 2.25rem)',
-                        fontWeight: 700,
-                        fontFamily: "'Orbitron', sans-serif",
-                        textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                        whiteSpace: 'pre-line',
-                      }
-                    }}
-                  />
-                  <TextField
-                    fullWidth
-                    variant="standard"
-                    value={formData.heroTagline}
-                    onChange={(e) => setFormData({ ...formData, heroTagline: e.target.value })}
-                    placeholder="Luxury Experience"
-                    InputProps={{
-                      disableUnderline: true,
-                      sx: {
-                        color: 'rgba(255,255,255,0.9)',
-                        fontSize: formData.heroTagline.length > 30 ? '8px' : '9px',
-                        fontWeight: 500,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.3em',
-                        borderLeft: '2px solid rgba(255,255,255,0.5)',
-                        pl: 1.5,
-                        mt: 2,
-                      }
-                    }}
-                  />
-                </Box>
-
-                {/* Bottom */}
-                <Box sx={{ textAlign: 'center' }}>
-                  <TextField
-                    fullWidth
-                    variant="standard"
-                    value={formData.heroTitle}
-                    onChange={(e) => setFormData({ ...formData, heroTitle: e.target.value })}
-                    placeholder="PROPULSEZ VOTRE BUISNESS!"
-                    InputProps={{
-                      disableUnderline: true,
-                      sx: {
-                        color: 'white',
-                        fontSize: formData.heroTitle.length > 30 ? 'clamp(1.25rem, 4vw, 1.75rem)' : 'clamp(1.5rem, 5vw, 2rem)',
-                        fontWeight: 900,
-                        fontFamily: "'Orbitron', sans-serif",
-                        textTransform: 'uppercase',
-                        fontStyle: 'italic',
-                        textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                        textAlign: 'center',
-                      }
-                    }}
-                  />
-                </Box>
-              </Box>
-            </Box>
-
-            {/* Ligne animée du hero - couleur */}
-            <Typography variant="subtitle2" color="grey.300" sx={{ mt: 3, mb: 1 }}>
-              Ligne animée du hero
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-              <input
-                type="color"
-                value={formData.heroSeparatorColor || '#bef264'}
-                onChange={(e) => setFormData({ ...formData, heroSeparatorColor: e.target.value })}
-                style={{
-                  width: 48,
-                  height: 36,
-                  padding: 2,
-                  borderRadius: 8,
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  cursor: 'pointer',
-                  backgroundColor: 'transparent',
-                }}
-              />
-              <TextField
-                size="small"
-                value={formData.heroSeparatorColor || '#bef264'}
-                onChange={(e) => setFormData({ ...formData, heroSeparatorColor: e.target.value })}
-                placeholder="#bef264"
-                sx={{
-                  width: 120,
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: 'rgba(255,255,255,0.05)',
-                    color: 'white',
-                    '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
-                  },
-                }}
-              />
-              <Box
-                sx={{
-                  flex: 1,
-                  height: 6,
-                  borderRadius: 9999,
-                  background: `linear-gradient(90deg, ${(formData.heroSeparatorColor || '#bef264')}00 0%, ${(formData.heroSeparatorColor || '#bef264')}33 20%, ${(formData.heroSeparatorColor || '#bef264')}e6 100%)`,
-                  backgroundSize: '200% 100%',
-                  animation: 'heroSeparatorMove 2.4s linear infinite',
-                  '@keyframes heroSeparatorMove': {
-                    '0%': { backgroundPosition: '100% 0' },
-                    '100%': { backgroundPosition: '-100% 0' },
-                  },
-                }}
-              />
-            </Box>
-
-            <Typography variant="body2" color="grey.400" sx={{ mt: 1, mb: 2 }}>
-              Pour « L'excellence à votre service », utilisez le 2ᵉ champ et appuyez sur Entrée pour aller à la ligne.
-            </Typography>
-          </Grid>
-
+          {/* Réseaux sociaux */}
           <Grid item xs={12}>
             <Accordion
               defaultExpanded={false}
@@ -491,7 +233,7 @@ const Settings = (): ReactElement => {
                   Réseaux sociaux
                 </Typography>
                 <Typography variant="body2" color="grey.400">
-                  WhatsApp, Snapchat, Instagram — cliquer pour modifier
+                  WhatsApp, Snapchat, Instagram
                 </Typography>
               </AccordionSummary>
               <AccordionDetails sx={{ pt: 0 }}>
@@ -536,62 +278,6 @@ const Settings = (): ReactElement => {
                           <IconifyIcon icon="mdi:instagram" width={24} style={{ marginRight: 8 }} />
                         ),
                       }}
-                    />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          </Grid>
-
-          {/* Produits mis en avant */}
-          <Grid item xs={12}>
-            <Accordion
-              defaultExpanded={false}
-              sx={{
-                bgcolor: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '8px !important',
-                '&:before': { display: 'none' },
-                boxShadow: 'none',
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon sx={{ color: 'common.white' }} />}
-                aria-controls="featured-content"
-                id="featured-header"
-              >
-                <Typography variant="h6" color="common.white">
-                  Produits mis en avant
-                </Typography>
-                <Typography variant="body2" color="grey.400" sx={{ ml: 1 }}>
-                  Section Récents et Tendances sur la page d&apos;accueil
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails sx={{ pt: 0 }}>
-                <Typography variant="body2" color="grey.400" sx={{ mb: 2 }}>
-                  Entrez les IDs des produits séparés par des virgules. Laissez vide pour utiliser le tri par défaut (date pour Récents, section pour Tendances).
-                </Typography>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      label="IDs produits - Récents"
-                      fullWidth
-                      multiline
-                      minRows={2}
-                      value={formData.featuredRecentIds}
-                      onChange={(e) => setFormData({ ...formData, featuredRecentIds: e.target.value })}
-                      placeholder="id1, id2, id3..."
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      label="IDs produits - Tendances"
-                      fullWidth
-                      multiline
-                      minRows={2}
-                      value={formData.featuredTrendingIds}
-                      onChange={(e) => setFormData({ ...formData, featuredTrendingIds: e.target.value })}
-                      placeholder="id1, id2, id3..."
                     />
                   </Grid>
                 </Grid>

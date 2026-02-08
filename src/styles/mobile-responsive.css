@@ -1069,6 +1069,8 @@ body {
   .my-projects-section {
     margin: 12px 0 20px 0;
     padding: 0;
+    position: relative;
+    z-index: 1;
   }
 
   .my-projects-section h2 {

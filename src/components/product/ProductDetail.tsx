@@ -334,14 +334,36 @@ export default function ProductDetail() {
           ) : null}
 
           {(selectedVariant || (!product.variants || product.variants.length === 0)) && (
-            <>
-              <motion.button
+            <motion.div
+              className="page-product-cart-block"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="page-product-quantity-control">
+                <span className="page-product-qty-label">Quantité</span>
+                <div className="page-product-qty-controls">
+                  <button
+                    type="button"
+                    className="page-product-qty-btn"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  >
+                    −
+                  </button>
+                  <span className="page-product-qty-value">{quantity}</span>
+                  <button
+                    type="button"
+                    className="page-product-qty-btn"
+                    onClick={() => setQuantity(quantity + 1)}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              <button
                 type="button"
                 className="page-product-add-to-cart-btn"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
                 onClick={() => {
                   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
                   const price = selectedVariant ? selectedVariant.price : product.price;
@@ -357,34 +379,10 @@ export default function ProductDetail() {
                   setQuantity(1);
                 }}
               >
-                <ShoppingCart size={20} strokeWidth={2} />
+                <ShoppingCart size={20} strokeWidth={2.5} />
                 Ajouter au panier
-              </motion.button>
-              <motion.div
-                className="page-product-quantity-row"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <span className="page-product-qty-label">Quantité</span>
-              <button
-                type="button"
-                className="page-product-qty-btn"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              >
-                −
-              </button>
-              <span className="page-product-qty-value">{quantity}</span>
-              <button
-                type="button"
-                className="page-product-qty-btn"
-                onClick={() => setQuantity(quantity + 1)}
-              >
-                +
               </button>
             </motion.div>
-            </>
           )}
         </div>
 

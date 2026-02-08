@@ -1,81 +1,107 @@
 import { ReactElement, useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  Stack,
-  Typography,
-  CircularProgress,
-  Grid,
-  Checkbox,
-  FormControlLabel,
-} from '@mui/material';
+import { Box, Card, Stack, Typography, CircularProgress, Alert, Checkbox } from '@mui/material';
 
 interface Product {
   id: string;
   title: string;
-  price?: number;
-  image?: string;
-  videoUrl?: string;
+  image: string;
+  categoryId: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  products: Product[];
 }
 
 const Tendances = (): ReactElement => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [categoriesWithProducts, setCategoriesWithProducts] = useState<Category[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/products').then((res) => res.json()),
-      fetch('/api/settings').then((res) => res.json()),
-    ])
-      .then(([prods, sett]) => {
-        setProducts(Array.isArray(prods) ? prods : []);
-        // Parse existing trending IDs
-        if (sett?.featuredTrendingIds) {
-          try {
-            const ids = JSON.parse(sett.featuredTrendingIds);
-            setSelectedIds(Array.isArray(ids) ? ids : []);
-          } catch {
-            // ignore
-          }
-        }
-        setLoading(false);
-      })
-      .catch(() => {
-        setError('Erreur lors du chargement');
-        setLoading(false);
-      });
+    fetchData();
   }, []);
 
-  const handleToggle = (productId: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
-    );
+  const fetchData = async () => {
+    try {
+      const [productsRes, settingsRes, categoriesRes] = await Promise.all([
+        fetch('/api/products?all=1', { credentials: 'include' }),
+        fetch('/api/settings', { credentials: 'include' }),
+        fetch('/api/categories?all=1', { credentials: 'include' })
+      ]);
+
+      const products: Product[] = await productsRes.json();
+      const settings = await settingsRes.json();
+      const categories = await categoriesRes.json();
+
+      // Grouper produits par catégorie
+      const categoryMap = new Map<string, Category>();
+      
+      categories.forEach((cat: any) => {
+        if (!cat.parentId) { // Seulement catégories principales
+          categoryMap.set(cat.id, {
+            id: cat.id,
+            name: cat.name,
+            products: []
+          });
+        }
+      });
+
+      // Ajouter produits aux catégories
+      products.forEach((product) => {
+        if (product.categoryId && categoryMap.has(product.categoryId)) {
+          categoryMap.get(product.categoryId)!.products.push(product);
+        }
+      });
+
+      // Filtrer catégories vides et convertir en array
+      const categoriesArray = Array.from(categoryMap.values())
+        .filter(cat => cat.products.length > 0)
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      setCategoriesWithProducts(categoriesArray);
+
+      // Charger produits sélectionnés
+      if (settings?.featuredTrendingIds) {
+        setSelectedIds(new Set(settings.featuredTrendingIds));
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSave = async () => {
+  const handleToggle = async (productId: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(productId)) {
+      newSelected.delete(productId);
+    } else {
+      newSelected.add(productId);
+    }
+    setSelectedIds(newSelected);
+
+    // Auto-save
     setSaving(true);
-    setError(null);
-    setSuccess(null);
     try {
-      const res = await fetch('/api/settings', {
+      const response = await fetch('/api/settings', {
         method: 'PUT',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          featuredTrendingIds: JSON.stringify(selectedIds),
-        }),
+          featuredTrendingIds: Array.from(newSelected)
+        })
       });
-      if (!res.ok) throw new Error('Erreur lors de la sauvegarde');
-      setSuccess('Tendances mises à jour avec succès');
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError('Erreur lors de la sauvegarde');
+
+      if (response.ok) {
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 2000);
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
     } finally {
       setSaving(false);
     }
@@ -83,138 +109,203 @@ const Tendances = (): ReactElement => {
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '60vh',
-        }}
-      >
+      <Stack alignItems="center" justifyContent="center" sx={{ minHeight: '60vh' }}>
         <CircularProgress />
-      </Box>
+      </Stack>
     );
   }
 
   return (
-    <Stack gap={3}>
-      <Typography variant="h4" fontWeight={700}>
-        Gérer les tendances
-      </Typography>
-      <Typography variant="body2" color="text.secondary">
-        Sélectionnez les produits à afficher dans la section "Tendances" sur la page d'accueil.
-      </Typography>
-
-      {error && (
-        <Box sx={{ p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
-          <Typography color="error">{error}</Typography>
-        </Box>
-      )}
-
-      {success && (
-        <Box sx={{ p: 2, bgcolor: 'success.light', borderRadius: 1 }}>
-          <Typography color="success.dark">{success}</Typography>
-        </Box>
-      )}
-
-      <Box sx={{ mb: 2 }}>
-        <Button
-          variant="contained"
-          onClick={handleSave}
-          disabled={saving}
-          sx={{ mr: 2 }}
-        >
-          {saving ? 'Enregistrement...' : 'Enregistrer'}
-        </Button>
-        <Typography variant="caption" color="text.secondary">
-          {selectedIds.length} produit{selectedIds.length !== 1 ? 's' : ''} sélectionné{selectedIds.length !== 1 ? 's' : ''}
-        </Typography>
-      </Box>
-
-      <Grid container spacing={2}>
-        {products.map((product) => (
-          <Grid item xs={12} sm={6} md={4} key={product.id}>
-            <Card
-              sx={{
-                p: 2,
-                cursor: 'pointer',
-                border: selectedIds.includes(product.id)
-                  ? '2px solid'
-                  : '1px solid',
-                borderColor: selectedIds.includes(product.id)
-                  ? 'primary.main'
-                  : 'divider',
-                transition: 'all 0.2s',
-                '&:hover': {
-                  boxShadow: 4,
-                },
-              }}
-              onClick={() => handleToggle(product.id)}
-            >
-              {(product.image || product.videoUrl) && (
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: 140,
-                    mb: 2,
-                    borderRadius: 1,
-                    overflow: 'hidden',
-                    bgcolor: 'grey.200',
-                  }}
-                >
-                  {product.videoUrl ? (
-                    <video
-                      src={product.videoUrl}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                      }}
-                    />
-                  ) : product.image ? (
-                    <img
-                      src={product.image}
-                      alt={product.title}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                      }}
-                    />
-                  ) : null}
-                </Box>
-              )}
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedIds.includes(product.id)}
-                    onChange={() => handleToggle(product.id)}
-                  />
-                }
-                label={
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                    {product.title}
-                  </Typography>
-                }
-              />
-              {product.price && (
-                <Typography variant="body2" color="text.secondary">
-                  {product.price}€
-                </Typography>
-              )}
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-
-      {products.length === 0 && (
-        <Box sx={{ textAlign: 'center', py: 4 }}>
-          <Typography color="text.secondary">
-            Aucun produit disponible
+    <Box sx={{ pb: 4 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+        <Box>
+          <Typography variant="h4" fontWeight={700}>
+            Gérer les tendances
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Sélectionnez les produits à afficher dans la section "Tendances"
           </Typography>
         </Box>
+        {saving && (
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <CircularProgress size={20} />
+            <Typography variant="body2" color="text.secondary">
+              Enregistrement...
+            </Typography>
+          </Stack>
+        )}
+      </Stack>
+
+      {showSuccess && (
+        <Alert 
+          severity="success" 
+          sx={{ 
+            mb: 3, 
+            bgcolor: '#10b981', 
+            color: 'white',
+            '& .MuiAlert-icon': { color: 'white' }
+          }}
+        >
+          Tendances enregistrées
+        </Alert>
       )}
-    </Stack>
+
+      <Stack spacing={3}>
+        {categoriesWithProducts.length === 0 ? (
+          <Card sx={{ p: 4, textAlign: 'center' }}>
+            <Typography color="text.secondary">
+              Aucun produit disponible
+            </Typography>
+          </Card>
+        ) : (
+          categoriesWithProducts.map((category) => (
+            <Box key={category.id}>
+              {/* Header catégorie */}
+              <Typography 
+                variant="h6" 
+                fontWeight={700} 
+                sx={{ 
+                  mb: 2, 
+                  pb: 1, 
+                  borderBottom: '2px solid #667eea',
+                  color: '#667eea'
+                }}
+              >
+                {category.name}
+              </Typography>
+
+              {/* Scroll horizontal des produits */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  overflowX: 'auto',
+                  pb: 2,
+                  '&::-webkit-scrollbar': {
+                    height: 8,
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    bgcolor: '#f1f1f1',
+                    borderRadius: 1,
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    bgcolor: '#667eea',
+                    borderRadius: 1,
+                    '&:hover': {
+                      bgcolor: '#5568d3',
+                    },
+                  },
+                }}
+              >
+                {category.products.map((product) => {
+                  const isSelected = selectedIds.has(product.id);
+                  return (
+                    <Card
+                      key={product.id}
+                      onClick={() => handleToggle(product.id)}
+                      sx={{
+                        minWidth: 140,
+                        maxWidth: 140,
+                        cursor: 'pointer',
+                        border: isSelected ? '3px solid #667eea' : '2px solid #e5e7eb',
+                        transition: 'all 0.2s',
+                        bgcolor: isSelected ? '#f5f5ff' : 'white',
+                        '&:hover': {
+                          borderColor: '#667eea',
+                          transform: 'translateY(-2px)',
+                          boxShadow: 2,
+                        },
+                      }}
+                    >
+                      {/* Image */}
+                      <Box
+                        sx={{
+                          height: 100,
+                          bgcolor: '#f8f8f8',
+                          position: 'relative',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {product.image ? (
+                          <img
+                            src={product.image}
+                            alt={product.title}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                            }}
+                          />
+                        ) : (
+                          <Stack
+                            alignItems="center"
+                            justifyContent="center"
+                            sx={{ height: '100%' }}
+                          >
+                            <Typography variant="caption" color="text.secondary">
+                              Pas d'image
+                            </Typography>
+                          </Stack>
+                        )}
+                        {/* Checkbox badge */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 4,
+                            right: 4,
+                            bgcolor: 'white',
+                            borderRadius: '50%',
+                            width: 28,
+                            height: 28,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: 1,
+                          }}
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            size="small"
+                            sx={{ p: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </Box>
+                      </Box>
+
+                      {/* Titre */}
+                      <Box sx={{ p: 1.5 }}>
+                        <Typography
+                          variant="body2"
+                          fontWeight={600}
+                          sx={{
+                            fontSize: '0.8rem',
+                            lineHeight: 1.3,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            minHeight: 32,
+                          }}
+                        >
+                          {product.title}
+                        </Typography>
+                      </Box>
+                    </Card>
+                  );
+                })}
+              </Box>
+            </Box>
+          ))
+        )}
+      </Stack>
+
+      <Box sx={{ mt: 4, p: 2, bgcolor: '#f9fafb', borderRadius: 2, border: '1px solid #e5e7eb' }}>
+        <Typography variant="body2" color="text.secondary">
+          💡 <strong>{selectedIds.size}</strong> produit(s) sélectionné(s) • Enregistrement automatique
+        </Typography>
+      </Box>
+    </Box>
   );
 };
 
