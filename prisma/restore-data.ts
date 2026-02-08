@@ -84,67 +84,74 @@ async function main() {
     // Créer les catégories
     console.log('📂 Création des catégories...');
     
-    const weed = await prisma.category.upsert({
-      where: { url: '/weed' },
-      update: {},
-      create: {
-        name: 'WEED US🍀',
-        subtitle: 'WEED US',
-        url: '/weed',
-        backgroundColor: '#000000',
-        order: 1,
-        isActive: true,
-      }
-    });
+    let weed = await prisma.category.findFirst({ where: { url: '/weed' } });
+    if (!weed) {
+      weed = await prisma.category.create({
+        data: {
+          name: 'WEED US🍀',
+          subtitle: 'WEED US',
+          url: '/weed',
+          backgroundColor: '#000000',
+          order: 1,
+          isActive: true,
+        }
+      });
+      console.log('✓ Catégorie créée: WEED US🍀');
+    }
 
-    const hash = await prisma.category.upsert({
-      where: { url: '/hash' },
-      update: {},
-      create: {
-        name: 'HASH PRENIUM✨',
-        subtitle: 'HASH',
-        url: '/hash',
-        backgroundColor: '#000000',
-        order: 2,
-        isActive: true,
-      }
-    });
+    let hash = await prisma.category.findFirst({ where: { url: '/hash' } });
+    if (!hash) {
+      hash = await prisma.category.create({
+        data: {
+          name: 'HASH PRENIUM✨',
+          subtitle: 'HASH',
+          url: '/hash',
+          backgroundColor: '#000000',
+          order: 2,
+          isActive: true,
+        }
+      });
+      console.log('✓ Catégorie créée: HASH PRENIUM✨');
+    }
 
-    const festifs = await prisma.category.upsert({
-      where: { url: '/festifs' },
-      update: {},
-      create: {
-        name: 'FESTIFS',
-        subtitle: 'Festifs',
-        url: '/festifs',
-        backgroundColor: '#000000',
-        order: 3,
-        isActive: true,
-      }
-    });
+    let festifs = await prisma.category.findFirst({ where: { url: '/festifs' } });
+    if (!festifs) {
+      festifs = await prisma.category.create({
+        data: {
+          name: 'FESTIFS',
+          subtitle: 'Festifs',
+          url: '/festifs',
+          backgroundColor: '#000000',
+          order: 3,
+          isActive: true,
+        }
+      });
+      console.log('✓ Catégorie créée: FESTIFS');
+    }
 
-    const vapes = await prisma.category.upsert({
-      where: { url: '/vapes' },
-      update: {},
-      create: {
-        name: 'VAPES',
-        subtitle: 'Vapes',
-        url: '/vapes',
-        backgroundColor: '#000000',
-        order: 4,
-        isActive: true,
-      }
-    });
+    let vapes = await prisma.category.findFirst({ where: { url: '/vapes' } });
+    if (!vapes) {
+      vapes = await prisma.category.create({
+        data: {
+          name: 'VAPES',
+          subtitle: 'Vapes',
+          url: '/vapes',
+          backgroundColor: '#000000',
+          order: 4,
+          isActive: true,
+        }
+      });
+      console.log('✓ Catégorie créée: VAPES');
+    }
 
     // Créer les produits
     console.log('📦 Création des produits...');
 
     // 1. CALI ZEPHYR VAPES
-    const zephyr = await prisma.product.upsert({
-      where: { id: 'cali-zephyr-vapes' },
-      update: {},
-      create: {
-        id: 'cali-zephyr-vapes',
+    let zephyr = await prisma.product.findFirst({ where: { title: { contains: 'CALI ZEPHYR' } } });
+    if (!zephyr) {
+      zephyr = await prisma.product.create({
+        data: {
         title: 'CALI ZEPHYR VAPES🇺🇸',
         description: 'Vapes premium',
         tag: 'Vapes',
@@ -152,42 +159,46 @@ async function main() {
         section: 'DECOUVRIR',
         categoryId: vapes.id,
         defaultUnit: 'gramme',
-      }
-    });
+        }
+      });
+      console.log('✓ Produit créé: CALI ZEPHYR VAPES');
+    }
 
-    await prisma.productVariant.upsert({
-      where: { id: 'zephyr-1g' },
-      update: {},
-      create: {
-        id: 'zephyr-1g',
-        productId: zephyr.id,
-        name: '1',
-        type: 'weight',
-        price: '50',
-      }
+    const existingZephyrVariant = await prisma.productVariant.findFirst({
+      where: { productId: zephyr.id, name: '1' }
     });
+    if (!existingZephyrVariant) {
+      await prisma.productVariant.create({
+        data: {
+          productId: zephyr.id,
+          name: '1',
+          type: 'weight',
+          price: '50',
+        }
+      });
+    }
 
     // 2. Grape Gas
-    const grapeGas = await prisma.product.upsert({
-      where: { id: 'grape-gas' },
-      update: {},
-      create: {
-        id: 'grape-gas',
+    let grapeGas = await prisma.product.findFirst({ where: { title: { contains: 'Grape Gas' } } });
+    if (!grapeGas) {
+      grapeGas = await prisma.product.create({
+        data: {
         title: '🍒🌸 Grape Gas',
         description: 'DECOUVRIR',
         tag: 'DECOUVRIR',
         basePrice: '50',
         section: 'DECOUVRIR',
         defaultUnit: 'gramme',
-      }
-    });
+        }
+      });
+      console.log('✓ Produit créé: Grape Gas');
+    }
 
     // 3. Écaille de poisson
-    const ecaille = await prisma.product.upsert({
-      where: { id: 'ecaille-poisson' },
-      update: {},
-      create: {
-        id: 'ecaille-poisson',
+    let ecaille = await prisma.product.findFirst({ where: { title: { contains: 'Écaille' } } });
+    if (!ecaille) {
+      ecaille = await prisma.product.create({
+        data: {
         title: 'Écaille de poisson ❄️🐠',
         description: 'Festifs',
         tag: 'Festifs',
@@ -198,24 +209,25 @@ async function main() {
       }
     });
 
-    await prisma.productVariant.upsert({
-      where: { id: 'ecaille-0.5g' },
-      update: {},
-      create: {
-        id: 'ecaille-0.5g',
-        productId: ecaille.id,
-        name: '0.5',
-        type: 'weight',
-        price: '40',
-      }
+    const existingEcailleVariant = await prisma.productVariant.findFirst({
+      where: { productId: ecaille.id, name: '0.5' }
     });
+    if (!existingEcailleVariant) {
+      await prisma.productVariant.create({
+        data: {
+          productId: ecaille.id,
+          name: '0.5',
+          type: 'weight',
+          price: '40',
+        }
+      });
+    }
 
     // 4. Biscotti
-    const biscotti = await prisma.product.upsert({
-      where: { id: 'biscotti' },
-      update: {},
-      create: {
-        id: 'biscotti',
+    let biscotti = await prisma.product.findFirst({ where: { title: { contains: 'Biscotti' } } });
+    if (!biscotti) {
+      biscotti = await prisma.product.create({
+        data: {
         title: '🍪 Biscotti',
         description: 'French Craft Growers',
         tag: 'French Craft',
@@ -225,24 +237,25 @@ async function main() {
       }
     });
 
-    await prisma.productVariant.upsert({
-      where: { id: 'biscotti-100g' },
-      update: {},
-      create: {
-        id: 'biscotti-100g',
-        productId: biscotti.id,
-        name: '100',
-        type: 'weight',
-        price: '450',
-      }
+    const existingBiscottiVariant = await prisma.productVariant.findFirst({
+      where: { productId: biscotti.id, name: '100' }
     });
+    if (!existingBiscottiVariant) {
+      await prisma.productVariant.create({
+        data: {
+          productId: biscotti.id,
+          name: '100',
+          type: 'weight',
+          price: '450',
+        }
+      });
+    }
 
     // 5. Obama Runtz
-    const obama = await prisma.product.upsert({
-      where: { id: 'obama-runtz' },
-      update: {},
-      create: {
-        id: 'obama-runtz',
+    let obama = await prisma.product.findFirst({ where: { title: { contains: 'Obama Runtz' } } });
+    if (!obama) {
+      obama = await prisma.product.create({
+        data: {
         title: '🇺🇸 Obama Runtz',
         description: 'HASH, Dry Sift',
         tag: 'HASH',
@@ -250,8 +263,10 @@ async function main() {
         section: 'DECOUVRIR',
         categoryId: hash.id,
         defaultUnit: 'gramme',
-      }
-    });
+        }
+      });
+      console.log('✓ Produit créé: Banana Splitz');
+    }
 
     // Variantes Obama Runtz
     const obamaVariants = [
@@ -266,25 +281,26 @@ async function main() {
     ];
 
     for (const v of obamaVariants) {
-      await prisma.productVariant.upsert({
-        where: { id: `obama-${v.name}g` },
-        update: {},
-        create: {
-          id: `obama-${v.name}g`,
-          productId: obama.id,
-          name: v.name,
-          type: 'weight',
-          price: v.price,
-        }
+      const existing = await prisma.productVariant.findFirst({
+        where: { productId: obama.id, name: v.name }
       });
+      if (!existing) {
+        await prisma.productVariant.create({
+          data: {
+            productId: obama.id,
+            name: v.name,
+            type: 'weight',
+            price: v.price,
+          }
+        });
+      }
     }
 
     // 6. Banana Splitz
-    await prisma.product.upsert({
-      where: { id: 'banana-splitz' },
-      update: {},
-      create: {
-        id: 'banana-splitz',
+    const bananaExists = await prisma.product.findFirst({ where: { title: { contains: 'Banana Splitz' } } });
+    if (!bananaExists) {
+      await prisma.product.create({
+        data: {
         title: '🍌🍦 Banana Splitz',
         description: 'HASH, Dry Sift',
         tag: 'HASH',
@@ -292,15 +308,16 @@ async function main() {
         section: 'DECOUVRIR',
         categoryId: hash.id,
         defaultUnit: 'gramme',
-      }
-    });
+        }
+      });
+      console.log('✓ Produit créé: Banana Splitz');
+    }
 
     // 7. Forbidden Fruit
-    await prisma.product.upsert({
-      where: { id: 'forbidden-fruit' },
-      update: {},
-      create: {
-        id: 'forbidden-fruit',
+    const forbiddenExists = await prisma.product.findFirst({ where: { title: { contains: 'Forbidden Fruit' } } });
+    if (!forbiddenExists) {
+      await prisma.product.create({
+        data: {
         title: '🍒🔥 Forbidden Fruit',
         description: 'Dry Sift 120u',
         tag: 'Dry Sift',
@@ -308,15 +325,16 @@ async function main() {
         section: 'DECOUVRIR',
         categoryId: hash.id,
         defaultUnit: 'gramme',
-      }
-    });
+        }
+      });
+      console.log('✓ Produit créé: Banana Splitz');
+    }
 
     // 8. Amnesia
-    await prisma.product.upsert({
-      where: { id: 'amnesia' },
-      update: {},
-      create: {
-        id: 'amnesia',
+    const amnesiaExists = await prisma.product.findFirst({ where: { title: { contains: 'Amnesia' } } });
+    if (!amnesiaExists) {
+      await prisma.product.create({
+        data: {
         title: '🍓 Amnesia',
         description: 'DECOUVRIR',
         tag: 'DECOUVRIR',
