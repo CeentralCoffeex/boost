@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Body JSON invalide' }, { status: 400 });
     }
 
-    const validation = validateAndSanitize(productCreateSchema, body, ['title', 'description', 'tag']);
+    const validation = validateAndSanitize(productCreateSchema, body, ['title', 'tag']);
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Données invalides', details: formatZodErrors(validation.errors) },

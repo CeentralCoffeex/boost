@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Heart } from 'lucide-react'
 import MobileHero from '@/components/home/MobileHero'
 import MobileServiceCarousel from '@/components/home/MobileServiceCarousel'
@@ -34,8 +34,10 @@ const ProductCard = ({
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const hasCheckedRef = useRef(false);
+
   useEffect(() => {
-    if (!productId) return;
+    if (!productId || hasCheckedRef.current) return;
     
     const checkLikeStatus = async () => {
       try {
@@ -57,6 +59,7 @@ const ProductCard = ({
         });
         const data = await res.json();
         setLiked(data.liked || false);
+        hasCheckedRef.current = true;
       } catch (error) {
         // Erreur silencieuse
       }
@@ -98,13 +101,19 @@ const ProductCard = ({
       
       if (!res.ok) {
         if (data.alreadyLiked) {
+          // Déjà liké, on garde le like actif
           setLiked(true);
         } else {
+          // Erreur, on restaure l'état précédent
           setLiked(previousLiked);
           setLikes(previousLikes);
         }
-      } else if (data.likesCount !== undefined) {
-        setLikes(data.likesCount);
+      } else {
+        // Succès : le like est confirmé
+        setLiked(true);
+        if (data.likesCount !== undefined) {
+          setLikes(data.likesCount);
+        }
       }
     } catch (error) {
       setLiked(previousLiked);
@@ -301,6 +310,11 @@ export default function HomePage() {
                 </div>
               </div>
 
+              {/* Barre Menu (entre Catégories et Récents) */}
+              <div className="flex-shrink-0 w-full" style={{ marginTop: '20px', marginBottom: '20px' }}>
+                <MenuBar />
+              </div>
+
               {/* Section 2: Récents */}
               <div className="my-projects-section">
                 <h2>Récents</h2>
@@ -360,11 +374,6 @@ export default function HomePage() {
                     </div>
                   )}
                 </div>
-              </div>
-
-              {/* Barre Menu (en bas de page après Tendances) */}
-              <div className="flex-shrink-0 w-full" style={{ marginTop: '20px', marginBottom: '20px' }}>
-                <MenuBar />
               </div>
 
             </div>

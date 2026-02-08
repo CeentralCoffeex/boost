@@ -63,7 +63,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Body JSON invalide' }, { status: 400 });
     }
 
-    const validation = validateAndSanitize(productUpdateSchema, body, ['title', 'description', 'tag']);
+    const validation = validateAndSanitize(productUpdateSchema, body, ['title', 'tag']);
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Données invalides', details: formatZodErrors(validation.errors) },
@@ -153,7 +153,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Body JSON invalide' }, { status: 400 });
     }
 
-    const validation = validateAndSanitize(productPatchSchema, body, ['title', 'description', 'tag']);
+    const validation = validateAndSanitize(productPatchSchema, body, ['title', 'tag']);
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Données invalides', details: formatZodErrors(validation.errors) },

@@ -142,7 +142,7 @@ export async function PUT(
       body = await request.json().catch(() => ({}));
     }
 
-    const validation = validateAndSanitize(categoryUpdateSchema, body, ['name', 'subtitle', 'url']);
+    const validation = validateAndSanitize(categoryUpdateSchema, body, ['name', 'url']);
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Données invalides', details: formatZodErrors(validation.errors) },

@@ -246,9 +246,21 @@ const ProductEdit = (): ReactElement => {
   };
 
   return (
-    <Box sx={{ bgcolor: '#000', minHeight: '100vh', width: '100%', overflowX: 'hidden' }}>
+    <Box sx={{ minHeight: '100vh', width: '100%', m: 0, p: 0, overflowX: 'hidden' }}>
       {/* Header */}
-      <Box sx={{ bgcolor: '#000', borderBottom: '1px solid #222', py: 1.5, px: 1.5, width: '100%', boxSizing: 'border-box' }}>
+      <Box sx={{ 
+        bgcolor: '#000', 
+        borderBottom: '2px solid #333', 
+        py: 2, 
+        px: 2, 
+        width: '100%', 
+        m: 0, 
+        boxSizing: 'border-box',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100
+      }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <IconButton onClick={() => navigate(-1)} size="medium" sx={{ color: 'white', p: 0.5 }}>
@@ -269,7 +281,7 @@ const ProductEdit = (): ReactElement => {
                 px: 2,
                 py: 1,
                 minWidth: '90px',
-                '&:hover': { borderColor: '#666', bgcolor: '#111' }
+                '&:hover': { borderColor: '#666', bgcolor: 'rgba(255,255,255,0.05)' }
               }}
             >
               Annuler
@@ -298,10 +310,10 @@ const ProductEdit = (): ReactElement => {
       {error && <Alert severity="error" sx={{ m: 0, borderRadius: 0 }} onClose={() => setError('')}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ m: 0, borderRadius: 0 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
-      <Box sx={{ width: '100%', boxSizing: 'border-box', overflowX: 'hidden', p: 2, bgcolor: '#0a0a0a', minHeight: 'calc(100vh - 70px)' }}>
-        <Grid container spacing={2} sx={{ width: '100%', m: 0 }}>
+      <Box sx={{ width: '100%', boxSizing: 'border-box', overflowX: 'hidden', p: 0, m: 0, minHeight: 'calc(100vh - 70px)' }}>
+        <Grid container spacing={2} sx={{ width: '100%', m: 0, p: 0, px: 1.5, pt: 1.5 }}>
           {/* MÉDIAS */}
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={{ pl: '0 !important', pr: '0 !important' }}>
             <Stack direction="row" spacing={1.5}>
               <Box sx={{ flex: 1 }}>
                 <Box
@@ -378,7 +390,7 @@ const ProductEdit = (): ReactElement => {
           </Grid>
 
           {/* TITRE & FARMZ */}
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={{ pl: '0 !important', pr: '0 !important' }}>
             <Stack direction="row" spacing={1.5}>
               <TextField 
                 fullWidth 
@@ -408,7 +420,7 @@ const ProductEdit = (): ReactElement => {
           </Grid>
 
           {/* CATÉGORIES */}
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={{ pl: '0 !important', pr: '0 !important' }}>
             <Stack direction="row" spacing={1.5}>
               <TextField
                 select
@@ -451,12 +463,12 @@ const ProductEdit = (): ReactElement => {
           </Grid>
 
           {/* DESCRIPTION */}
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={{ pl: '0 !important', pr: '0 !important' }}>
             <RichTextEditor value={formData.description} onChange={(value) => setFormData({ ...formData, description: value })} placeholder="Description..." height={80} />
           </Grid>
 
           {/* TARIFS */}
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={{ pl: '0 !important', pr: '0 !important' }}>
             <Stack direction="row" justifyContent="flex-end" alignItems="center" sx={{ mb: 1 }}>
               <Button 
                 onClick={addVariant} 

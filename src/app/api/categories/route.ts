@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       body = await request.json().catch(() => ({}));
     }
 
-    const validation = validateAndSanitize(categoryCreateSchema, body, ['name', 'subtitle', 'url']);
+    const validation = validateAndSanitize(categoryCreateSchema, body, ['name', 'url']);
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Données invalides', details: formatZodErrors(validation.errors) },
