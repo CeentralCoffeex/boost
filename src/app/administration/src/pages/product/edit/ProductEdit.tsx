@@ -206,6 +206,11 @@ const ProductEdit = (): ReactElement => {
       return;
     }
 
+    if (!formData.description.trim()) {
+      setError('La description est obligatoire');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setSuccess('');
@@ -213,14 +218,20 @@ const ProductEdit = (): ReactElement => {
     try {
       const payload = {
         ...formData,
-        basePrice: variants.length > 0 ? '' : (variants[0]?.price || '0'),
-        variants: variants.map(v => ({
-          ...v,
-          name: v.name.trim(),
-          price: v.price.toString(),
-          unit: null,
-        })),
+        description: formData.description.trim() || ' ',
+        basePrice: variants.length > 0 ? (variants[0]?.price || '0') : '0',
+        section: 'DECOUVRIR',
+        variants: variants
+          .filter(v => v.name.trim() && v.price)
+          .map(v => ({
+            name: v.name.trim(),
+            type: 'weight' as const,
+            price: v.price.toString(),
+            unit: null,
+          })),
       };
+
+      console.log('Payload envoyé:', JSON.stringify(payload, null, 2));
 
       const method = isEditing ? 'PUT' : 'POST';
       const url = isEditing ? `/api/products/${id}` : '/api/products';
@@ -231,7 +242,11 @@ const ProductEdit = (): ReactElement => {
         setTimeout(() => navigate(-1), 1500);
       } else {
         const data = await result.json();
+        console.error('Erreur API:', data);
         setError(data.error || 'Erreur lors de la sauvegarde');
+        if (data.details) {
+          console.error('Détails validation:', data.details);
+        }
       }
     } catch (error) {
       console.error('Error saving product:', error);
@@ -242,10 +257,10 @@ const ProductEdit = (): ReactElement => {
   };
 
   return (
-    <Box sx={{ pb: 4, bgcolor: '#000', minHeight: '100vh', width: '100%', overflowX: 'hidden' }}>
+    <Box sx={{ bgcolor: '#000', minHeight: '100vh', width: '100%', overflowX: 'hidden' }}>
       {/* Header */}
-      <Box sx={{ bgcolor: '#000', borderBottom: '1px solid #222', py: 1.5, width: '100%', boxSizing: 'border-box' }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ px: { xs: 1, sm: 1.5 } }}>
+      <Box sx={{ bgcolor: '#000', borderBottom: '1px solid #222', py: 1.5, px: 1.5, width: '100%', boxSizing: 'border-box' }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <IconButton onClick={() => navigate(-1)} size="medium" sx={{ color: 'white', p: 0.5 }}>
               <IconifyIcon icon="material-symbols:arrow-back" width={24} />
@@ -291,8 +306,8 @@ const ProductEdit = (): ReactElement => {
         </Stack>
       </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 1, mx: 0 }} onClose={() => setError('')}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 1, mx: 0 }} onClose={() => setSuccess('')}>{success}</Alert>}
+      {error && <Alert severity="error" sx={{ m: 0, borderRadius: 0 }} onClose={() => setError('')}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ m: 0, borderRadius: 0 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
       <Box sx={{ width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
         {/* ACCORDION FORMULAIRE */}

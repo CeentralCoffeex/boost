@@ -87,7 +87,8 @@ export default function MenuBar() {
             style={{
               position: 'absolute',
               right: '16px',
-              top: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
               background: '#1a1a1a',
               color: 'white',
               padding: '8px 16px',

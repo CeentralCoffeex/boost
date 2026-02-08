@@ -144,30 +144,7 @@ const Settings = (): ReactElement => {
         <Grid container spacing={4}>
           {/* Section Hero */}
           <Grid item xs={12}>
-            <Accordion
-              defaultExpanded
-              sx={{
-                bgcolor: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '8px !important',
-                '&:before': { display: 'none' },
-                boxShadow: 'none',
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon sx={{ color: 'common.white' }} />}
-                aria-controls="hero-content"
-                id="hero-header"
-                sx={{
-                  '& .MuiAccordionSummary-content': { alignItems: 'center', gap: 1 },
-                }}
-              >
-                <Typography variant="h6" color="common.white">
-                  Hero de la page d'accueil
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails sx={{ pt: 2 }}>
-                <Grid container spacing={3}>
+            <Grid container spacing={3}>
                   {/* Formulaire Hero */}
                   <Grid item xs={12} md={6}>
                     <Stack spacing={2}>
@@ -325,8 +302,6 @@ const Settings = (): ReactElement => {
                     </Box>
                   </Grid>
                 </Grid>
-              </AccordionDetails>
-            </Accordion>
           </Grid>
 
           {/* Section Thème */}

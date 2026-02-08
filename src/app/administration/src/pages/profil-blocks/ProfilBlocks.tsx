@@ -1,14 +1,15 @@
 import { ReactElement, useEffect, useState } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   Button,
   Stack,
   Alert,
+  TextField,
+  Grid,
 } from '@mui/material';
 import IconifyIcon from '../../components/base/IconifyIcon';
-import RichTextBlock from '../../components/base/RichTextBlock';
+import RichTextEditor from '../../components/RichTextEditor';
 import { fetchWithCSRF } from '../../utils/csrf';
 
 const DEFAULT_BLOCK1_TITLE = 'Bienvenue ⭐';
@@ -112,90 +113,95 @@ const ProfilBlocks = (): ReactElement => {
   }
 
   return (
-    <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
-        <Typography variant="h4" color="common.white">
-          Textes de la page Profil
-        </Typography>
-        <Button
-          variant="contained"
-          onClick={handleSave}
-          disabled={loading}
-          startIcon={<IconifyIcon icon="mdi:content-save" />}
-          sx={{ minWidth: 140 }}
-        >
-          {loading ? 'Enregistrement...' : 'Enregistrer'}
-        </Button>
-      </Stack>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-          {error}
-        </Alert>
-      )}
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
-          {success}
-        </Alert>
-      )}
-
-      <Stack spacing={2}>
-        <Paper
-          sx={{
-            p: { xs: 2, sm: 3 },
-            border: '1px solid',
-            borderColor: 'divider',
-            boxShadow: 2,
-          }}
-        >
-          <Typography variant="h6" color="common.white" mb={1.5}>
-            Bloc 1
+    <Box sx={{ bgcolor: '#000', minHeight: '100vh', width: '100%', overflowX: 'hidden' }}>
+      {/* Header */}
+      <Box sx={{ bgcolor: '#000', borderBottom: '1px solid #222', py: 1.5, px: 1.5, width: '100%', boxSizing: 'border-box', mb: 0 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+          <Typography variant="h6" fontWeight={700} color="white" sx={{ fontSize: { xs: '1.1rem', sm: '1.3rem' } }}>
+            Textes de la page Profil
           </Typography>
-          <Stack spacing={1.5}>
-            <RichTextBlock
-              label="Titre"
-              value={formData.profileBlock1Title}
-              onChange={(v) => setFormData((prev) => ({ ...prev, profileBlock1Title: v }))}
-              minRows={1}
-            />
-            <RichTextBlock
-              label="Contenu"
-              value={formData.profileBlock1Content}
-              onChange={(v) => setFormData((prev) => ({ ...prev, profileBlock1Content: v }))}
-              minRows={5}
-              placeholder="Retours à la ligne préservés. **gras** et [c=#hex]couleur[/c]"
-            />
-          </Stack>
-        </Paper>
+          <Button
+            variant="contained"
+            onClick={handleSave}
+            disabled={loading}
+            sx={{ 
+              bgcolor: 'white', 
+              color: 'black', 
+              fontSize: '0.875rem',
+              px: 2,
+              py: 1,
+              minWidth: '110px',
+              fontWeight: 600,
+              '&:hover': { bgcolor: '#e0e0e0' }
+            }}
+          >
+            {loading ? 'Saving...' : 'Enregistrer'}
+          </Button>
+        </Stack>
+      </Box>
 
-        <Paper
-          sx={{
-            p: { xs: 2, sm: 3 },
-            border: '1px solid',
-            borderColor: 'divider',
-            boxShadow: 2,
-          }}
-        >
-          <Typography variant="h6" color="common.white" mb={1.5}>
-            Bloc 2
-          </Typography>
-          <Stack spacing={1.5}>
-            <RichTextBlock
-              label="Titre"
-              value={formData.profileBlock2Title}
-              onChange={(v) => setFormData((prev) => ({ ...prev, profileBlock2Title: v }))}
-              minRows={1}
-            />
-            <RichTextBlock
-              label="Contenu"
-              value={formData.profileBlock2Content}
-              onChange={(v) => setFormData((prev) => ({ ...prev, profileBlock2Content: v }))}
-              minRows={6}
-              placeholder="Retours à la ligne préservés. **gras** et [c=#hex]couleur[/c]"
-            />
-          </Stack>
-        </Paper>
-      </Stack>
+      {error && <Alert severity="error" sx={{ m: 0, borderRadius: 0 }} onClose={() => setError('')}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ m: 0, borderRadius: 0 }} onClose={() => setSuccess('')}>{success}</Alert>}
+
+      <Box sx={{ p: 2, bgcolor: '#0a0a0a', minHeight: 'calc(100vh - 70px)' }}>
+        <Grid container spacing={3}>
+          {/* Bloc 1 */}
+          <Grid item xs={12}>
+            <Box sx={{ bgcolor: '#000', border: '1px solid #222', borderRadius: 2, p: 2 }}>
+              <Typography variant="subtitle1" fontWeight={600} color="white" mb={2} sx={{ fontSize: '1rem' }}>
+                📋 Bloc 1 - Bienvenue
+              </Typography>
+              <Stack spacing={2}>
+                <TextField
+                  fullWidth
+                  value={formData.profileBlock1Title}
+                  onChange={(e) => setFormData({ ...formData, profileBlock1Title: e.target.value })}
+                  placeholder="Titre du bloc 1"
+                  sx={{ 
+                    '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, 
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
+                    '& input::placeholder': { color: '#555', opacity: 1 }
+                  }}
+                />
+                <RichTextEditor
+                  value={formData.profileBlock1Content}
+                  onChange={(value) => setFormData({ ...formData, profileBlock1Content: value })}
+                  placeholder="Contenu du bloc 1..."
+                  height={150}
+                />
+              </Stack>
+            </Box>
+          </Grid>
+
+          {/* Bloc 2 */}
+          <Grid item xs={12}>
+            <Box sx={{ bgcolor: '#000', border: '1px solid #222', borderRadius: 2, p: 2 }}>
+              <Typography variant="subtitle1" fontWeight={600} color="white" mb={2} sx={{ fontSize: '1rem' }}>
+                📦 Bloc 2 - Livraison
+              </Typography>
+              <Stack spacing={2}>
+                <TextField
+                  fullWidth
+                  value={formData.profileBlock2Title}
+                  onChange={(e) => setFormData({ ...formData, profileBlock2Title: e.target.value })}
+                  placeholder="Titre du bloc 2"
+                  sx={{ 
+                    '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, 
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
+                    '& input::placeholder': { color: '#555', opacity: 1 }
+                  }}
+                />
+                <RichTextEditor
+                  value={formData.profileBlock2Content}
+                  onChange={(value) => setFormData({ ...formData, profileBlock2Content: value })}
+                  placeholder="Contenu du bloc 2..."
+                  height={200}
+                />
+              </Stack>
+            </Box>
+          </Grid>
+        </Grid>
+      </Box>
     </Box>
   );
 };
