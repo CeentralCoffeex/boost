@@ -26,17 +26,15 @@ load_dotenv()
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 # Supprimer le concept de propriétaire: uniquement des administrateurs
 OWNER_ID = 0
-# Admins chargés depuis config.json au démarrage (main()). Fallback si config vide.
-_DEFAULT_ADMINS = [7970178747, 8297042141]
-ADMIN_IDS = list(_DEFAULT_ADMINS)
+ADMIN_IDS: list[int] = []
 
 def _reload_admin_ids() -> None:
     """Recharge ADMIN_IDS depuis config.json en temps réel"""
     try:
         cfg = _load_config()
         cfg_ids = cfg.get("admin_ids", [])
+        ADMIN_IDS.clear()
         if cfg_ids:
-            ADMIN_IDS.clear()
             ADMIN_IDS.extend(sorted(int(a) for a in cfg_ids if a))
     except Exception:
         pass
@@ -3111,15 +3109,16 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
 
 def main() -> None:
-    # Charger les admins UNIQUEMENT depuis config.json (pas de fusion avec DEFAULT)
+    # Charger les admins depuis config.json
     try:
         cfg = _load_config()
         cfg_ids = cfg.get("admin_ids", [])
+        ADMIN_IDS.clear()
         if cfg_ids:
-            ADMIN_IDS.clear()
             ADMIN_IDS.extend(sorted(int(a) for a in cfg_ids if a))
-        # Sinon garder _DEFAULT_ADMINS
-        print(f"Admins chargés: {ADMIN_IDS}")
+        print(f"Admins chargés depuis config.json: {ADMIN_IDS}")
+        if not ADMIN_IDS:
+            print("⚠️ AUCUN ADMIN dans config.json ! Utilisez le bot pour ajouter un admin.")
     except Exception as e:
         print(f"Erreur chargement admins: {e}")
 
