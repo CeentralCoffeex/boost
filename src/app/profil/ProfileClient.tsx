@@ -112,10 +112,13 @@ function renderBlockContent(content: string) {
   return items;
 }
 
+const DEBUG_TELEGRAM = process.env.NEXT_PUBLIC_DEBUG_TELEGRAM === 'true';
+
 export default function ProfileClient({ initialTelegramInfo }: ProfileClientProps) {
   const router = useRouter();
   const [telegramInfo, setTelegramInfo] = useState<TelegramInfo | null>(initialTelegramInfo);
   const [photoKey, setPhotoKey] = useState(0);
+  const [debugInfo, setDebugInfo] = useState<{ initData: string; valid: boolean | null; loading: boolean } | null>(null);
   const [profileBlocks, setProfileBlocks] = useState<{
     block1: { title: string | null; content: string | null };
     block2: { title: string | null; content: string | null };
@@ -126,6 +129,25 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
       .then((res) => res.json())
       .then((data) => setProfileBlocks(data))
       .catch(() => {});
+  }, []);
+
+  // Debug visible sur la page (quand DEBUG_TELEGRAM=true) — visible sur téléphone sans console
+  useEffect(() => {
+    if (!DEBUG_TELEGRAM) return;
+    const initData = getInitData();
+    setDebugInfo({ initData, valid: null, loading: true });
+    if (!initData) {
+      setDebugInfo({ initData: '', valid: false, loading: false });
+      return;
+    }
+    fetch('/api/telegram/debug', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData }),
+    })
+      .then((r) => r.json())
+      .then((d) => setDebugInfo({ initData, valid: d?.ok ?? false, loading: false }))
+      .catch(() => setDebugInfo({ initData, valid: false, loading: false }));
   }, []);
 
   // Rafraîchir la photo Telegram à chaque ouverture de l'app
@@ -460,6 +482,27 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
             </div>
           </div>
         </div>
+
+        {/* Debug connexion — visible sur téléphone quand DEBUG_TELEGRAM=true (pas besoin de console) */}
+        {DEBUG_TELEGRAM && debugInfo && (
+          <div style={{
+            background: debugInfo.valid ? '#dcfce7' : debugInfo.initData ? '#fef3c7' : '#fee2e2',
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 20,
+            fontSize: 13,
+            fontFamily: 'monospace',
+          }}>
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>🔧 Debug connexion</div>
+            <div>initData: {debugInfo.initData ? `✓ ${debugInfo.initData.length} car.` : '✗ absent'}</div>
+            <div>Validation serveur: {debugInfo.loading ? '...' : debugInfo.valid ? '✓ OK' : '✗ invalide'}</div>
+            {!debugInfo.initData && (
+              <div style={{ marginTop: 8, color: '#991b1b' }}>
+                Si ouvert depuis Telegram, vérifier l&apos;URL dans BotFather.
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Rectangles info livraison (contenu éditable depuis l'admin) - style news */}
         <div className="page-profil-info-cards" style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>

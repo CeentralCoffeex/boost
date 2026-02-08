@@ -3,6 +3,7 @@ const nextConfig = {
   // Blocage par défaut : seul TELEGRAM_ONLY=false désactive. Sinon on bloque l'accès hors Telegram.
   env: {
     NEXT_PUBLIC_TELEGRAM_ONLY: process.env.TELEGRAM_ONLY === 'false' ? 'false' : 'true',
+    NEXT_PUBLIC_DEBUG_TELEGRAM: process.env.DEBUG_TELEGRAM === 'true' ? 'true' : 'false',
   },
   // Ajout pour résoudre les problèmes de détection de racine dans les monorepos ou structures complexes
   outputFileTracingRoot: __dirname,
