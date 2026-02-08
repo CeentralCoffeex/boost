@@ -46,6 +46,7 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
         const initData = typeof sessionStorage !== 'undefined'
           ? sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')
           : null;
+        console.log('[admin-layout] initData:', initData ? `${initData.substring(0, 50)}...` : 'null');
         const headers: Record<string, string> = { 'Cache-Control': 'no-cache' };
         if (initData) {
           headers['Authorization'] = `tma ${initData}`;
@@ -54,25 +55,31 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
 
         const sessionRes = await fetch('/api/auth/session', { credentials: 'include' });
         const session = await sessionRes.json();
+        console.log('[admin-layout] session:', session?.user?.email || 'null');
 
         if (!session?.user && !initData) {
+          console.log('[admin-layout] REDIRECT: no session and no initData');
           window.location.href = '/';
           return;
         }
 
+        console.log('[admin-layout] calling /api/admin/verify...');
         const verifyRes = await fetch('/api/admin/verify', {
           credentials: 'include',
           cache: 'no-store',
           headers,
         });
         const data = await verifyRes.json();
+        console.log('[admin-layout] verify response:', data);
         if (data.allowed) {
+          console.log('[admin-layout] AUTH SUCCESS');
           setIsAuthenticated(true);
         } else {
+          console.log('[admin-layout] AUTH FAILED: data.allowed = false');
           window.location.href = '/';
         }
       } catch (error) {
-        console.error('Auth check failed', error);
+        console.error('[admin-layout] Auth check failed', error);
         window.location.href = '/';
       } finally {
         setIsLoading(false);

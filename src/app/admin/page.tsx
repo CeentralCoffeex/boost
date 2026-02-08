@@ -11,6 +11,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     const doVerify = (initData?: string) => {
+      console.log('[admin page] doVerify called, initData:', initData ? 'present' : 'null');
       const headers: Record<string, string> = { 'Cache-Control': 'no-cache' }
       if (initData) {
         headers['Authorization'] = `tma ${initData}`
@@ -23,20 +24,30 @@ export default function AdminPage() {
       })
         .then((res) => res.json())
         .then((data) => {
+          console.log('[admin page] verify result:', data);
           if (!data.allowed) {
+            console.log('[admin page] REDIRECT to /unauthorized');
             router.push('/unauthorized')
           } else {
+            console.log('[admin page] verify SUCCESS');
             if (initData) {
               try {
                 sessionStorage.setItem('tgInitData', initData)
                 localStorage.setItem('tgInitData', initData)
-              } catch {}
+                console.log('[admin page] stored initData');
+              } catch (e) {
+                console.error('[admin page] failed to store initData:', e);
+              }
               setInitDataToPass(initData)
             }
+            console.log('[admin page] setting adminVerified = true');
             setAdminVerified(true)
           }
         })
-        .catch(() => router.push('/unauthorized'))
+        .catch((err) => {
+          console.error('[admin page] verify fetch error:', err);
+          router.push('/unauthorized')
+        })
     }
 
     const initData = getInitData()
