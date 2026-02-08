@@ -4,6 +4,7 @@ import { getToken } from 'next-auth/jwt';
 import { authOptions } from '@/lib/auth';
 import { isBotAdmin } from '@/lib/bot-admins';
 import { prisma } from '@/lib/prisma';
+import { validateTelegramWebAppData } from '@/lib/telegram-webapp';
 
 /** Cache admin check (évite requêtes DB répétées lors d'uploads multiples) - TTL 60s */
 const adminCache = new Map<string, { ok: boolean; expires: number }>();
@@ -29,8 +30,8 @@ function setCachedAdmin(key: string, ok: boolean): void {
 }
 
 /**
- * Vérifie l'accès admin : UNIQUEMENT si telegramId dans config.json OU TelegramAdmin (actif).
- * Le rôle ADMIN en base ne suffit PAS - évite qu'un ex-admin garde l'accès après retrait.
+ * Vérifie l'accès admin : config.json OU TelegramAdmin (actif) OU rôle ADMIN.
+ * Supporte session, JWT, ou initData (WebView Telegram).
  */
 export async function checkAdminAccess(request?: NextRequest | null): Promise<boolean> {
   // API key du bot (pas de cache, rapide)
@@ -40,7 +41,30 @@ export async function checkAdminAccess(request?: NextRequest | null): Promise<bo
     if (apiKey && validApiKey && apiKey === validApiKey) return true;
   }
 
-  // 1. Session ou JWT (priorité au token si request dispo, plus fiable en Route Handlers)
+  // initData (WebView Telegram — pas de cookies)
+  if (request) {
+    const authHeader = request.headers.get('authorization');
+    if (authHeader?.startsWith('tma ')) {
+      const initData = authHeader.slice(4).trim();
+      const botToken = process.env.TELEGRAM_BOT_TOKEN;
+      if (initData && botToken) {
+        const telegramUser = validateTelegramWebAppData(initData, botToken);
+        if (telegramUser) {
+          const telegramIdStr = telegramUser.id.toString();
+          const cacheKey = `tg:${telegramIdStr}`;
+          const cached = getCachedAdmin(cacheKey);
+          if (cached !== null) return cached;
+          const ok = isBotAdmin(telegramIdStr) ||
+            (await prisma.telegramAdmin.findFirst({ where: { telegramId: telegramIdStr, isActive: true } })) !== null ||
+            (await prisma.user.findFirst({ where: { telegramId: telegramIdStr }, select: { role: true } }))?.role === 'ADMIN';
+          setCachedAdmin(cacheKey, ok);
+          return ok;
+        }
+      }
+    }
+  }
+
+  // Session ou JWT
   let userId: string | undefined;
   let email: string | undefined;
   if (request) {

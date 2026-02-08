@@ -43,19 +43,24 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        const initData = typeof sessionStorage !== 'undefined'
+          ? sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')
+          : null;
+        const headers: Record<string, string> = { 'Cache-Control': 'no-cache' };
+        if (initData) headers['Authorization'] = `tma ${initData}`;
+
         const sessionRes = await fetch('/api/auth/session', { credentials: 'include' });
         const session = await sessionRes.json();
 
-        if (!session?.user) {
+        if (!session?.user && !initData) {
           window.location.href = '/';
           return;
         }
 
-        // Vérifier via API : UNIQUEMENT telegramId dans config.json OU TelegramAdmin (le rôle ADMIN ne suffit pas)
         const verifyRes = await fetch('/api/admin/verify', {
           credentials: 'include',
           cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' },
+          headers,
         });
         const data = await verifyRes.json();
         if (data.allowed) {

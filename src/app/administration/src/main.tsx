@@ -10,6 +10,36 @@ import './admin-theme.css';
 
 const THEMES = ['blanc', 'blue-white', 'noir', 'orange', 'violet', 'rouge', 'jaune'] as const;
 
+// Intercepteur fetch : ajoute initData à toutes les requêtes /api/ (WebView Telegram sans cookies)
+(function patchFetch() {
+  const orig = window.fetch;
+  window.fetch = function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    if (typeof url === 'string' && url.includes('/api/')) {
+      try {
+        const d = sessionStorage?.getItem('tgInitData') || localStorage?.getItem('tgInitData');
+        if (d) {
+          const opts = init || {};
+          const headers = new Headers(opts.headers);
+          headers.set('Authorization', `tma ${d}`);
+          return orig.call(this, input, { ...opts, headers });
+        }
+      } catch {}
+    }
+    return orig.call(this, input, init);
+  };
+})();
+
+// Recevoir initData du parent (iframe)
+window.addEventListener('message', (e) => {
+  if (e.data?.type === 'TG_INIT_DATA' && e.data?.initData) {
+    try {
+      sessionStorage.setItem('tgInitData', e.data.initData);
+      localStorage.setItem('tgInitData', e.data.initData);
+    } catch {}
+  }
+});
+
 // Flag global pour savoir si le CSRF est prêt
 (window as any).__csrfReady = false;
 

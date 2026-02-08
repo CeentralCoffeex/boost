@@ -81,24 +81,35 @@ export function uploadWithProgress(
   });
 }
 
+/** initData Telegram (WebView) — pour auth sans cookies */
+export function getInitDataHeader(): Record<string, string> | null {
+  try {
+    const d = sessionStorage?.getItem('tgInitData') || localStorage?.getItem('tgInitData');
+    return d ? { Authorization: `tma ${d}` } : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Effectue une requête fetch avec le token CSRF automatiquement ajouté
+ * Effectue une requête fetch avec le token CSRF et initData (si WebView) automatiquement ajoutés
  */
 export async function fetchWithCSRF(url: string, options: RequestInit = {}): Promise<Response> {
   const method = options.method?.toUpperCase() || 'GET';
   const needsCSRF = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method);
   
-  // S'assurer que le token est disponible pour les requêtes mutantes
   const csrfToken = needsCSRF ? await ensureCSRFToken() : getCSRFToken();
   
   const headers = new Headers(options.headers);
   if (csrfToken && needsCSRF) {
     headers.set('x-csrf-token', csrfToken);
   }
+  const initHdr = getInitDataHeader();
+  if (initHdr?.Authorization) headers.set('Authorization', initHdr.Authorization);
   
   return fetch(url, {
     ...options,
     headers,
-    credentials: options.credentials ?? 'include', // Cookies session pour l'auth
+    credentials: options.credentials ?? 'include',
   });
 }

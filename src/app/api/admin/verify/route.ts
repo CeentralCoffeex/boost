@@ -5,11 +5,13 @@ import { checkAdminAccess } from '@/lib/check-admin-access';
 
 export const dynamic = 'force-dynamic';
 
-/** Accès administration : UNIQUEMENT telegramId dans config.json OU TelegramAdmin (actif). Le rôle ADMIN ne suffit PAS. */
+/** Accès admin : session OU initData (WebView Telegram). */
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const hasInitData = request.headers.get('authorization')?.startsWith('tma ');
+
+    if (!session?.user && !hasInitData) {
       return NextResponse.json({ allowed: false });
     }
 
