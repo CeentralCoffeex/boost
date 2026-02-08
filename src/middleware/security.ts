@@ -45,7 +45,7 @@ const defaultConfig: SecurityConfig = {
   maxLoginAttempts: 12,
   lockoutDuration: 15, // 15 minutes
   rateLimitWindow: 15, // 15 minutes
-  rateLimitMax: 500 // 500 requêtes par 15 minutes
+  rateLimitMax: 50000 // 50000 requêtes par 15 minutes
 }
 
 /**

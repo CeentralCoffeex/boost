@@ -138,7 +138,7 @@ export function rateLimit(config: RateLimitConfig) {
  */
 export const apiRateLimit = rateLimit({
   interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 300, // 300 requêtes par minute
+  uniqueTokenPerInterval: 10000, // 10000 requêtes par minute
 });
 
 /**
@@ -195,19 +195,19 @@ export const RATE_LIMIT_CONFIGS = {
   // Rate limiting général
   general: {
     interval: 60 * 1000, // 1 minute
-    uniqueTokenPerInterval: 300, // 300 requêtes par minute
+    uniqueTokenPerInterval: 10000, // 10000 requêtes par minute
   },
   
   // Rate limiting pour les API
   api: {
     interval: 60 * 1000, // 1 minute
-    uniqueTokenPerInterval: 300, // 300 requêtes par minute
+    uniqueTokenPerInterval: 10000, // 10000 requêtes par minute
   },
   
   // Rate limiting pour les formulaires
   forms: {
     interval: 60 * 1000, // 1 minute
-    uniqueTokenPerInterval: 150, // 150 soumissions par minute
+    uniqueTokenPerInterval: 1000, // 1000 soumissions par minute
   },
   
   // Rate limiting pour l'authentification
@@ -219,13 +219,13 @@ export const RATE_LIMIT_CONFIGS = {
   // Rate limiting pour les uploads
   upload: {
     interval: 60 * 1000, // 1 minute
-    uniqueTokenPerInterval: 100, // 100 uploads par minute
+    uniqueTokenPerInterval: 1000, // 1000 uploads par minute
   },
   
   // Rate limiting pour les recherches
   search: {
     interval: 60 * 1000, // 1 minute
-    uniqueTokenPerInterval: 120, // 120 recherches par minute
+    uniqueTokenPerInterval: 5000, // 5000 recherches par minute
   },
 } as const;
 
