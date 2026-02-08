@@ -116,7 +116,7 @@ const ProductEdit = (): ReactElement => {
         });
         
         // Trier les variantes par prix avant de les afficher
-        const sortedVariants = (product.variants || []).sort((a, b) => {
+        const sortedVariants = (product.variants || []).sort((a: any, b: any) => {
           const priceA = parseFloat(String(a.price || 0).replace(',', '.')) || 0;
           const priceB = parseFloat(String(b.price || 0).replace(',', '.')) || 0;
           return priceA - priceB;
@@ -219,13 +219,13 @@ const ProductEdit = (): ReactElement => {
     try {
       // Trier les variantes par prix avant envoi
       const sortedVariants = [...variants]
-        .filter(v => v.name.trim() && v.price)
-        .sort((a, b) => {
+        .filter((v: any) => v.name.trim() && v.price)
+        .sort((a: any, b: any) => {
           const priceA = parseFloat(String(a.price || 0).replace(',', '.')) || 0;
           const priceB = parseFloat(String(b.price || 0).replace(',', '.')) || 0;
           return priceA - priceB;
         })
-        .map(v => ({
+        .map((v: any) => ({
           name: v.name.trim(),
           type: 'weight' as const,
           price: v.price.toString(),
