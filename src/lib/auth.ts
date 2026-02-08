@@ -239,11 +239,11 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     
-    async signIn({ account }) {
-      // Uniquement autoriser telegram-login
-      if (account?.provider === 'telegram-login') {
-         return true;
-      }
+    async signIn({ user, account }) {
+      // Uniquement autoriser telegram-login (CredentialsProvider)
+      if (account?.provider === 'telegram-login') return true;
+      // CredentialsProvider peut avoir account undefined -> autoriser si user vient de notre authorize
+      if (!account && user?.id) return true;
       return false;
     }
   },

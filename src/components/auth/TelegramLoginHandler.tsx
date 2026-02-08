@@ -38,23 +38,26 @@ export default function TelegramLoginHandler() {
 
       if (!initData) return;
 
-      // Cas 1 : Utilisateur non connecté -> Tenter le login via Telegram
+      // Cas 1 : Utilisateur non connecté -> Login automatique via Telegram (obligatoire si TELEGRAM_ONLY)
       if (status === 'unauthenticated') {
-        console.log('Tentative de connexion via Telegram WebApp...');
-        signIn('telegram-login', { 
-          initData, 
-          redirect: false 
-        }).then((result) => {
-           if (result?.ok) {
-             console.log('Connexion Telegram réussie');
-             window.location.reload();
-           } else {
-             console.warn('Échec de la connexion Telegram. L\'utilisateur n\'est peut-être pas lié.', result);
-             // TODO: Rediriger vers login/register avec un message ?
-           }
-        }).catch(err => {
-            console.error('Erreur lors de la connexion Telegram', err);
-        });
+        let attempts = 0;
+        const maxAttempts = 3;
+        const doSignIn = () => {
+          attempts++;
+          signIn('telegram-login', {
+            initData,
+            redirect: false,
+          }).then((result) => {
+            if (result?.ok) {
+              window.location.reload();
+            } else if (attempts < maxAttempts) {
+              setTimeout(doSignIn, 2000);
+            }
+          }).catch(() => {
+            if (attempts < maxAttempts) setTimeout(doSignIn, 2000);
+          });
+        };
+        doSignIn();
       }
       
       // Cas 2 : Utilisateur connecté -> Tenter de lier le compte Telegram
