@@ -43,8 +43,11 @@ def _is_admin(user_id: int) -> bool:
     try:
         # Recharger depuis config.json pour avoir la liste à jour
         _reload_admin_ids()
-        return bool(user_id) and (user_id in ADMIN_IDS)
-    except Exception:
+        is_adm = bool(user_id) and (user_id in ADMIN_IDS)
+        print(f"[DEBUG] _is_admin({user_id}) -> {is_adm}, ADMIN_IDS={ADMIN_IDS}")
+        return is_adm
+    except Exception as e:
+        print(f"[ERROR] _is_admin error: {e}")
         return False
 WELCOME_IMAGE_PATH = os.getenv("WELCOME_IMAGE_PATH", "IMG.jpg")
 # Par défaut, ouvrir la mini‑app en WebApp dans Telegram si elle est configurée via /admin
@@ -1161,8 +1164,9 @@ def _admin_keyboard():
 
 async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id if update.effective_user else 0
+    print(f"[DEBUG] /admin command from user_id={user_id}")
     if not _is_admin(user_id):
-        await update.message.reply_text("Accès réservé aux administrateurs.")
+        await update.message.reply_text(f"Accès réservé aux administrateurs.\nVotre ID: {user_id}")
         return
     # Réinitialiser la pile de navigation de l'admin pour cette session
     try:
