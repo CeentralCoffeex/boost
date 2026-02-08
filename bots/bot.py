@@ -29,21 +29,33 @@ OWNER_ID = 0
 # Admins chargés depuis config.json au démarrage (main()). Fallback si config vide.
 _DEFAULT_ADMINS = [7970178747, 8297042141]
 ADMIN_IDS = list(_DEFAULT_ADMINS)
+
+def _reload_admin_ids() -> None:
+    """Recharge ADMIN_IDS depuis config.json en temps réel"""
+    try:
+        cfg = _load_config()
+        cfg_ids = cfg.get("admin_ids", [])
+        if cfg_ids:
+            ADMIN_IDS.clear()
+            ADMIN_IDS.extend(sorted(int(a) for a in cfg_ids if a))
+    except Exception:
+        pass
+
 def _is_admin(user_id: int) -> bool:
     try:
+        # Recharger depuis config.json pour avoir la liste à jour
+        _reload_admin_ids()
         return bool(user_id) and (user_id in ADMIN_IDS)
     except Exception:
         return False
 WELCOME_IMAGE_PATH = os.getenv("WELCOME_IMAGE_PATH", "IMG.jpg")
 # Par défaut, ouvrir la mini‑app en WebApp dans Telegram si elle est configurée via /admin
 MINIAPP_OPEN_MODE = os.getenv("MINIAPP_OPEN_MODE", "webapp").lower()  # "url" ou "webapp"
-WELCOME_CAPTION_TEXT = os.getenv("WELCOME_CAPTION_TEXT", """BIENVENUE SUR ALLFARMZ 🚜
+WELCOME_CAPTION_TEXT = os.getenv("WELCOME_CAPTION_TEXT", """Bienvenue ! 👋
 
-⚠️ Le bot et nos canaux Telegram peuvent être désactivés à tout moment ! 🚫⏳
+Utilisez le menu ci-dessous pour découvrir nos services et produits.
 
-➡️ Rejoignez notre canal sur Potato 🥔 pour ne jamais nous perdre; En cas de bannissement, un nouveau lien sera publié sur Potato.
-
-Retrouvez nos canaux et contactez-nous via les boutons ci-dessous 👇""")
+📱 Accédez à notre application via le bouton MiniApp.""")
 
 # Liens du clavier d'accueil (/start) sont désormais gérés via config.json modifiable dans /admin
 
@@ -1403,11 +1415,14 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
         await _admin_edit("👑 Gestion des administrateurs", reply_markup=_with_back(kb))
         return
     if data == "adm_list_admins":
-        # Union config + ADMIN_IDS pour afficher TOUS les admins (mêmes privilèges)
+        # Lire config.json EN TEMPS RÉEL pour afficher les admins actuels
         cfgv = _load_config()
         cfg_ids = [int(x) for x in cfgv.get("admin_ids", [])]
-        all_ids = sorted(set(cfg_ids) | set(ADMIN_IDS))
-        ids = all_ids
+        # Recharger ADMIN_IDS pour synchroniser avec config.json
+        if cfg_ids:
+            ADMIN_IDS.clear()
+            ADMIN_IDS.extend(sorted(cfg_ids))
+        ids = cfg_ids if cfg_ids else []
         lines = []
         for aid in ids:
             label = str(aid)
@@ -1424,8 +1439,8 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
             except Exception:
                 pass
             lines.append("• " + label)
-        txt = "\n".join(lines) if lines else "aucun"
-        await _admin_edit(f"📜 Administrateurs ({len(ids)}):\n{txt}", reply_markup=_with_back(_admin_keyboard()))
+        txt = "\n".join(lines) if lines else "Aucun admin dans config.json"
+        await _admin_edit(f"📜 Administrateurs ({len(ids)}):\n{txt}\n\n💡 Liste lue depuis config.json", reply_markup=_with_back(_admin_keyboard()))
         return
     if data == "adm_remove_admin":
         context.user_data["await_action"] = "remove_admin"
