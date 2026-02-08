@@ -12,7 +12,6 @@ import {
   Grid,
   MenuItem,
   LinearProgress,
-  Divider,
 } from '@mui/material';
 import IconifyIcon from '../../../components/base/IconifyIcon';
 import { fetchWithCSRF, uploadWithProgress } from '../../../utils/csrf';
