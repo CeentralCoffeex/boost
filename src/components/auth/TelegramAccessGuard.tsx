@@ -39,10 +39,14 @@ export default function TelegramAccessGuard({
     let cancelled = false;
 
     const check = () => {
-      if (cancelled) return;
-      const webApp = (window as Window & { Telegram?: { WebApp?: { initData?: string } } }).Telegram?.WebApp;
-      const initData = webApp?.initData?.trim();
-      setIsViaTelegram(!!initData);
+      if (cancelled || typeof window === 'undefined') return;
+      try {
+        const webApp = (window as Window & { Telegram?: { WebApp?: { initData?: string } } }).Telegram?.WebApp;
+        const initData = webApp?.initData?.trim();
+        setIsViaTelegram(!!initData);
+      } catch {
+        setIsViaTelegram(false);
+      }
     };
 
     check();

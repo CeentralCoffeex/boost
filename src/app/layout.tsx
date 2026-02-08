@@ -10,6 +10,7 @@ import "../styles/theme.css";
 import AuthSessionProvider from '../components/auth/SessionProvider';
 import ClientLayout from '../components/layout/ClientLayout';
 import TelegramAccessGuard from '../components/auth/TelegramAccessGuard';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
@@ -61,10 +62,15 @@ export default async function RootLayout({
   modal
 }: {
   children: React.ReactNode;
-  modal: React.ReactNode;
+  modal?: React.ReactNode;
 }) {
-  const headersList = await headers();
-  const nonce = headersList.get("x-nonce") ?? undefined;
+  let nonce: string | undefined;
+  try {
+    const headersList = await headers();
+    nonce = headersList.get("x-nonce") ?? undefined;
+  } catch {
+    nonce = undefined;
+  }
   return (
     <html lang="fr" data-theme="blanc" {...(nonce ? { nonce } : {})}>
       <head>
@@ -72,11 +78,13 @@ export default async function RootLayout({
       </head>
       <body className={`${inter.className} ${orbitron.variable} ${rajdhani.variable} ${dancingScript.variable}`}>
         <AuthSessionProvider>
-          <TelegramAccessGuard>
-            <ClientLayout modal={modal}>
-              {children}
-            </ClientLayout>
-          </TelegramAccessGuard>
+          <ErrorBoundary>
+            <TelegramAccessGuard>
+              <ClientLayout modal={modal ?? null}>
+                {children}
+              </ClientLayout>
+            </TelegramAccessGuard>
+          </ErrorBoundary>
         </AuthSessionProvider>
       </body>
     </html>

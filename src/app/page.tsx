@@ -120,29 +120,31 @@ export default function HomePage() {
   const featuredTrendingIds = parseIds(settings.featuredTrendingIds);
 
   const getRecentProducts = (limit: number = 6) => {
+    const list = Array.isArray(products) ? products : [];
     if (featuredRecentIds.length > 0) {
-      const byId = new Map(products.map(p => [p.id, p]));
+      const byId = new Map(list.map(p => [p.id, p]));
       return featuredRecentIds
         .map(id => byId.get(id))
         .filter(Boolean)
         .slice(0, limit);
     }
-    return [...products]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    return [...list]
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
       .slice(0, limit);
   }
 
   const getTrendingProducts = (limit: number = 6) => {
+    const list = Array.isArray(products) ? products : [];
     if (featuredTrendingIds.length > 0) {
-      const byId = new Map(products.map(p => [p.id, p]));
+      const byId = new Map(list.map(p => [p.id, p]));
       return featuredTrendingIds
         .map(id => byId.get(id))
         .filter(Boolean)
         .slice(0, limit);
     }
-    const featured = products.filter(p => p.featuredInTrending);
+    const featured = list.filter(p => p.featuredInTrending);
     if (featured.length > 0) return featured.slice(0, limit);
-    return products.filter(p => p.section === 'DECOUVRIR').slice(0, limit);
+    return list.filter(p => p.section === 'DECOUVRIR').slice(0, limit);
   }
 
   useEffect(() => {
