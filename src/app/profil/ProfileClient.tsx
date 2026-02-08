@@ -116,28 +116,6 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
   const router = useRouter();
   const [telegramInfo, setTelegramInfo] = useState<TelegramInfo | null>(initialTelegramInfo);
   const [photoKey, setPhotoKey] = useState(0);
-  const [linkUrl, setLinkUrl] = useState<string | null>(null);
-
-  // Écouter la liaison réussie depuis TelegramLoginHandler
-  useEffect(() => {
-    const onLinked = (e: CustomEvent<{ linked?: boolean; telegramId?: string; telegramUsername?: string }>) => {
-      const d = e.detail;
-      setTelegramInfo((prev) =>
-        prev ? { ...prev, linked: true, telegramId: d.telegramId ?? prev.telegramId, telegramUsername: d.telegramUsername ?? prev.telegramUsername } : { linked: true, telegramId: d.telegramId ?? null, telegramUsername: d.telegramUsername ?? null, telegramFirstName: null, telegramPhoto: null, linkedAt: null, isAdmin: false }
-      );
-    };
-    window.addEventListener('telegram-linked', onLinked as EventListener);
-    return () => window.removeEventListener('telegram-linked', onLinked as EventListener);
-  }, []);
-
-  // Récupérer l'URL de liaison si non lié
-  useEffect(() => {
-    if (telegramInfo?.linked) return;
-    fetch('/api/telegram/link-url', { credentials: 'include' })
-      .then((r) => r.json())
-      .then((d) => d?.url && setLinkUrl(d.url))
-      .catch(() => {});
-  }, [telegramInfo?.linked]);
   const [profileBlocks, setProfileBlocks] = useState<{
     block1: { title: string | null; content: string | null };
     block2: { title: string | null; content: string | null };
@@ -360,29 +338,8 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
                   <Send size={14} />
                   @{telegramInfo.telegramUsername || 'User'}
                 </>
-              ) : linkUrl ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const tg = (window as Window & { Telegram?: { WebApp?: { openTelegramLink?: (u: string) => void } } }).Telegram?.WebApp;
-                    if (tg?.openTelegramLink) tg.openTelegramLink(linkUrl);
-                    else window.open(linkUrl, '_blank');
-                  }}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#0088cc',
-                    cursor: 'pointer',
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    padding: 0,
-                  }}
-                >
-                  Lier mon compte
-                </button>
               ) : (
-                'Non lié'
+                'Non connecté'
               )}
             </div>
           </div>

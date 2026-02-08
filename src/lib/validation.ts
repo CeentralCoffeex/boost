@@ -232,15 +232,6 @@ export const telegramAdminUpdateSchema = z.object({
   notes: z.string().max(500).optional().nullable(),
 })
 
-// Validation bot link (appelé par le bot Python)
-export const botLinkSchema = z.object({
-  userId: z.string().min(1, 'userId requis').max(50),
-  telegramId: z.union([z.string(), z.number()]).transform(String),
-  telegramUsername: z.string().max(100).optional().nullable(),
-  telegramFirstName: z.string().max(100).optional().nullable(),
-  telegramPhoto: z.string().max(500).optional().nullable(),
-})
-
 // Validation refresh-profile (initData uniquement)
 export const refreshProfileSchema = z.object({
   initData: z.string().min(1, 'initData requis'),

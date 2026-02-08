@@ -740,19 +740,6 @@ export default function UserSettingsPage() {
 
                     <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <Shield className="w-5 h-5 text-green-600" />
-                        <div>
-                          <p className="font-medium text-gray-900">Authentification à deux facteurs</p>
-                          <p className="text-sm text-gray-500">Sécurisez votre compte avec 2FA</p>
-                        </div>
-                      </div>
-                      <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                        Configurer
-                      </button>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                      <div className="flex items-center space-x-3">
                         <Monitor className="w-5 h-5 text-purple-600" />
                         <div>
                           <p className="font-medium text-gray-900">Sessions actives</p>

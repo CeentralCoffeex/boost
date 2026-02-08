@@ -4,16 +4,19 @@ import { useEffect, useRef, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { getInitData } from '@/lib/telegram-client';
 
+/**
+ * Connexion automatique Telegram : dès qu'on ouvre la Mini App depuis le bot,
+ * on récupère initData et on se connecte via NextAuth (CredentialsProvider telegram-login).
+ */
 export default function TelegramLoginHandler() {
   const { status } = useSession();
   const triedRef = useRef(false);
   const [initDataReady, setInitDataReady] = useState(false);
 
-  // Attendre que initData soit disponible (script Telegram peut charger en retard)
   useEffect(() => {
     let cancelled = false;
     let attempts = 0;
-    const maxAttempts = 30; // ~6 s max
+    const maxAttempts = 60;
     const check = () => {
       if (cancelled || attempts++ > maxAttempts) return;
       const id = getInitData();
@@ -22,9 +25,9 @@ export default function TelegramLoginHandler() {
         return;
       }
       (window as Window & { Telegram?: { WebApp?: { ready: () => void } } }).Telegram?.WebApp?.ready?.();
-      setTimeout(check, 200);
+      setTimeout(check, 150);
     };
-    const t = setTimeout(check, 100);
+    const t = setTimeout(check, 50);
     return () => {
       cancelled = true;
       clearTimeout(t);
@@ -35,7 +38,6 @@ export default function TelegramLoginHandler() {
     if (triedRef.current) return;
     triedRef.current = true;
     const inTg = !!(typeof window !== 'undefined' && (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram?.WebApp);
-    // WebView : form POST (cookie NextAuth correct). Sinon : signIn()
     if (inTg) {
       fetch('/api/auth/csrf', { credentials: 'include' })
         .then((r) => r.json())
@@ -53,7 +55,7 @@ export default function TelegramLoginHandler() {
           ].forEach(([k, v]) => {
             const i = document.createElement('input');
             i.name = k;
-            i.value = v;
+            i.value = String(v);
             i.type = 'hidden';
             f.appendChild(i);
           });
@@ -65,15 +67,12 @@ export default function TelegramLoginHandler() {
           signIn('telegram-login', { initData, redirect: true });
         });
     } else {
-      signIn('telegram-login', { initData, redirect: false })
-        .then((r: { ok?: boolean } | undefined) => { if (r?.ok) window.location.reload(); })
-        .catch(() => { triedRef.current = false; });
+      signIn('telegram-login', { initData, redirect: true });
     }
   };
 
   useEffect(() => {
     if (status === 'loading' || !initDataReady) return;
-
     const initData = getInitData();
     if (!initData) return;
 
@@ -81,27 +80,6 @@ export default function TelegramLoginHandler() {
 
     if (status === 'unauthenticated') {
       doSignIn(initData);
-    } else if (status === 'authenticated') {
-      const doLink = (attempt = 0) => {
-        fetch('/api/user/telegram', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ initData }),
-        })
-          .then(async (res) => {
-            const data = await res.json().catch(() => ({}));
-            if (res.ok && data?.success) {
-              window.dispatchEvent(new CustomEvent('telegram-linked', { detail: data }));
-            } else if (res.status >= 500 && attempt < 2) {
-              setTimeout(() => doLink(attempt + 1), 1500);
-            }
-          })
-          .catch(() => {
-            if (attempt < 2) setTimeout(() => doLink(attempt + 1), 1500);
-          });
-      };
-      doLink();
     }
   }, [status, initDataReady]);
 

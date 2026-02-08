@@ -27,8 +27,6 @@ import {
   Trash2,
   Plus,
   Send,
-  Link,
-  Unlink
 } from 'lucide-react'
 
 interface UserProfile {
@@ -142,22 +140,8 @@ export default function UserProfilePage() {
       }
       setSecuritySettings(securityData)
 
-      // Charger les infos Telegram
-      try {
-        const telegramResponse = await fetch('/api/user/telegram')
-        if (telegramResponse.ok) {
-          const telegramData = await telegramResponse.json()
-          setTelegramInfo({
-            linked: telegramData.linked,
-            telegramId: telegramData.telegramId,
-            telegramUsername: telegramData.telegramUsername,
-            linkedAt: telegramData.linkedAt ? new Date(telegramData.linkedAt) : null
-          })
-        }
-      } catch (telegramError) {
-        console.error('Erreur lors du chargement des infos Telegram:', telegramError)
-        setTelegramInfo({ linked: false, telegramId: null, telegramUsername: null, linkedAt: null })
-      }
+      // Connexion Telegram uniquement : infos depuis la session
+      setTelegramInfo({ linked: !!session?.user, telegramId: null, telegramUsername: null, linkedAt: session?.user ? new Date() : null })
       
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error)
@@ -214,56 +198,6 @@ export default function UserProfilePage() {
     } catch (error) {
       console.error('Erreur lors du changement de mot de passe:', error)
       setMessage({ type: 'error', text: 'Erreur lors du changement de mot de passe' })
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleToggle2FA = async () => {
-    try {
-      setSaving(true)
-      
-      // Simuler l'activation/désactivation du 2FA
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const newStatus = !securitySettings!.twoFactorEnabled
-      setSecuritySettings({ ...securitySettings!, twoFactorEnabled: newStatus })
-      setProfile({ ...profile!, twoFactorEnabled: newStatus })
-      
-      setMessage({ 
-        type: 'success', 
-        text: newStatus ? '2FA activé avec succès' : '2FA désactivé avec succès' 
-      })
-      
-    } catch (error) {
-      console.error('Erreur lors de la modification du 2FA:', error)
-      setMessage({ type: 'error', text: 'Erreur lors de la modification du 2FA' })
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleLinkTelegram = () => {
-    // Ouvrir le bot Telegram avec un deep link pour la liaison
-    const botUsername = 'pizzwazabot' // Remplacer par votre bot
-    const startParam = `link_${session?.user?.id || 'user'}`
-    window.open(`https://t.me/${botUsername}?start=${startParam}`, '_blank')
-  }
-
-  const handleUnlinkTelegram = async () => {
-    try {
-      setSaving(true)
-      const response = await fetch('/api/user/telegram', { method: 'DELETE' })
-      
-      if (response.ok) {
-        setTelegramInfo({ linked: false, telegramId: null, telegramUsername: null, linkedAt: null })
-        setMessage({ type: 'success', text: 'Compte Telegram délié avec succès' })
-      } else {
-        throw new Error('Erreur lors de la déconnexion')
-      }
-    } catch (error) {
-      console.error('Erreur:', error)
-      setMessage({ type: 'error', text: 'Erreur lors de la déconnexion du compte Telegram' })
     } finally {
       setSaving(false)
     }
@@ -599,75 +533,28 @@ export default function UserProfilePage() {
               )}
             </div>
 
-            {/* Telegram Section */}
+            {/* Telegram Section - Connexion Telegram uniquement */}
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                    <Send className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900">Telegram</h3>
-                    <p className="text-sm text-gray-500">Liez votre compte Telegram pour recevoir des notifications</p>
-                  </div>
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                  <Send className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Telegram</h3>
+                  <p className="text-sm text-gray-500">Connexion automatique via la Mini App</p>
                 </div>
               </div>
-
               {telegramInfo?.linked ? (
-                <div className="space-y-4">
-                  <div className={`p-4 rounded-lg bg-green-50 border border-green-200`}>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Check className="w-5 h-5 text-green-600" />
-                      <span className="font-medium text-green-800">Compte Telegram lié</span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                      <div>
-                        <span className="text-sm text-gray-500">Prénom</span>
-                        <p className="text-gray-900 font-medium">{telegramInfo.telegramFirstName || 'Non défini'}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm text-gray-500">Username</span>
-                        <p className="text-gray-900 font-medium">@{telegramInfo.telegramUsername || 'Non défini'}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm text-gray-500">ID Telegram</span>
-                        <p className="text-gray-900 font-medium">{telegramInfo.telegramId}</p>
-                      </div>
-                      {telegramInfo.linkedAt && (
-                        <div>
-                          <span className="text-sm text-gray-500">Lié le</span>
-                          <p className="text-gray-900">{telegramInfo.linkedAt.toLocaleDateString()}</p>
-                        </div>
-                      )}
-                    </div>
+                <div className="p-4 rounded-lg bg-green-50 border border-green-200">
+                  <div className="flex items-center space-x-2">
+                    <Check className="w-5 h-5 text-green-600" />
+                    <span className="font-medium text-green-800">Connecté via Telegram</span>
                   </div>
-                  <button
-                    onClick={handleUnlinkTelegram}
-                    disabled={saving}
-                    className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-                  >
-                    {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Unlink className="w-4 h-4" />}
-                    <span>{saving ? 'Déconnexion...' : 'Délier le compte Telegram'}</span>
-                  </button>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div className={`p-4 rounded-lg bg-yellow-50 border border-yellow-200`}>
-                    <div className="flex items-center space-x-2">
-                      <AlertCircle className="w-5 h-5 text-yellow-600" />
-                      <span className="text-yellow-800">Aucun compte Telegram lié</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-2">
-                      Liez votre compte Telegram pour recevoir des notifications et accéder à des fonctionnalités exclusives.
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleLinkTelegram}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                  >
-                    <Link className="w-4 h-4" />
-                    <span>Lier mon compte Telegram</span>
-                  </button>
+                <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-200">
+                  <AlertCircle className="w-5 h-5 text-yellow-600 inline mr-2" />
+                  <span className="text-yellow-800">Ouvrez l&apos;app depuis le bot Telegram pour vous connecter</span>
                 </div>
               )}
             </div>
@@ -746,59 +633,6 @@ export default function UserProfilePage() {
                   {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
                   <span>{saving ? 'Modification...' : 'Changer le mot de passe'}</span>
                 </button>
-              </div>
-            </div>
-
-            {/* Two-Factor Authentication */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Authentification à deux facteurs</h3>
-                  <p className="text-sm text-gray-500">Ajoutez une couche de sécurité supplémentaire à votre compte</p>
-                </div>
-                <button
-                  onClick={handleToggle2FA}
-                  disabled={saving}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                    securitySettings.twoFactorEnabled
-                      ? 'bg-red-600 text-white hover:bg-red-700'
-                      : 'bg-green-600 text-white hover:bg-green-700'
-                  } disabled:opacity-50`}
-                >
-                  {saving ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Shield className="w-4 h-4" />
-                  )}
-                  <span>
-                    {saving ? 'Modification...' : securitySettings.twoFactorEnabled ? 'Désactiver 2FA' : 'Activer 2FA'}
-                  </span>
-                </button>
-              </div>
-
-              <div className={`p-4 rounded-lg ${
-                securitySettings.twoFactorEnabled ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'
-              }`}>
-                <div className="flex items-center space-x-2">
-                  {securitySettings.twoFactorEnabled ? (
-                    <Check className="w-5 h-5 text-green-600" />
-                  ) : (
-                    <AlertCircle className="w-5 h-5 text-yellow-600" />
-                  )}
-                  <span className={`font-medium ${
-                    securitySettings.twoFactorEnabled ? 'text-green-800' : 'text-yellow-800'
-                  }`}>
-                    {securitySettings.twoFactorEnabled ? '2FA activé' : '2FA désactivé'}
-                  </span>
-                </div>
-                <p className={`text-sm mt-1 ${
-                  securitySettings.twoFactorEnabled ? 'text-green-700' : 'text-yellow-700'
-                }`}>
-                  {securitySettings.twoFactorEnabled
-                    ? 'Votre compte est protégé par l\'authentification à deux facteurs'
-                    : 'Activez le 2FA pour sécuriser davantage votre compte'
-                  }
-                </p>
               </div>
             </div>
 
