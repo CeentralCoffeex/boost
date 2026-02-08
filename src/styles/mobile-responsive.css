@@ -1371,30 +1371,36 @@ body {
     margin: 0;
   }
 
-  /* Bouton like sur l'image - CARRÉ */
+  /* Bouton like - CARRÉ COMPACT en bas à droite */
   .new-product-card .product-like-btn {
     position: absolute;
-    bottom: 10px;
-    right: 10px;
+    bottom: 8px;
+    right: 8px;
     z-index: 5;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    padding: 8px;
-    min-width: 40px;
-    background: rgba(255,255,255,0.9);
-    border: none;
-    border-radius: 8px;
-    font-size: 11px;
+    gap: 1px;
+    padding: 5px 6px;
+    min-width: 32px;
+    width: 32px;
+    background: rgba(255,255,255,0.95);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 6px;
+    font-size: 10px;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    transition: background 0.2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    transition: all 0.2s;
   }
   .new-product-card .product-like-btn:hover {
     background: #ffffff;
+    transform: scale(1.05);
+  }
+  .new-product-card .product-like-btn svg {
+    width: 14px !important;
+    height: 14px !important;
   }
 
   .new-product-card .project-icon {
@@ -1422,6 +1428,7 @@ body {
     width: 100%;
     display: flex;
     flex-direction: column;
+    gap: 8px;
     flex-grow: 1;
   }
 
@@ -1444,7 +1451,7 @@ body {
   .new-product-card .project-subtitle {
     font-size: 12px;
     color: #666666;
-    margin: 0;
+    margin: 0 0 auto 0;
     font-weight: 400;
     text-align: left;
     text-transform: none;
@@ -1485,42 +1492,53 @@ body {
 
   .new-product-card .project-button {
     width: 100%;
-    padding: 10px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 11px 20px;
+    margin-top: 16px;
+    background: #0a0a0a;
     color: #ffffff;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 13px;
     font-weight: 600;
     text-transform: none;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: center;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    letter-spacing: 0.3px;
   }
 
   .new-product-card .project-button:hover {
+    background: #1a1a1a;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
   }
 
-  /* project-button-details - Redesign moderne */
+  /* Bouton "Voir les détails" - Design moderne et propre */
   .new-product-card .project-button.project-button-details {
     width: 100%;
-    padding: 10px 16px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 11px 20px;
+    margin-top: 16px;
+    background: #0a0a0a;
     color: #ffffff;
     border: none;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     text-transform: none;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-    transition: all 0.2s;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    letter-spacing: 0.3px;
   }
   .new-product-card .project-button.project-button-details:hover {
+    background: #1a1a1a;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  }
+  .new-product-card .project-button.project-button-details:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   }
 
   /* SERVICE BANNER SECTION */

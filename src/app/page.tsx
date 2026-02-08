@@ -66,7 +66,7 @@ const ProductCard = ({
               onClick={handleLike}
               aria-label="J'aime"
             >
-              <Heart className={`w-4 h-4 ${liked ? 'fill-red-500 text-red-500' : ''}`} />
+              <Heart className={liked ? 'fill-red-500 text-red-500' : ''} />
               <span>{likes}</span>
             </button>
           )}
