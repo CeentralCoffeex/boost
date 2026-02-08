@@ -409,7 +409,7 @@ const ProductEdit = (): ReactElement => {
                 value={selectedParent?.id ?? ''}
                 onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                 placeholder="Catégorie"
-                displayEmpty
+                SelectProps={{ displayEmpty: true }}
                 sx={{ 
                   '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, 
                   '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
@@ -427,7 +427,7 @@ const ProductEdit = (): ReactElement => {
                   fullWidth
                   value={selectedSubcategoryId || selectedParent?.id || ''}
                   onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                  displayEmpty
+                  SelectProps={{ displayEmpty: true }}
                   sx={{ 
                     '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, 
                     '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },

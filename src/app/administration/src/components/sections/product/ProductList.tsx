@@ -203,7 +203,7 @@ export default function ProductList() {
             size="small"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            displayEmpty
+            SelectProps={{ displayEmpty: true }}
             sx={{ 
               minWidth: 200,
               '& .MuiSelect-select': { 
