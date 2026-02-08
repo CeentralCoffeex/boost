@@ -47,7 +47,10 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
           ? sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')
           : null;
         const headers: Record<string, string> = { 'Cache-Control': 'no-cache' };
-        if (initData) headers['Authorization'] = `tma ${initData}`;
+        if (initData) {
+          headers['Authorization'] = `tma ${initData}`;
+          headers['X-Telegram-Init-Data'] = initData;
+        }
 
         const sessionRes = await fetch('/api/auth/session', { credentials: 'include' });
         const session = await sessionRes.json();
