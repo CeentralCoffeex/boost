@@ -7,19 +7,8 @@ import MobileHero from '@/components/home/MobileHero'
 import MobileServiceCarousel from '@/components/home/MobileServiceCarousel'
 import MenuBar from '@/components/home/MenuBar'
 import ProductThumbnail from '@/components/product/ProductThumbnail'
+import { decodeHtmlEntities } from '@/lib/formatted-text'
 import '@/styles/index-mobile.css'
-
-// Décode les entités HTML
-const decodeHtmlEntities = (text: string): string => {
-  if (typeof window === 'undefined') return text;
-  try {
-    const txt = document.createElement('textarea');
-    txt.innerHTML = text;
-    return txt.value;
-  } catch {
-    return text;
-  }
-};
 
 // Composant Carte Produit - étiquette sur image, bouton Détails redesigné, like
 const ProductCard = ({ 
@@ -317,7 +306,7 @@ export default function HomePage() {
                         )}
                       </div>
                       <h3>{category.name}</h3>
-                      <p dangerouslySetInnerHTML={{ __html: category.subtitle || '' }} />
+                      <p dangerouslySetInnerHTML={{ __html: decodeHtmlEntities(category.subtitle || '') }} />
                     </div>
                   ))}
                 </div>

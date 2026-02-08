@@ -61,7 +61,8 @@ export function stripFormattedText(text: string): string {
 /**
  * Décode les entités HTML
  */
-function decodeHtmlEntities(text: string): string {
+export function decodeHtmlEntities(text: string): string {
+  if (!text) return '';
   if (typeof window === 'undefined') return text;
   try {
     const txt = document.createElement('textarea');
