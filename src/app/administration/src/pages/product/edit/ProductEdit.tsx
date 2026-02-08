@@ -15,7 +15,6 @@ import {
   Divider,
 } from '@mui/material';
 import IconifyIcon from '../../../components/base/IconifyIcon';
-import RichTextBlock from '../../../components/base/RichTextBlock';
 import { fetchWithCSRF, uploadWithProgress } from '../../../utils/csrf';
 
 interface ProductForm {
@@ -41,9 +40,6 @@ interface ProductVariant {
   type: 'weight' | 'flavor';
   unit?: 'gramme' | 'ml' | null;
   price: string;
-  power?: string | null;
-  capacity?: string | null;
-  resistance?: string | null;
 }
 
 function getVideoMimeType(url: string): string {
@@ -190,7 +186,7 @@ const ProductEdit = (): ReactElement => {
   };
 
   const addVariant = () => {
-    setVariants([...variants, { name: '', type: 'weight', unit: 'gramme', price: '', power: null, capacity: null, resistance: null }]);
+    setVariants([...variants, { name: '', type: 'weight', unit: 'gramme', price: '' }]);
   };
 
   const updateVariant = (index: number, field: keyof ProductVariant, value: unknown) => {
@@ -221,9 +217,6 @@ const ProductEdit = (): ReactElement => {
           name: v.name.trim(),
           price: v.price ? parseFloat(v.price) : 0,
           unit: v.unit || null,
-          power: v.power?.trim() || null,
-          capacity: v.capacity?.trim() || null,
-          resistance: v.resistance?.trim() || null,
         })),
       };
 
@@ -299,30 +292,193 @@ const ProductEdit = (): ReactElement => {
 
       <Box sx={{ px: { xs: 2, md: 3 } }}>
         <Grid container spacing={3}>
-          {/* COLONNE GAUCHE - Informations principales */}
-          <Grid item xs={12} lg={8}>
+          {/* COLONNE UNIQUE */}
+          <Grid item xs={12}>
             <Stack spacing={3}>
-              {/* Section: Informations de base */}
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" fontWeight={700} sx={{ mb: 3, fontSize: '1.25rem' }}>
-                  📝 Informations de base
-                </Typography>
-                <Stack spacing={3}>
+              {/* Médias en haut - COMPACT */}
+              <Paper sx={{ p: 2.5 }}>
+                <Box sx={{ 
+                  borderBottom: '2px solid', 
+                  borderColor: 'primary.main', 
+                  pb: 1, 
+                  mb: 2.5 
+                }}>
+                  <Typography variant="h6" fontWeight={700} sx={{ fontSize: '1.1rem', color: 'primary.main' }}>
+                    📸 MÉDIAS
+                  </Typography>
+                </Box>
+                
+                <Stack direction="row" spacing={2}>
+                  {/* Image */}
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption" sx={{ mb: 1, display: 'block', fontWeight: 600, color: 'text.secondary' }}>Image</Typography>
+                    <Box
+                      sx={{
+                        width: '100%',
+                        height: 140,
+                        border: '2px dashed',
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        position: 'relative',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        bgcolor: 'grey.50',
+                        transition: 'all 0.2s',
+                        '&:hover': { borderColor: 'primary.main', bgcolor: 'action.hover' }
+                      }}
+                      onClick={() => document.getElementById('image-upload')?.click()}
+                    >
+                      <input
+                        id="image-upload"
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                      />
+                      {previewImage ? (
+                        <>
+                          <img
+                            src={previewImage}
+                            alt="Preview"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFormData({ ...formData, image: '' });
+                              setPreviewImage('');
+                            }}
+                            sx={{
+                              position: 'absolute',
+                              top: 4,
+                              right: 4,
+                              bgcolor: 'rgba(255,255,255,0.95)',
+                              '&:hover': { bgcolor: 'error.main', color: 'white' },
+                            }}
+                          >
+                            <IconifyIcon icon="material-symbols:close" width={18} />
+                          </IconButton>
+                        </>
+                      ) : (
+                        <Stack alignItems="center" spacing={0.5} sx={{ color: 'text.secondary' }}>
+                          <IconifyIcon icon={uploading ? "eos-icons:loading" : "material-symbols:add-photo-alternate"} width={32} />
+                          <Typography variant="caption" fontSize="0.7rem">Ajouter</Typography>
+                        </Stack>
+                      )}
+                    </Box>
+                  </Box>
+
+                  {/* Vidéo */}
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption" sx={{ mb: 1, display: 'block', fontWeight: 600, color: 'text.secondary' }}>Vidéo</Typography>
+                    <Box
+                      sx={{
+                        width: '100%',
+                        height: 140,
+                        border: '2px dashed',
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        position: 'relative',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        bgcolor: 'grey.50',
+                        transition: 'all 0.2s',
+                        '&:hover': { borderColor: 'primary.main', bgcolor: 'action.hover' }
+                      }}
+                      onClick={() => document.getElementById('video-upload')?.click()}
+                    >
+                      <input
+                        id="video-upload"
+                        type="file"
+                        hidden
+                        accept="video/*"
+                        onChange={handleVideoUpload}
+                      />
+                      {previewVideo ? (
+                        <>
+                          <video
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            muted
+                            playsInline
+                            controls
+                            preload="auto"
+                          >
+                            <source src={previewVideo} type={getVideoMimeType(previewVideo)} />
+                          </video>
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFormData({ ...formData, videoUrl: '' });
+                              setPreviewVideo('');
+                            }}
+                            sx={{
+                              position: 'absolute',
+                              top: 4,
+                              right: 4,
+                              bgcolor: 'rgba(255,255,255,0.95)',
+                              '&:hover': { bgcolor: 'error.main', color: 'white' },
+                            }}
+                          >
+                            <IconifyIcon icon="material-symbols:close" width={18} />
+                          </IconButton>
+                        </>
+                      ) : (
+                        <Stack alignItems="center" spacing={0.5} sx={{ color: 'text.secondary' }}>
+                          <IconifyIcon icon={uploading ? "eos-icons:loading" : "material-symbols:video-library"} width={32} />
+                          <Typography variant="caption" fontSize="0.7rem">Ajouter</Typography>
+                        </Stack>
+                      )}
+                    </Box>
+                  </Box>
+                </Stack>
+
+                {uploading && uploadProgress > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <LinearProgress variant="determinate" value={uploadProgress} sx={{ height: 6, borderRadius: 1, mb: 0.5 }} />
+                    <Typography variant="caption" color="text.secondary" textAlign="center" display="block">
+                      {uploadProgress}%
+                    </Typography>
+                  </Box>
+                )}
+              </Paper>
+
+              {/* Informations de base */}
+              <Paper sx={{ p: 2.5 }}>
+                <Box sx={{ 
+                  borderBottom: '2px solid', 
+                  borderColor: 'primary.main', 
+                  pb: 1, 
+                  mb: 2.5 
+                }}>
+                  <Typography variant="h6" fontWeight={700} sx={{ fontSize: '1.1rem', color: 'primary.main' }}>
+                    📝 INFORMATIONS
+                  </Typography>
+                </Box>
+                <Stack spacing={2.5}>
                   <TextField
                     label="Titre du produit"
                     fullWidth
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     variant="outlined"
-                    sx={{ '& .MuiInputBase-input': { fontSize: '1.1rem' } }}
                   />
 
-                  <RichTextBlock
+                  <TextField
                     label="Description"
+                    fullWidth
+                    multiline
+                    rows={4}
                     value={formData.description}
-                    onChange={(v) => setFormData({ ...formData, description: v })}
-                    minRows={5}
-                    placeholder="**gras**, [c=#dc2626]couleur[/c], retours à la ligne..."
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Description du produit..."
                   />
 
                   <Grid container spacing={2}>
@@ -334,28 +490,33 @@ const ProductEdit = (): ReactElement => {
                         onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
                         placeholder="20"
                         helperText="Prix si pas de variantes"
-                        sx={{ '& .MuiInputBase-input': { fontSize: '1.1rem' } }}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <TextField
-                        label="Tag / Badge"
+                        label="Tag"
                         fullWidth
                         value={formData.tag}
                         onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
-                        placeholder="Nouveau, Promo..."
-                        sx={{ '& .MuiInputBase-input': { fontSize: '1.1rem' } }}
+                        placeholder="Nouveau..."
                       />
                     </Grid>
                   </Grid>
                 </Stack>
               </Paper>
 
-              {/* Section: Catégorie */}
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" fontWeight={700} sx={{ mb: 3, fontSize: '1.25rem' }}>
-                  🏷️ Catégorie
-                </Typography>
+              {/* Catégorie */}
+              <Paper sx={{ p: 2.5 }}>
+                <Box sx={{ 
+                  borderBottom: '2px solid', 
+                  borderColor: 'primary.main', 
+                  pb: 1, 
+                  mb: 2.5 
+                }}>
+                  <Typography variant="h6" fontWeight={700} sx={{ fontSize: '1.1rem', color: 'primary.main' }}>
+                    🏷️ CATÉGORIE
+                  </Typography>
+                </Box>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <TextField
@@ -364,7 +525,6 @@ const ProductEdit = (): ReactElement => {
                       fullWidth
                       value={selectedParent?.id ?? ''}
                       onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                      sx={{ '& .MuiInputBase-input': { fontSize: '1rem' } }}
                     >
                       <MenuItem value="">Aucune</MenuItem>
                       {parentCategories.map((cat) => (
@@ -382,7 +542,6 @@ const ProductEdit = (): ReactElement => {
                         fullWidth
                         value={selectedSubcategoryId || selectedParent?.id || ''}
                         onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                        sx={{ '& .MuiInputBase-input': { fontSize: '1rem' } }}
                       >
                         <MenuItem value={selectedParent?.id ?? ''}>
                           {selectedParent?.name ?? '— Catégorie principale'}
@@ -398,11 +557,19 @@ const ProductEdit = (): ReactElement => {
                 </Grid>
               </Paper>
 
-              {/* Section: Variantes/Tarifs */}
-              <Paper sx={{ p: 3 }}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-                  <Typography variant="h6" fontWeight={700} sx={{ fontSize: '1.25rem' }}>
-                    💰 Tarifs et variantes ({variants.length})
+              {/* Tarifs */}
+              <Paper sx={{ p: 2.5 }}>
+                <Box sx={{ 
+                  borderBottom: '2px solid', 
+                  borderColor: 'primary.main', 
+                  pb: 1, 
+                  mb: 2.5,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <Typography variant="h6" fontWeight={700} sx={{ fontSize: '1.1rem', color: 'primary.main' }}>
+                    💰 TARIFS ({variants.length})
                   </Typography>
                   <Button
                     variant="contained"
@@ -412,11 +579,11 @@ const ProductEdit = (): ReactElement => {
                   >
                     Ajouter
                   </Button>
-                </Stack>
+                </Box>
 
                 {variants.length === 0 ? (
-                  <Box sx={{ py: 4, textAlign: 'center', color: 'text.secondary' }}>
-                    <Typography>Aucune variante. Le prix de base sera utilisé.</Typography>
+                  <Box sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>
+                    <Typography variant="body2">Aucune variante</Typography>
                   </Box>
                 ) : (
                   <Stack spacing={2}>
@@ -426,35 +593,53 @@ const ProductEdit = (): ReactElement => {
                         border: '1px solid', 
                         borderColor: 'divider', 
                         borderRadius: 2,
-                        bgcolor: 'background.default'
+                        bgcolor: 'grey.50'
                       }}>
                         <Grid container spacing={2} alignItems="center">
-                          <Grid item xs={12} sm={3}>
-                            <TextField
-                              label="Valeur"
-                              size="small"
-                              fullWidth
-                              value={variant.name}
-                              onChange={(e) => updateVariant(index, 'name', e.target.value)}
-                              placeholder="5, 2.5, 2ml"
-                            />
+                          <Grid item xs={12} sm={6}>
+                            <Box sx={{ position: 'relative' }}>
+                              <TextField
+                                label="Quantité"
+                                size="small"
+                                fullWidth
+                                value={variant.name}
+                                onChange={(e) => updateVariant(index, 'name', e.target.value)}
+                                placeholder="5, 100"
+                                sx={{
+                                  '& .MuiInputBase-root': {
+                                    paddingRight: '70px'
+                                  }
+                                }}
+                              />
+                              <TextField
+                                select
+                                size="small"
+                                value={variant.unit || ''}
+                                onChange={(e) => updateVariant(index, 'unit', e.target.value || null)}
+                                SelectProps={{ native: true }}
+                                sx={{
+                                  position: 'absolute',
+                                  right: 0,
+                                  top: 0,
+                                  width: '65px',
+                                  '& .MuiOutlinedInput-notchedOutline': {
+                                    borderLeft: 'none',
+                                    borderTopLeftRadius: 0,
+                                    borderBottomLeftRadius: 0,
+                                  },
+                                  '& .MuiInputBase-root': {
+                                    borderTopLeftRadius: 0,
+                                    borderBottomLeftRadius: 0,
+                                  }
+                                }}
+                              >
+                                <option value="">—</option>
+                                <option value="gramme">g</option>
+                                <option value="ml">ml</option>
+                              </TextField>
+                            </Box>
                           </Grid>
-                          <Grid item xs={6} sm={2}>
-                            <TextField
-                              select
-                              label="Unité"
-                              size="small"
-                              fullWidth
-                              value={variant.unit || ''}
-                              onChange={(e) => updateVariant(index, 'unit', e.target.value || null)}
-                              SelectProps={{ native: true }}
-                            >
-                              <option value="">—</option>
-                              <option value="gramme">g</option>
-                              <option value="ml">ml</option>
-                            </TextField>
-                          </Grid>
-                          <Grid item xs={6} sm={2}>
+                          <Grid item xs={10} sm={5}>
                             <TextField
                               label="Prix €"
                               size="small"
@@ -466,37 +651,7 @@ const ProductEdit = (): ReactElement => {
                               placeholder="10.00"
                             />
                           </Grid>
-                          <Grid item xs={4} sm={1.5}>
-                            <TextField
-                              label="Puissance"
-                              size="small"
-                              fullWidth
-                              value={variant.power || ''}
-                              onChange={(e) => updateVariant(index, 'power', e.target.value || null)}
-                              placeholder="40W"
-                            />
-                          </Grid>
-                          <Grid item xs={4} sm={1.5}>
-                            <TextField
-                              label="Capacité"
-                              size="small"
-                              fullWidth
-                              value={variant.capacity || ''}
-                              onChange={(e) => updateVariant(index, 'capacity', e.target.value || null)}
-                              placeholder="2ml"
-                            />
-                          </Grid>
-                          <Grid item xs={4} sm={1.5}>
-                            <TextField
-                              label="Résistance"
-                              size="small"
-                              fullWidth
-                              value={variant.resistance || ''}
-                              onChange={(e) => updateVariant(index, 'resistance', e.target.value || null)}
-                              placeholder="0.2Ω"
-                            />
-                          </Grid>
-                          <Grid item xs={12} sm="auto" sx={{ textAlign: 'center' }}>
+                          <Grid item xs={2} sm={1} sx={{ textAlign: 'center' }}>
                             <IconButton
                               onClick={() => removeVariant(index)}
                               color="error"
@@ -511,160 +666,114 @@ const ProductEdit = (): ReactElement => {
                   </Stack>
                 )}
               </Paper>
+
+              {/* Informations de base */}
+              <Paper sx={{ p: 2.5 }}>
+                <Box sx={{ 
+                  borderBottom: '2px solid', 
+                  borderColor: 'primary.main', 
+                  pb: 1, 
+                  mb: 2.5 
+                }}>
+                  <Typography variant="h6" fontWeight={700} sx={{ fontSize: '1.1rem', color: 'primary.main' }}>
+                    📝 INFORMATIONS
+                  </Typography>
+                </Box>
+                <Stack spacing={2.5}>
+                  <TextField
+                    label="Titre du produit"
+                    fullWidth
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    variant="outlined"
+                  />
+
+                  <TextField
+                    label="Description"
+                    fullWidth
+                    multiline
+                    rows={4}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Description du produit..."
+                  />
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        label="Prix de base (€)"
+                        fullWidth
+                        value={formData.basePrice}
+                        onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
+                        placeholder="20"
+                        helperText="Prix si pas de variantes"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        label="Tag"
+                        fullWidth
+                        value={formData.tag}
+                        onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                        placeholder="Nouveau..."
+                      />
+                    </Grid>
+                  </Grid>
+                </Stack>
+              </Paper>
+
+              {/* Catégorie */}
+              <Paper sx={{ p: 2.5 }}>
+                <Box sx={{ 
+                  borderBottom: '2px solid', 
+                  borderColor: 'primary.main', 
+                  pb: 1, 
+                  mb: 2.5 
+                }}>
+                  <Typography variant="h6" fontWeight={700} sx={{ fontSize: '1.1rem', color: 'primary.main' }}>
+                    🏷️ CATÉGORIE
+                  </Typography>
+                </Box>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      select
+                      label="Catégorie principale"
+                      fullWidth
+                      value={selectedParent?.id ?? ''}
+                      onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                    >
+                      <MenuItem value="">Aucune</MenuItem>
+                      {parentCategories.map((cat) => (
+                        <MenuItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  {subcategories.length > 0 && (
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        select
+                        label="Sous-catégorie"
+                        fullWidth
+                        value={selectedSubcategoryId || selectedParent?.id || ''}
+                        onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                      >
+                        <MenuItem value={selectedParent?.id ?? ''}>
+                          {selectedParent?.name ?? '— Catégorie principale'}
+                        </MenuItem>
+                        {subcategories.map((sub) => (
+                          <MenuItem key={sub.id} value={sub.id}>
+                            {sub.name}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </Grid>
+                  )}
+                </Grid>
+              </Paper>
             </Stack>
-          </Grid>
-
-          {/* COLONNE DROITE - Médias */}
-          <Grid item xs={12} lg={4}>
-            <Paper sx={{ p: 3, position: 'sticky', top: 100 }}>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 3, fontSize: '1.25rem' }}>
-                📸 Médias
-              </Typography>
-              
-              <Stack spacing={3}>
-                {/* Image */}
-                <Box>
-                  <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Image</Typography>
-                  <Box
-                    sx={{
-                      width: '100%',
-                      height: 240,
-                      border: '2px dashed',
-                      borderColor: 'divider',
-                      borderRadius: 2,
-                      overflow: 'hidden',
-                      position: 'relative',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      bgcolor: 'background.default',
-                      transition: 'all 0.2s',
-                      '&:hover': { borderColor: 'primary.main', bgcolor: 'action.hover' }
-                    }}
-                    onClick={() => document.getElementById('image-upload')?.click()}
-                  >
-                    <input
-                      id="image-upload"
-                      type="file"
-                      hidden
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                    />
-                    {previewImage ? (
-                      <>
-                        <img
-                          src={previewImage}
-                          alt="Preview"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setFormData({ ...formData, image: '' });
-                            setPreviewImage('');
-                          }}
-                          sx={{
-                            position: 'absolute',
-                            top: 8,
-                            right: 8,
-                            bgcolor: 'rgba(255,255,255,0.95)',
-                            '&:hover': { bgcolor: 'error.main', color: 'white' },
-                          }}
-                        >
-                          <IconifyIcon icon="material-symbols:close" width={20} />
-                        </IconButton>
-                      </>
-                    ) : (
-                      <Stack alignItems="center" spacing={1.5} sx={{ color: 'text.secondary' }}>
-                        <IconifyIcon icon={uploading ? "eos-icons:loading" : "material-symbols:add-photo-alternate"} width={48} />
-                        <Typography variant="body2" fontWeight={500}>Cliquer pour ajouter</Typography>
-                      </Stack>
-                    )}
-                  </Box>
-                </Box>
-
-                <Divider />
-
-                {/* Vidéo */}
-                <Box>
-                  <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Vidéo</Typography>
-                  <Box
-                    sx={{
-                      width: '100%',
-                      height: 240,
-                      border: '2px dashed',
-                      borderColor: 'divider',
-                      borderRadius: 2,
-                      overflow: 'hidden',
-                      position: 'relative',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      bgcolor: 'background.default',
-                      transition: 'all 0.2s',
-                      '&:hover': { borderColor: 'primary.main', bgcolor: 'action.hover' }
-                    }}
-                    onClick={() => document.getElementById('video-upload')?.click()}
-                  >
-                    <input
-                      id="video-upload"
-                      type="file"
-                      hidden
-                      accept="video/*"
-                      onChange={handleVideoUpload}
-                    />
-                    {previewVideo ? (
-                      <>
-                        <video
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          muted
-                          playsInline
-                          controls
-                          preload="auto"
-                        >
-                          <source src={previewVideo} type={getVideoMimeType(previewVideo)} />
-                          Votre navigateur ne supporte pas la lecture de vidéos.
-                        </video>
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setFormData({ ...formData, videoUrl: '' });
-                            setPreviewVideo('');
-                          }}
-                          sx={{
-                            position: 'absolute',
-                            top: 8,
-                            right: 8,
-                            bgcolor: 'rgba(255,255,255,0.95)',
-                            '&:hover': { bgcolor: 'error.main', color: 'white' },
-                          }}
-                        >
-                          <IconifyIcon icon="material-symbols:close" width={20} />
-                        </IconButton>
-                      </>
-                    ) : (
-                      <Stack alignItems="center" spacing={1.5} sx={{ color: 'text.secondary' }}>
-                        <IconifyIcon icon={uploading ? "eos-icons:loading" : "material-symbols:video-library"} width={48} />
-                        <Typography variant="body2" fontWeight={500}>Cliquer pour ajouter</Typography>
-                      </Stack>
-                    )}
-                  </Box>
-                </Box>
-
-                {uploading && uploadProgress > 0 && (
-                  <Box>
-                    <LinearProgress variant="determinate" value={uploadProgress} sx={{ height: 8, borderRadius: 1, mb: 1 }} />
-                    <Typography variant="caption" color="text.secondary" textAlign="center" display="block">
-                      Upload en cours... {uploadProgress}%
-                    </Typography>
-                  </Box>
-                )}
-              </Stack>
-            </Paper>
           </Grid>
         </Grid>
       </Box>
