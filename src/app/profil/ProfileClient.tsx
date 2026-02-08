@@ -129,14 +129,15 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
   }, []);
 
   // Doc Telegram : "transmit initData at each request" — pas de cookies/session
-  // GET /api/telegram/me avec Authorization: tma <initData>
+  const [profileLoading, setProfileLoading] = useState(!initialTelegramInfo);
   useEffect(() => {
     let cancelled = false;
-    const run = () => {
+    const run = (attempt = 0) => {
       if (cancelled) return;
       const initData = getInitData();
       if (!initData) {
-        setTimeout(run, 300);
+        if (attempt < 20) setTimeout(() => run(attempt + 1), 100);
+        else setProfileLoading(false);
         return;
       }
       fetch('/api/telegram/me', {
@@ -151,8 +152,9 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
             );
             if (data.telegramInfo?.telegramPhoto) setPhotoKey((k) => k + 1);
           }
+          setProfileLoading(false);
         })
-        .catch(() => {});
+        .catch(() => setProfileLoading(false));
     };
     run();
     return () => { cancelled = true; };
@@ -331,7 +333,9 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
               alignItems: 'center',
               gap: '6px'
             }}>
-              {telegramInfo?.linked ? (
+              {profileLoading ? (
+                'Chargement...'
+              ) : telegramInfo?.linked ? (
                 <>
                   <Send size={14} />
                   @{telegramInfo.telegramUsername || 'User'}
@@ -374,7 +378,7 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
                   fontWeight: '600',
                   color: '#0088cc'
                 }}>
-                  {telegramInfo?.telegramUsername ? `@${telegramInfo.telegramUsername}` : 'Non lié'}
+                  {profileLoading ? '—' : (telegramInfo?.telegramUsername ? `@${telegramInfo.telegramUsername}` : 'Non lié')}
                 </span>
               </div>
 
@@ -400,7 +404,7 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
                   fontWeight: '600',
                   color: '#333'
                 }}>
-                  {telegramInfo?.telegramId || '—'}
+                  {profileLoading ? '—' : (telegramInfo?.telegramId || '—')}
                 </span>
               </div>
 
@@ -426,7 +430,7 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
                   fontWeight: '600',
                   color: '#333'
                 }}>
-                  {telegramInfo?.linkedAt ? new Date(telegramInfo.linkedAt).toLocaleDateString('fr-FR') : '—'}
+                  {profileLoading ? '—' : (telegramInfo?.linkedAt ? new Date(telegramInfo.linkedAt).toLocaleDateString('fr-FR') : '—')}
                 </span>
               </div>
 
@@ -450,9 +454,9 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
                   fontFamily: "'Montserrat', sans-serif",
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: telegramInfo?.linked ? '#22c55e' : '#ef4444'
+                  color: profileLoading ? '#666' : (telegramInfo?.linked ? '#22c55e' : '#ef4444')
                 }}>
-                  {telegramInfo?.linked ? '✓ Connecté' : '✗ Non connecté'}
+                  {profileLoading ? 'Chargement...' : (telegramInfo?.linked ? '✓ Connecté' : '✗ Non connecté')}
                 </span>
               </div>
             </div>

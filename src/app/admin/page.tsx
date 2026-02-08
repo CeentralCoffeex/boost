@@ -52,7 +52,7 @@ export default function AdminPage() {
     router.push('/unauthorized')
   }, [session, status, router])
 
-  if (status === 'loading' || (session && adminVerified !== true)) {
+  if (status === 'loading' || adminVerified !== true) {
     return (
       <div style={{ 
         display: 'flex', 
@@ -67,16 +67,11 @@ export default function AdminPage() {
     )
   }
 
-  // Si pas connecté, laisser afficher l'iframe login. Si connecté mais pas admin bot, on a déjà redirigé.
-  if (session && adminVerified === false) {
-    return null
-  }
-
-  // Déterminer l'URL de l'iframe : passer le hash (#/categories, #/profil, etc.) pour ouvrir la bonne section
+  // Admin vérifié : afficher le panneau (initData ou session)
   const hash = typeof window !== 'undefined' ? (window.location.hash || '#/') : '#/';
-  const iframeUrl = !session 
-    ? '/administration/index.html#/authentication/login'
-    : `/administration/index.html${hash === '#' ? '#/' : hash}`;
+  const iframeUrl = adminVerified
+    ? `/administration/index.html${hash === '#' ? '#/' : hash}`
+    : '/administration/index.html#/authentication/login';
 
   const handleIframeLoad = useCallback(() => {
     const data = initDataToPass || sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')
