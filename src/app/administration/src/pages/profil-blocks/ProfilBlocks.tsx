@@ -8,7 +8,6 @@ import {
   TextField,
   Grid,
 } from '@mui/material';
-import IconifyIcon from '../../components/base/IconifyIcon';
 import RichTextEditor from '../../components/RichTextEditor';
 import { fetchWithCSRF } from '../../utils/csrf';
 
