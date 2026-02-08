@@ -21,7 +21,7 @@ export function validateTelegramWebAppData(
   const secretKey = crypto.createHmac('sha256', 'WebAppData').update(botToken).digest();
   const calculatedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
 
-  if (calculatedHash === hash) {
+  if (hash && calculatedHash.toLowerCase() === hash.toLowerCase()) {
     const userStr = urlParams.get('user');
     return userStr ? JSON.parse(userStr) : null;
   }

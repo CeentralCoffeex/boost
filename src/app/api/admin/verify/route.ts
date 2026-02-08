@@ -9,7 +9,8 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    const hasInitData = request.headers.get('authorization')?.startsWith('tma ');
+    const hasInitData = request.headers.get('authorization')?.startsWith('tma ') ||
+      !!request.headers.get('x-telegram-init-data');
 
     if (!session?.user && !hasInitData) {
       return NextResponse.json({ allowed: false });

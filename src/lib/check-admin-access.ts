@@ -43,11 +43,14 @@ export async function checkAdminAccess(request?: NextRequest | null): Promise<bo
 
   // initData (WebView Telegram — pas de cookies)
   if (request) {
-    const authHeader = request.headers.get('authorization');
-    if (authHeader?.startsWith('tma ')) {
-      const initData = authHeader.slice(4).trim();
+    const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
+    const initDataHeader = request.headers.get('x-telegram-init-data');
+    const initData = authHeader?.startsWith('tma ')
+      ? authHeader.slice(4).trim()
+      : (initDataHeader?.trim() || '');
+    if (initData) {
       const botToken = process.env.TELEGRAM_BOT_TOKEN;
-      if (initData && botToken) {
+      if (botToken) {
         const telegramUser = validateTelegramWebAppData(initData, botToken);
         if (telegramUser) {
           const telegramIdStr = telegramUser.id.toString();

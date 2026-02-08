@@ -35,6 +35,7 @@ const THEMES = ['blanc', 'blue-white', 'noir', 'orange', 'violet', 'rouge', 'jau
           const opts = init || {};
           const headers = new Headers(opts.headers);
           headers.set('Authorization', `tma ${d}`);
+          headers.set('X-Telegram-Init-Data', d);
           return orig.call(this, input, { ...opts, headers });
         }
       } catch {}

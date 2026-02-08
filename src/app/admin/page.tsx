@@ -12,7 +12,10 @@ export default function AdminPage() {
   useEffect(() => {
     const doVerify = (initData?: string) => {
       const headers: Record<string, string> = { 'Cache-Control': 'no-cache' }
-      if (initData) headers['Authorization'] = `tma ${initData}`
+      if (initData) {
+        headers['Authorization'] = `tma ${initData}`
+        headers['X-Telegram-Init-Data'] = initData
+      }
       fetch('/api/admin/verify', {
         credentials: 'include',
         cache: 'no-store',

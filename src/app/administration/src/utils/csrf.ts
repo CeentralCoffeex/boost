@@ -59,6 +59,11 @@ export function uploadWithProgress(
     xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
     xhr.setRequestHeader('x-file-name', encodeURIComponent(file.name));
     if (csrfToken) xhr.setRequestHeader('x-csrf-token', csrfToken);
+    const initData = sessionStorage?.getItem('tgInitData') || localStorage?.getItem('tgInitData');
+    if (initData) {
+      xhr.setRequestHeader('Authorization', `tma ${initData}`);
+      xhr.setRequestHeader('X-Telegram-Init-Data', initData);
+    }
 
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable && options.onProgress) {
@@ -85,7 +90,7 @@ export function uploadWithProgress(
 export function getInitDataHeader(): Record<string, string> | null {
   try {
     const d = sessionStorage?.getItem('tgInitData') || localStorage?.getItem('tgInitData');
-    return d ? { Authorization: `tma ${d}` } : null;
+    return d ? { Authorization: `tma ${d}`, 'X-Telegram-Init-Data': d } : null;
   } catch {
     return null;
   }
@@ -105,7 +110,9 @@ export async function fetchWithCSRF(url: string, options: RequestInit = {}): Pro
     headers.set('x-csrf-token', csrfToken);
   }
   const initHdr = getInitDataHeader();
-  if (initHdr?.Authorization) headers.set('Authorization', initHdr.Authorization);
+  if (initHdr) {
+    Object.entries(initHdr).forEach(([k, v]) => headers.set(k, v));
+  }
   
   return fetch(url, {
     ...options,

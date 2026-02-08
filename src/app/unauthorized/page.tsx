@@ -73,22 +73,30 @@ export default function UnauthorizedPage() {
             </div>
           )}
 
-          <div className="flex space-x-4">
-            <button
-              onClick={() => window.history.back()}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Retour</span>
-            </button>
-            
+          <div className="flex flex-col gap-3">
             <Link
-              href="/"
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              href="/admin"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              <Home className="w-4 h-4" />
-              <span>Accueil</span>
+              <Lock className="w-4 h-4" />
+              <span>Réessayer l&apos;administration</span>
             </Link>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => window.history.back()}
+                className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Retour</span>
+              </button>
+              <Link
+                href="/"
+                className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <Home className="w-4 h-4" />
+                <span>Accueil</span>
+              </Link>
+            </div>
           </div>
         </div>
 
