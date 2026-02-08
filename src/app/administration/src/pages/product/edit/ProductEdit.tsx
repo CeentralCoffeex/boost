@@ -141,7 +141,9 @@ const ProductEdit = (): ReactElement => {
     setUploadProgress(0);
 
     try {
-      const response = await uploadWithProgress(file, 'image', (progress: number) => setUploadProgress(progress));
+      const response = await uploadWithProgress('/api/upload?type=image', file, { 
+        onProgress: setUploadProgress 
+      });
       const result = await response.json();
       if (result.success && result.url) {
         setFormData({ ...formData, image: result.url });
@@ -168,7 +170,9 @@ const ProductEdit = (): ReactElement => {
     setUploadProgress(0);
 
     try {
-      const response = await uploadWithProgress(file, 'video', (progress: number) => setUploadProgress(progress));
+      const response = await uploadWithProgress('/api/upload?type=video', file, { 
+        onProgress: setUploadProgress 
+      });
       const result = await response.json();
       if (result.success && result.url) {
         setFormData({ ...formData, videoUrl: result.url });
