@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ChevronLeft, Share2, Send, Shield } from 'lucide-react';
+import { getInitData } from '@/lib/telegram-client';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -129,12 +130,15 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
 
   // Rafraîchir la photo Telegram à chaque ouverture de l'app
   useEffect(() => {
-    const initData =
-      typeof window !== 'undefined' &&
-      (window as { Telegram?: { WebApp?: { initData?: string } } }).Telegram?.WebApp?.initData;
-    if (!initData) return;
-
-    fetch('/api/telegram/refresh-profile', {
+    let cancelled = false;
+    const run = () => {
+      if (cancelled) return;
+      const initData = getInitData();
+      if (!initData) {
+        setTimeout(run, 300);
+        return;
+      }
+      fetch('/api/telegram/refresh-profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ initData }),
@@ -142,6 +146,7 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
     })
       .then((res) => res.json())
       .then((data) => {
+        if (cancelled) return;
         if (data?.success && data?.telegramInfo) {
           setTelegramInfo((prev) =>
             prev ? { ...prev, ...data.telegramInfo } : data.telegramInfo
@@ -150,6 +155,9 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
         }
       })
       .catch(() => {});
+    };
+    run();
+    return () => { cancelled = true; };
   }, []);
 
   const handleBack = () => {

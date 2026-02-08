@@ -74,7 +74,7 @@ export default async function RootLayout({
   return (
     <html lang="fr" data-theme="blanc" {...(nonce ? { nonce } : {})}>
       <head>
-        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" nonce={nonce} />
+        <Script src="https://telegram.org/js/telegram-web-app.js?59" strategy="beforeInteractive" nonce={nonce} />
       </head>
       <body className={`${inter.className} ${orbitron.variable} ${rajdhani.variable} ${dancingScript.variable}`}>
         <AuthSessionProvider>
