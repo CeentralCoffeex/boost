@@ -12,13 +12,19 @@ export async function GET(request: NextRequest) {
     const hasInitData = request.headers.get('authorization')?.startsWith('tma ') ||
       !!request.headers.get('x-telegram-init-data');
 
+    console.log('[verify] session:', session?.user?.email, 'role:', (session?.user as any)?.role);
+    console.log('[verify] hasInitData:', hasInitData);
+
     if (!session?.user && !hasInitData) {
+      console.log('[verify] REJECT: no session and no initData');
       return NextResponse.json({ allowed: false });
     }
 
     const allowed = await checkAdminAccess(request);
+    console.log('[verify] checkAdminAccess result:', allowed);
     return NextResponse.json({ allowed });
-  } catch {
+  } catch (error) {
+    console.error('[verify] ERROR:', error);
     return NextResponse.json({ allowed: false });
   }
 }

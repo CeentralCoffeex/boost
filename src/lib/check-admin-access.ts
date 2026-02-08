@@ -50,16 +50,23 @@ export async function checkAdminAccess(request?: NextRequest | null): Promise<bo
       : (initDataHeader?.trim() || '');
     if (initData) {
       const botToken = process.env.TELEGRAM_BOT_TOKEN;
+      console.log('[checkAdmin] has botToken:', !!botToken, 'initData length:', initData.length);
       if (botToken) {
         const telegramUser = validateTelegramWebAppData(initData, botToken);
+        console.log('[checkAdmin] validateTelegramWebAppData result:', telegramUser ? `user ${telegramUser.id}` : 'null');
         if (telegramUser) {
           const telegramIdStr = telegramUser.id.toString();
           const cacheKey = `tg:${telegramIdStr}`;
           const cached = getCachedAdmin(cacheKey);
-          if (cached !== null) return cached;
-          const ok = isBotAdmin(telegramIdStr) ||
-            (await prisma.telegramAdmin.findFirst({ where: { telegramId: telegramIdStr, isActive: true } })) !== null ||
-            (await prisma.user.findFirst({ where: { telegramId: telegramIdStr }, select: { role: true } }))?.role === 'ADMIN';
+          if (cached !== null) {
+            console.log('[checkAdmin] cached result:', cached);
+            return cached;
+          }
+          const isBotAdm = isBotAdmin(telegramIdStr);
+          const dbAdmin = await prisma.telegramAdmin.findFirst({ where: { telegramId: telegramIdStr, isActive: true } });
+          const userRole = (await prisma.user.findFirst({ where: { telegramId: telegramIdStr }, select: { role: true } }))?.role;
+          console.log('[checkAdmin] checks: isBotAdmin=', isBotAdm, 'dbAdmin=', !!dbAdmin, 'userRole=', userRole);
+          const ok = isBotAdm || dbAdmin !== null || userRole === 'ADMIN';
           setCachedAdmin(cacheKey, ok);
           return ok;
         }
@@ -122,22 +129,28 @@ async function checkUserAdminAccess(userId?: string, email?: string): Promise<bo
             select: { id: true, telegramId: true, role: true },
           })
         : null;
+    console.log('[checkUserAdminAccess] user:', user ? `${user.id} role=${user.role}` : 'null');
     if (!user) return false;
 
     // config.json (bot) ou TelegramAdmin
     if (user.telegramId) {
-      if (isBotAdmin(user.telegramId)) return true;
+      const isBotAdm = isBotAdmin(user.telegramId);
+      console.log('[checkUserAdminAccess] isBotAdmin:', isBotAdm);
+      if (isBotAdm) return true;
       const dbAdmin = await prisma.telegramAdmin.findFirst({
         where: { telegramId: user.telegramId, isActive: true },
       });
+      console.log('[checkUserAdminAccess] dbAdmin:', !!dbAdmin);
       if (dbAdmin) return true;
     }
 
     // Secours : rôle ADMIN (utilisateur identifié admin à la connexion Telegram)
+    console.log('[checkUserAdminAccess] user.role check:', user.role, '===', 'ADMIN', '?', user.role === 'ADMIN');
     if (user.role === 'ADMIN') return true;
 
     return false;
-  } catch {
+  } catch (error) {
+    console.error('[checkUserAdminAccess] ERROR:', error);
     return false;
   }
 }
