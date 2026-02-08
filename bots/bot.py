@@ -551,24 +551,29 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if context.args and len(context.args) > 0:
         arg = context.args[0]
         if arg.startswith("link_"):
-            user_id = arg.replace("link_", "")
+            user_id = arg.replace("link_", "").strip()
             try:
                 cfg = _load_config()
-                api_url = cfg.get("miniapp_url", "").rstrip("/")
+                # API peut être sur une URL différente (BOT_API_BASE_URL ou miniapp_url)
+                api_base = os.getenv("BOT_API_BASE_URL", "").rstrip("/") or cfg.get("miniapp_url", "").rstrip("/")
                 api_key = os.getenv("BOT_API_KEY", "")
                 
-                if api_url and api_key:
-                    headers = {"x-api-key": api_key}
+                if api_base and api_key:
+                    headers = {"Content-Type": "application/json", "x-api-key": api_key}
                     payload = {
                         "userId": user_id,
                         "telegramId": str(update.effective_user.id),
-                        "telegramUsername": update.effective_user.username,
-                        "telegramFirstName": update.effective_user.first_name,
-                        # "telegramPhoto": ... (optionnel si on veut récupérer la photo)
+                        "telegramUsername": getattr(update.effective_user, "username", None),
+                        "telegramFirstName": getattr(update.effective_user, "first_name", None),
                     }
+                    link_url = f"{api_base}/api/bot/link"
                     
                     async with httpx.AsyncClient() as client:
-                        resp = await client.post(f"{api_url}/api/bot/link", json=payload, headers=headers, timeout=10.0)
+                        resp = await client.post(link_url, json=payload, headers=headers, timeout=15.0)
+                        try:
+                            resp_json = resp.json()
+                        except Exception:
+                            resp_json = {}
                         
                         if resp.status_code == 200:
                             await context.bot.send_message(
@@ -577,15 +582,23 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                 parse_mode="HTML"
                             )
                         elif resp.status_code == 409:
-                             await context.bot.send_message(
+                            await context.bot.send_message(
                                 chat_id=update.effective_chat.id,
                                 text="⚠️ Compte déjà lié\n\nCe compte Telegram est déjà lié à un autre utilisateur.",
                                 parse_mode="HTML"
                             )
-                        else:
-                             await context.bot.send_message(
+                        elif resp.status_code == 404:
+                            await context.bot.send_message(
                                 chat_id=update.effective_chat.id,
-                                text="❌ Erreur de liaison\n\nUne erreur est survenue lors de la liaison. Veuillez réessayer.",
+                                text="❌ Compte introuvable\n\nAssurez-vous d'ouvrir le lien depuis l'application (bouton Lier mon compte).",
+                                parse_mode="HTML"
+                            )
+                        else:
+                            err_msg = resp_json.get("error", "Erreur inconnue")
+                            print(f"[Liaison] API {resp.status_code}: {err_msg} | userId={user_id} | url={link_url}")
+                            await context.bot.send_message(
+                                chat_id=update.effective_chat.id,
+                                text=f"❌ Erreur de liaison ({resp.status_code})\n\n{err_msg}\n\nVérifiez que BOT_API_KEY est identique entre le bot et l'app.",
                                 parse_mode="HTML"
                             )
                 else:

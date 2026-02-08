@@ -29,12 +29,23 @@ export async function POST(request: NextRequest) {
 
     const validation = validateAndSanitize(botLinkSchema, body);
     if (!validation.success) {
+      console.error('[bot/link] Validation failed:', formatZodErrors(validation.errors), 'body:', body);
       return NextResponse.json(
         { error: 'Données invalides', details: formatZodErrors(validation.errors) },
         { status: 400 }
       );
     }
     const { userId, telegramId, telegramUsername, telegramFirstName, telegramPhoto } = validation.data;
+
+    // Vérifier que l'utilisateur existe
+    const existingUser = await prisma.user.findUnique({ where: { id: userId } });
+    if (!existingUser) {
+      console.error('[bot/link] User not found:', userId);
+      return NextResponse.json(
+        { error: 'Utilisateur introuvable' },
+        { status: 404 }
+      );
+    }
 
     // Vérifier si ce Telegram ID est déjà lié à un autre compte
     const existingLink = await prisma.user.findFirst({

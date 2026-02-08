@@ -234,7 +234,7 @@ export const telegramAdminUpdateSchema = z.object({
 
 // Validation bot link (appelé par le bot Python)
 export const botLinkSchema = z.object({
-  userId: z.string().cuid('userId invalide'),
+  userId: z.string().min(1, 'userId requis').max(50),
   telegramId: z.union([z.string(), z.number()]).transform(String),
   telegramUsername: z.string().max(100).optional().nullable(),
   telegramFirstName: z.string().max(100).optional().nullable(),
