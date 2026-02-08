@@ -21,6 +21,12 @@ import { fetchWithCSRF } from '../../utils/csrf';
 type ThemeId = 'blanc' | 'blue-white' | 'noir' | 'orange' | 'violet' | 'rouge' | 'jaune';
 
 interface SettingsForm {
+  heroTitle: string;
+  heroSubtitle1: string;
+  heroSubtitle2: string;
+  heroSubtitle3: string;
+  heroTagline: string;
+  heroImage: string;
   facebookUrl: string;
   twitterUrl: string;
   instagramUrl: string;
@@ -29,6 +35,12 @@ interface SettingsForm {
 
 const Settings = (): ReactElement => {
   const [formData, setFormData] = useState<SettingsForm>({
+    heroTitle: '',
+    heroSubtitle1: '',
+    heroSubtitle2: '',
+    heroSubtitle3: '',
+    heroTagline: '',
+    heroImage: '',
     facebookUrl: '',
     twitterUrl: '',
     instagramUrl: '',
@@ -47,6 +59,12 @@ const Settings = (): ReactElement => {
       const response = await fetch('/api/settings');
       const data = await response.json();
       setFormData({
+        heroTitle: data.heroTitle || '',
+        heroSubtitle1: data.heroSubtitle1 || '',
+        heroSubtitle2: data.heroSubtitle2 || '',
+        heroSubtitle3: data.heroSubtitle3 || '',
+        heroTagline: data.heroTagline || '',
+        heroImage: data.heroImage || '',
         facebookUrl: data.facebookUrl || '',
         twitterUrl: data.twitterUrl || '',
         instagramUrl: data.instagramUrl || '',
@@ -87,9 +105,29 @@ const Settings = (): ReactElement => {
 
   return (
     <Box>
-      <Typography variant="h4" color="common.white" mb={4}>
-        Paramètres du site
-      </Typography>
+      {/* Header avec bouton Enregistrer */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={4}>
+        <Typography variant="h4" color="common.white">
+          Paramètres
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={loading}
+          sx={{
+            bgcolor: 'white',
+            color: 'black',
+            fontWeight: 600,
+            px: 3,
+            py: 1,
+            '&:hover': {
+              bgcolor: '#e0e0e0',
+            },
+          }}
+        >
+          {loading ? 'Enregistrement...' : 'Enregistrer'}
+        </Button>
+      </Stack>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
@@ -104,6 +142,193 @@ const Settings = (): ReactElement => {
 
       <Paper sx={{ p: { xs: 3, sm: 4 } }}>
         <Grid container spacing={4}>
+          {/* Section Hero */}
+          <Grid item xs={12}>
+            <Accordion
+              defaultExpanded
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '8px !important',
+                '&:before': { display: 'none' },
+                boxShadow: 'none',
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon sx={{ color: 'common.white' }} />}
+                aria-controls="hero-content"
+                id="hero-header"
+                sx={{
+                  '& .MuiAccordionSummary-content': { alignItems: 'center', gap: 1 },
+                }}
+              >
+                <Typography variant="h6" color="common.white">
+                  Hero de la page d'accueil
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ pt: 2 }}>
+                <Grid container spacing={3}>
+                  {/* Formulaire Hero */}
+                  <Grid item xs={12} md={6}>
+                    <Stack spacing={2}>
+                      <TextField
+                        label="Titre principal"
+                        fullWidth
+                        value={formData.heroTitle}
+                        onChange={(e) => setFormData({ ...formData, heroTitle: e.target.value })}
+                        placeholder="PROPULSEZ VOTRE BUSINESS!"
+                      />
+                      <TextField
+                        label="Sous-titre 1"
+                        fullWidth
+                        value={formData.heroSubtitle1}
+                        onChange={(e) => setFormData({ ...formData, heroSubtitle1: e.target.value })}
+                        placeholder="Exclusive"
+                      />
+                      <TextField
+                        label="Sous-titre 2"
+                        fullWidth
+                        value={formData.heroSubtitle2}
+                        onChange={(e) => setFormData({ ...formData, heroSubtitle2: e.target.value })}
+                        placeholder="Boutique"
+                      />
+                      <TextField
+                        label="Sous-titre 3"
+                        fullWidth
+                        value={formData.heroSubtitle3}
+                        onChange={(e) => setFormData({ ...formData, heroSubtitle3: e.target.value })}
+                        placeholder="Hotel"
+                      />
+                      <TextField
+                        label="Slogan"
+                        fullWidth
+                        value={formData.heroTagline}
+                        onChange={(e) => setFormData({ ...formData, heroTagline: e.target.value })}
+                        placeholder="Luxury Experience"
+                      />
+                      <TextField
+                        label="URL de l'image"
+                        fullWidth
+                        value={formData.heroImage}
+                        onChange={(e) => setFormData({ ...formData, heroImage: e.target.value })}
+                        placeholder="/hero.png"
+                      />
+                    </Stack>
+                  </Grid>
+
+                  {/* Prévisualisation Hero */}
+                  <Grid item xs={12} md={6}>
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        width: '100%',
+                        height: '400px',
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        bgcolor: '#000',
+                        border: '2px solid rgba(255,255,255,0.1)',
+                      }}
+                    >
+                      {formData.heroImage && (
+                        <Box
+                          component="img"
+                          src={formData.heroImage}
+                          alt="Hero"
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            opacity: 0.7,
+                          }}
+                        />
+                      )}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          textAlign: 'center',
+                          p: 3,
+                        }}
+                      >
+                        {formData.heroTitle && (
+                          <Typography
+                            variant="h3"
+                            sx={{
+                              color: 'white',
+                              fontWeight: 900,
+                              mb: 2,
+                              textShadow: '2px 2px 8px rgba(0,0,0,0.8)',
+                              fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
+                            }}
+                          >
+                            {formData.heroTitle}
+                          </Typography>
+                        )}
+                        <Stack direction="row" spacing={1} mb={1} flexWrap="wrap" justifyContent="center">
+                          {formData.heroSubtitle1 && (
+                            <Typography
+                              sx={{
+                                color: 'white',
+                                fontWeight: 600,
+                                fontSize: '1.2rem',
+                                textShadow: '1px 1px 4px rgba(0,0,0,0.8)',
+                              }}
+                            >
+                              {formData.heroSubtitle1}
+                            </Typography>
+                          )}
+                          {formData.heroSubtitle2 && (
+                            <Typography
+                              sx={{
+                                color: 'white',
+                                fontWeight: 600,
+                                fontSize: '1.2rem',
+                                textShadow: '1px 1px 4px rgba(0,0,0,0.8)',
+                              }}
+                            >
+                              {formData.heroSubtitle2}
+                            </Typography>
+                          )}
+                          {formData.heroSubtitle3 && (
+                            <Typography
+                              sx={{
+                                color: 'white',
+                                fontWeight: 600,
+                                fontSize: '1.2rem',
+                                textShadow: '1px 1px 4px rgba(0,0,0,0.8)',
+                              }}
+                            >
+                              {formData.heroSubtitle3}
+                            </Typography>
+                          )}
+                        </Stack>
+                        {formData.heroTagline && (
+                          <Typography
+                            sx={{
+                              color: 'rgba(255,255,255,0.9)',
+                              fontSize: '1rem',
+                              fontStyle: 'italic',
+                              textShadow: '1px 1px 4px rgba(0,0,0,0.8)',
+                            }}
+                          >
+                            {formData.heroTagline}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+          </Grid>
+
           {/* Section Thème */}
           <Grid item xs={12}>
             <Typography variant="h6" color="common.white" mb={2}>
@@ -112,13 +337,21 @@ const Settings = (): ReactElement => {
             <Typography variant="body2" color="grey.400" mb={2}>
               Choisissez l'apparence des pages du site (fond et textes).
             </Typography>
-            <ToggleButtonGroup
-              value={formData.theme}
-              exclusive
-              onChange={(_, value: ThemeId | null) => value != null && setFormData({ ...formData, theme: value })}
-              aria-label="Thème"
-              sx={{ flexWrap: 'wrap', gap: 1 }}
-            >
+            <Box sx={{ overflowX: 'auto', pb: 1 }}>
+              <ToggleButtonGroup
+                value={formData.theme}
+                exclusive
+                onChange={(_, value: ThemeId | null) => value != null && setFormData({ ...formData, theme: value })}
+                aria-label="Thème"
+                sx={{ 
+                  flexWrap: 'nowrap', 
+                  gap: 1,
+                  display: 'flex',
+                  '& .MuiToggleButton-root': {
+                    whiteSpace: 'nowrap'
+                  }
+                }}
+              >
               <ToggleButton 
                 value="blanc" 
                 aria-label="Blanc"
@@ -207,6 +440,7 @@ const Settings = (): ReactElement => {
                 Jaune
               </ToggleButton>
             </ToggleButtonGroup>
+            </Box>
           </Grid>
 
           {/* Réseaux sociaux */}
@@ -285,25 +519,6 @@ const Settings = (): ReactElement => {
             </Accordion>
           </Grid>
 
-          <Grid item xs={12}>
-            <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-                disabled={loading}
-                sx={{
-                  bgcolor: 'primary.main',
-                  color: 'common.black',
-                  minWidth: 150,
-                  '&:hover': {
-                    bgcolor: 'primary.dark',
-                  },
-                }}
-              >
-                {loading ? 'Enregistrement...' : 'Sauvegarder'}
-              </Button>
-            </Stack>
-          </Grid>
         </Grid>
       </Paper>
     </Box>

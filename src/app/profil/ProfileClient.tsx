@@ -19,6 +19,13 @@ const DEFAULT_BLOCK2 = {
   content: '⏰ 3 tournées quotidiennes pour mieux vous servir :\n• ⌚ TOURNÉE : 11h\n• ⌚ TOURNÉE : 15h\n• ⌚ TOURNÉE : 20h\n📌 Zones proches du département 13\n(Aix-en-Provence, Gardanne, Vitrolles, Marignane, Salon-de-Provence, Martigues)\n💶 Frais de livraison : 10 €\n📌 Zones 83 / 84 / 04 🚚\n(Toulon, La Seyne-sur-Mer, Hyères, Fréjus, Draguignan / Avignon, Orange, Carpentras / Digne-les-Bains, Manosque)\n🛒 Commande minimum : 150 €\n⭐ Programme de parrainage ⭐\nChaque client peut parrainer un ami et gagner une commande offerte ! 🎁',
 };
 
+function hexToRgb(hex: string): string {
+  const h = (hex || '#bef264').replace('#', '');
+  if (h.length !== 6) return '190, 242, 100';
+  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+  return `${r}, ${g}, ${b}`;
+}
+
 /** Parse **bold** et [c=#hex]texte coloré[/c] */
 function parseFormattedText(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
@@ -113,11 +120,20 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
     block1: { title: string | null; content: string | null };
     block2: { title: string | null; content: string | null };
   } | null>(null);
+  const [separatorColor, setSeparatorColor] = useState<string>('');
 
   useEffect(() => {
     fetch('/api/profile-blocks')
       .then((res) => res.json())
       .then((data) => setProfileBlocks(data))
+      .catch(() => {});
+    
+    // Charger la couleur de la bordure depuis les settings
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        setSeparatorColor(data.heroSeparatorColor || '#bef264');
+      })
       .catch(() => {});
   }, []);
 
@@ -431,28 +447,38 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
 
         {/* Rectangles info livraison (contenu éditable depuis l'admin) - style news */}
         <div className="page-profil-info-cards" style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
-          <article className="page-profil-info-rect page-profil-info-rect-1">
-            <header className="page-profil-info-rect-header">
-              <h3 className="page-profil-info-rect-title">
-                {profileBlocks?.block1?.title ?? DEFAULT_BLOCK1.title}
-              </h3>
-            </header>
-            <div className="page-profil-info-rect-separator" />
-            <div className="page-profil-info-rect-body">
-              {renderBlockContent(profileBlocks?.block1?.content ?? DEFAULT_BLOCK1.content)}
-            </div>
-          </article>
-          <article className="page-profil-info-rect page-profil-info-rect-2">
-            <header className="page-profil-info-rect-header">
-              <h3 className="page-profil-info-rect-title">
-                {parseFormattedText(profileBlocks?.block2?.title ?? DEFAULT_BLOCK2.title)}
-              </h3>
-            </header>
-            <div className="page-profil-info-rect-separator" />
-            <div className="page-profil-info-rect-body">
-              {renderBlockContent(profileBlocks?.block2?.content ?? DEFAULT_BLOCK2.content)}
-            </div>
-          </article>
+          <div 
+            className="profil-info-animated-border-wrapper"
+            style={{ '--separator-rgb': hexToRgb(separatorColor) } as React.CSSProperties}
+          >
+            <article className="page-profil-info-rect page-profil-info-rect-1">
+              <header className="page-profil-info-rect-header">
+                <h3 className="page-profil-info-rect-title">
+                  {profileBlocks?.block1?.title ?? DEFAULT_BLOCK1.title}
+                </h3>
+              </header>
+              <div className="page-profil-info-rect-separator" />
+              <div className="page-profil-info-rect-body">
+                {renderBlockContent(profileBlocks?.block1?.content ?? DEFAULT_BLOCK1.content)}
+              </div>
+            </article>
+          </div>
+          <div 
+            className="profil-info-animated-border-wrapper"
+            style={{ '--separator-rgb': hexToRgb(separatorColor) } as React.CSSProperties}
+          >
+            <article className="page-profil-info-rect page-profil-info-rect-2">
+              <header className="page-profil-info-rect-header">
+                <h3 className="page-profil-info-rect-title">
+                  {parseFormattedText(profileBlocks?.block2?.title ?? DEFAULT_BLOCK2.title)}
+                </h3>
+              </header>
+              <div className="page-profil-info-rect-separator" />
+              <div className="page-profil-info-rect-body">
+                {renderBlockContent(profileBlocks?.block2?.content ?? DEFAULT_BLOCK2.content)}
+              </div>
+            </article>
+          </div>
         </div>
 
       </div>

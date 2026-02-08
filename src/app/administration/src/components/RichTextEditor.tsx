@@ -71,7 +71,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   };
 
   return (
-    <Box sx={{ border: '1px solid #222', borderRadius: 1, overflow: 'hidden', bgcolor: '#0a0a0a' }}>
+    <Box sx={{ border: '1px solid #222', borderRadius: 3, overflow: 'hidden', bgcolor: '#0a0a0a' }}>
       {/* Toolbar */}
       <Stack 
         direction="row" 

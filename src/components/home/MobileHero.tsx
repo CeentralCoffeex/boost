@@ -61,7 +61,7 @@ export default function MobileHero() {
   }, []);
 
   if (!mounted) {
-    return <div style={{ minHeight: '100vh', background: '#000' }} />;
+    return <div style={{ minHeight: '320px', background: '#000' }} />;
   }
   
   return <MobileHeroClient settings={settings} />;

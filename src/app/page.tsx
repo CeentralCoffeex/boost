@@ -107,11 +107,13 @@ const ProductCard = ({
       if (!res.ok) {
         console.error('[handleLike] Error:', data.error);
         if (data.alreadyLiked) {
+          // Déjà liké, garder l'état liké
           setLiked(true);
         } else {
+          // Autre erreur, restaurer l'état précédent
           setLiked(previousLiked);
           setLikes(previousLikes);
-          alert('Erreur: ' + (data.error || 'Impossible de liker'));
+          console.error('Erreur like:', data.error);
         }
       } else if (data.likesCount !== undefined) {
         setLikes(data.likesCount);
@@ -121,7 +123,6 @@ const ProductCard = ({
       console.error('[handleLike] Exception:', error);
       setLiked(previousLiked);
       setLikes(previousLikes);
-      alert('Erreur réseau');
     } finally {
       setLoading(false);
     }

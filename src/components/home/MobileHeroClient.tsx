@@ -29,7 +29,7 @@ interface MobileHeroClientProps {
 /** Hero sans barre Services (déplacée dans la page d'accueil) */
 export default function MobileHeroClient({ settings }: MobileHeroClientProps) {
   return (
-    <div className="hero-mobile-container relative w-full h-[380px] sm:h-[420px] overflow-visible">
+    <div className="hero-mobile-container relative w-full h-[320px] sm:h-[360px] overflow-visible">
       <img
         src={settings.heroImage || '/hero.png'}
         alt=""

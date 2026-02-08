@@ -44,6 +44,17 @@ export default function MobileServiceCarousel() {
       });
   }, []);
 
+  // Auto-défilement du carousel
+  useEffect(() => {
+    if (services.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % services.length);
+    }, 4000); // Change toutes les 4 secondes
+
+    return () => clearInterval(interval);
+  }, [services.length]);
+
   const currentService = services[currentIndex] ?? services[0];
 
   if (!currentService) return null;

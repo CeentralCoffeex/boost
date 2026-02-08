@@ -74,7 +74,7 @@ export default function MenuBar() {
               color: '#1f2937',
               fontSize: '16px'
             }}>
-              Menu
+              {selectedMenu}
             </span>
             <ChevronDown 
               className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
@@ -87,8 +87,7 @@ export default function MenuBar() {
             style={{
               position: 'absolute',
               right: '16px',
-              top: '50%',
-              transform: 'translateY(-50%)',
+              top: '12px',
               background: '#1a1a1a',
               color: 'white',
               padding: '8px 16px',
@@ -101,11 +100,13 @@ export default function MenuBar() {
               minWidth: '60px',
               maxWidth: '70px'
             }}
-            onClick={() => {
-              if (selectedUrl) {
-                router.push(selectedUrl);
-              } else if (categories.length > 0 && categories[0]) {
-                router.push(`/categorie/${categories[0].id}`);
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const urlToNavigate = selectedUrl || (categories.length > 0 && categories[0] ? `/categorie/${categories[0].id}` : '');
+              if (urlToNavigate) {
+                console.log('Navigation vers:', urlToNavigate);
+                window.location.href = urlToNavigate;
               }
             }}
           >

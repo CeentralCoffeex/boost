@@ -187,7 +187,7 @@ const ProductEdit = (): ReactElement => {
   };
 
   const addVariant = () => {
-    setVariants([...variants, { name: '', type: 'weight', unit: 'gramme', price: '' }]);
+    setVariants([...variants, { name: '', type: 'weight', unit: null, price: '' }]);
   };
 
   const updateVariant = (index: number, field: keyof ProductVariant, value: unknown) => {
@@ -217,8 +217,8 @@ const ProductEdit = (): ReactElement => {
         variants: variants.map(v => ({
           ...v,
           name: v.name.trim(),
-          price: v.price ? parseFloat(v.price) : 0,
-          unit: v.unit || null,
+          price: v.price.toString(),
+          unit: null,
         })),
       };
 
@@ -244,29 +244,55 @@ const ProductEdit = (): ReactElement => {
   return (
     <Box sx={{ pb: 4, bgcolor: '#000', minHeight: '100vh', width: '100%', overflowX: 'hidden' }}>
       {/* Header */}
-      <Box sx={{ bgcolor: '#000', borderBottom: '1px solid #222', py: 1.5, px: { xs: 1, sm: 2 }, mb: 2, width: '100%', boxSizing: 'border-box' }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
+      <Box sx={{ bgcolor: '#000', borderBottom: '1px solid #222', py: 1.5, width: '100%', boxSizing: 'border-box' }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} sx={{ px: { xs: 1, sm: 1.5 } }}>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <IconButton onClick={() => navigate(-1)} size="medium" sx={{ color: 'white' }}>
-              <IconifyIcon icon="material-symbols:arrow-back" width={22} />
+            <IconButton onClick={() => navigate(-1)} size="medium" sx={{ color: 'white', p: 0.5 }}>
+              <IconifyIcon icon="material-symbols:arrow-back" width={24} />
             </IconButton>
-            <Typography variant="h6" fontWeight={700} color="white" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+            <Typography variant="h6" fontWeight={700} color="white" sx={{ fontSize: { xs: '1.1rem', sm: '1.3rem' } }}>
               {isEditing ? 'Modifier' : 'Nouveau'}
             </Typography>
           </Stack>
-          <Stack direction="row" spacing={1}>
-            <Button variant="outlined" onClick={() => navigate(-1)} size="small" sx={{ color: 'white', borderColor: '#333', fontSize: '0.75rem' }}>
+          <Stack direction="row" spacing={1.5}>
+            <Button 
+              variant="outlined" 
+              onClick={() => navigate(-1)} 
+              sx={{ 
+                color: 'white', 
+                borderColor: '#444', 
+                fontSize: '0.875rem',
+                px: 2,
+                py: 1,
+                minWidth: '90px',
+                '&:hover': { borderColor: '#666', bgcolor: '#111' }
+              }}
+            >
               Annuler
             </Button>
-            <Button variant="contained" onClick={handleSubmit} disabled={loading} size="small" sx={{ bgcolor: 'white', color: 'black', fontSize: '0.75rem' }}>
+            <Button 
+              variant="contained" 
+              onClick={handleSubmit} 
+              disabled={loading} 
+              sx={{ 
+                bgcolor: 'white', 
+                color: 'black', 
+                fontSize: '0.875rem',
+                px: 2,
+                py: 1,
+                minWidth: '110px',
+                fontWeight: 600,
+                '&:hover': { bgcolor: '#e0e0e0' }
+              }}
+            >
               {loading ? 'Saving...' : 'Enregistrer'}
             </Button>
           </Stack>
         </Stack>
       </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 1, mx: { xs: 0.5, sm: 1 } }} onClose={() => setError('')}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 1, mx: { xs: 0.5, sm: 1 } }} onClose={() => setSuccess('')}>{success}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 1, mx: 0 }} onClose={() => setError('')}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mb: 1, mx: 0 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
       <Box sx={{ width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
         {/* ACCORDION FORMULAIRE */}
@@ -274,32 +300,36 @@ const ProductEdit = (): ReactElement => {
           defaultExpanded 
           sx={{ 
             bgcolor: '#0a0a0a', 
-            border: '1px solid #222',
-            mb: 2,
+            border: 'none',
+            borderBottom: '1px solid #222',
+            borderRadius: 0,
+            m: 0,
             '&:before': { display: 'none' }
           }}
         >
           <AccordionSummary
-            expandIcon={<IconifyIcon icon="mdi:chevron-down" width={24} color="white" />}
+            expandIcon={<IconifyIcon icon="mdi:chevron-down" width={20} color="white" />}
             sx={{ 
               bgcolor: '#000',
               borderBottom: '1px solid #222',
-              '&:hover': { bgcolor: '#111' }
+              '&:hover': { bgcolor: '#111' },
+              minHeight: '48px',
+              '& .MuiAccordionSummary-content': { my: 1 }
             }}
           >
-            <Typography variant="h6" fontWeight={700} color="white">
-              📝 FORMULAIRE PRODUIT
+            <Typography variant="subtitle1" fontWeight={600} color="white" sx={{ fontSize: '0.95rem' }}>
+              📝 CRÉATION PRODUIT
             </Typography>
           </AccordionSummary>
-          <AccordionDetails sx={{ p: { xs: 1, sm: 1.5 } }}>
-            <Grid container spacing={1.5} sx={{ width: '100%', margin: 0 }}>
+          <AccordionDetails sx={{ p: 1.5 }}>
+            <Grid container spacing={1.5} sx={{ width: '100%', m: 0 }}>
           {/* MÉDIAS */}
-          <Grid item xs={12} md={6}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+          <Grid item xs={12}>
+            <Stack direction="row" spacing={1.5}>
               <Box sx={{ flex: 1 }}>
                 <Box
                   sx={{
-                    height: 100,
+                    height: 120,
                     border: '1px solid #222',
                     borderRadius: 1,
                     overflow: 'hidden',
@@ -323,8 +353,8 @@ const ProductEdit = (): ReactElement => {
                     </>
                   ) : (
                     <Stack alignItems="center" spacing={0.5}>
-                      <IconifyIcon icon="material-symbols:add-photo-alternate" width={24} color="#444" />
-                      <Typography variant="caption" color="#444" fontSize="9px">Image</Typography>
+                      <IconifyIcon icon="material-symbols:add-photo-alternate" width={28} color="#444" />
+                      <Typography variant="caption" color="#444" fontSize="10px" fontWeight={600}>Image</Typography>
                     </Stack>
                   )}
                 </Box>
@@ -332,7 +362,7 @@ const ProductEdit = (): ReactElement => {
               <Box sx={{ flex: 1 }}>
                 <Box
                   sx={{
-                    height: 100,
+                    height: 120,
                     border: '1px solid #222',
                     borderRadius: 1,
                     overflow: 'hidden',
@@ -358,8 +388,8 @@ const ProductEdit = (): ReactElement => {
                     </>
                   ) : (
                     <Stack alignItems="center" spacing={0.5}>
-                      <IconifyIcon icon="material-symbols:video-library" width={24} color="#444" />
-                      <Typography variant="caption" color="#444" fontSize="9px">Vidéo</Typography>
+                      <IconifyIcon icon="material-symbols:video-library" width={28} color="#444" />
+                      <Typography variant="caption" color="#444" fontSize="10px" fontWeight={600}>Vidéo</Typography>
                     </Stack>
                   )}
                 </Box>
@@ -452,18 +482,18 @@ const ProductEdit = (): ReactElement => {
           <Grid item xs={12}>
             <Stack direction="row" justifyContent="flex-end" alignItems="center" sx={{ mb: 1 }}>
               <Button 
-                size="small" 
                 onClick={addVariant} 
                 sx={{ 
                   bgcolor: 'white', 
                   color: 'black', 
-                  py: 0.5, 
-                  px: 1.5, 
-                  fontSize: '0.7rem', 
+                  py: 1, 
+                  px: 2.5, 
+                  fontSize: '0.875rem', 
+                  fontWeight: 600,
                   minWidth: 'auto',
                   '&:hover': { bgcolor: '#ddd' } 
                 }} 
-                startIcon={<IconifyIcon icon="material-symbols:add" width={14} />}
+                startIcon={<IconifyIcon icon="material-symbols:add" width={18} />}
               >
                 Tarif
               </Button>
@@ -480,31 +510,15 @@ const ProductEdit = (): ReactElement => {
                       size="small"
                       value={variant.name}
                       onChange={(e) => updateVariant(index, 'name', e.target.value)}
-                      placeholder="Quantité"
+                      placeholder="Ex: 5g, 10ml, pack..."
                       sx={{ 
-                        width: { xs: '70px', sm: '90px' }, 
+                        width: { xs: '120px', sm: '150px' }, 
                         flexShrink: 0, 
-                        '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '0.8rem' }, 
+                        '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '0.85rem' }, 
                         '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
-                        '& input::placeholder': { color: '#555', opacity: 1 }
+                        '& input::placeholder': { color: '#555', opacity: 1, fontSize: '0.75rem' }
                       }}
                     />
-                    <TextField
-                      select
-                      size="small"
-                      value={variant.unit || 'gramme'}
-                      onChange={(e) => updateVariant(index, 'unit', e.target.value || 'gramme')}
-                      sx={{ 
-                        width: { xs: '55px', sm: '70px' }, 
-                        flexShrink: 0, 
-                        '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '0.9rem', fontWeight: 600 }, 
-                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
-                        '& .MuiSelect-select': { color: 'white', textAlign: 'center' }
-                      }}
-                    >
-                      <MenuItem value="gramme" sx={{ fontSize: '0.9rem', fontWeight: 600 }}>g</MenuItem>
-                      <MenuItem value="ml" sx={{ fontSize: '0.9rem', fontWeight: 600 }}>ml</MenuItem>
-                    </TextField>
                     <TextField
                       size="small"
                       value={variant.price}
@@ -514,7 +528,7 @@ const ProductEdit = (): ReactElement => {
                       sx={{ 
                         flex: 1, 
                         minWidth: 0, 
-                        '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '0.8rem' }, 
+                        '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '0.85rem' }, 
                         '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
                         '& input::placeholder': { color: '#555', opacity: 1 }
                       }}
@@ -535,23 +549,28 @@ const ProductEdit = (): ReactElement => {
         <Accordion 
           sx={{ 
             bgcolor: '#0a0a0a', 
-            border: '1px solid #222',
+            border: 'none',
+            borderBottom: '1px solid #222',
+            borderRadius: 0,
+            m: 0,
             '&:before': { display: 'none' }
           }}
         >
           <AccordionSummary
-            expandIcon={<IconifyIcon icon="mdi:chevron-down" width={24} color="white" />}
+            expandIcon={<IconifyIcon icon="mdi:chevron-down" width={20} color="white" />}
             sx={{ 
               bgcolor: '#000',
               borderBottom: '1px solid #222',
-              '&:hover': { bgcolor: '#111' }
+              '&:hover': { bgcolor: '#111' },
+              minHeight: '48px',
+              '& .MuiAccordionSummary-content': { my: 1 }
             }}
           >
-            <Typography variant="h6" fontWeight={700} color="white">
+            <Typography variant="subtitle1" fontWeight={600} color="white" sx={{ fontSize: '0.95rem' }}>
               👁️ PRÉVISUALISATION
             </Typography>
           </AccordionSummary>
-          <AccordionDetails sx={{ p: { xs: 1, sm: 2 }, display: 'flex', justifyContent: 'center' }}>
+          <AccordionDetails sx={{ p: 1.5, display: 'flex', justifyContent: 'center' }}>
             <Card sx={{
               maxWidth: 200,
               borderRadius: 3,

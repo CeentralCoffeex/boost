@@ -30,10 +30,24 @@ export async function GET(
         if (botToken) {
           const telegramUser = validateTelegramWebAppData(initData, botToken);
           if (telegramUser) {
-            const user = await prisma.user.findUnique({
+            // Trouver ou créer l'utilisateur
+            let user = await prisma.user.findUnique({
               where: { telegramId: telegramUser.id.toString() },
               select: { id: true },
             });
+            
+            // Si l'utilisateur n'existe pas, le créer
+            if (!user) {
+              user = await prisma.user.create({
+                data: {
+                  telegramId: telegramUser.id.toString(),
+                  name: telegramUser.first_name || 'User',
+                  role: 'USER',
+                },
+                select: { id: true },
+              });
+            }
+            
             userId = user?.id;
           }
         }
@@ -94,10 +108,25 @@ export async function POST(
           console.log('[like POST] telegram user:', telegramUser?.id);
           
           if (telegramUser) {
-            const user = await prisma.user.findUnique({
+            // Trouver ou créer l'utilisateur
+            let user = await prisma.user.findUnique({
               where: { telegramId: telegramUser.id.toString() },
               select: { id: true },
             });
+            
+            // Si l'utilisateur n'existe pas, le créer
+            if (!user) {
+              console.log('[like POST] Creating new user for telegramId:', telegramUser.id);
+              user = await prisma.user.create({
+                data: {
+                  telegramId: telegramUser.id.toString(),
+                  name: telegramUser.first_name || 'User',
+                  role: 'USER',
+                },
+                select: { id: true },
+              });
+            }
+            
             userId = user?.id;
             console.log('[like POST] found userId from telegram:', userId);
           }
