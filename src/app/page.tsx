@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { Heart } from 'lucide-react'
 import MobileHero from '@/components/home/MobileHero'
 import MobileServiceCarousel from '@/components/home/MobileServiceCarousel'
@@ -13,7 +13,7 @@ import '@/styles/index-mobile.css'
 // Composant Carte Produit - étiquette sur image, bouton Détails redesigné, like
 const ProductCard = ({ 
   title, 
-  subtitle, 
+  subtitle = '', 
   tag, 
   image,
   videoUrl,
@@ -22,7 +22,7 @@ const ProductCard = ({
   onClick 
 }: { 
   title: string
-  subtitle: string
+  subtitle?: string
   tag?: string
   image?: string | null
   videoUrl?: string
@@ -36,7 +36,14 @@ const ProductCard = ({
   const [loading, setLoading] = useState(false);
 
   const hasCheckedRef = useRef(false);
-  const decodedSubtitle = decodeHtmlEntities(subtitle);
+  const decodedSubtitle = useMemo(() => {
+    try {
+      return decodeHtmlEntities(subtitle) || '';
+    } catch (error) {
+      console.error('Error in ProductCard decodedSubtitle:', error);
+      return '';
+    }
+  }, [subtitle]);
 
   useEffect(() => {
     if (!productId || hasCheckedRef.current) return;
@@ -306,7 +313,7 @@ export default function HomePage() {
                         )}
                       </div>
                       <h3>{category.name}</h3>
-                      <p dangerouslySetInnerHTML={{ __html: decodeHtmlEntities(category.subtitle) || '' }} />
+                      <div dangerouslySetInnerHTML={{ __html: decodeHtmlEntities(category.subtitle) || '' }} />
                     </div>
                   ))}
                 </div>
