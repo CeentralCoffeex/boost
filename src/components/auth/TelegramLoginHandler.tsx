@@ -16,7 +16,7 @@ export default function TelegramLoginHandler() {
   useEffect(() => {
     let cancelled = false;
     let attempts = 0;
-    const maxAttempts = 60;
+    const maxAttempts = 80;
     const check = () => {
       if (cancelled || attempts++ > maxAttempts) return;
       const id = getInitData();
@@ -64,10 +64,10 @@ export default function TelegramLoginHandler() {
         })
         .catch(() => {
           triedRef.current = false;
-          signIn('telegram-login', { initData, redirect: true });
+          signIn('telegram-login', { initData, redirect: true, callbackUrl: '/' });
         });
     } else {
-      signIn('telegram-login', { initData, redirect: true });
+      signIn('telegram-login', { initData, redirect: true, callbackUrl: '/' });
     }
   };
 

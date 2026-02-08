@@ -263,7 +263,24 @@ export const authOptions: NextAuthOptions = {
     }
   },
   
-  debug: process.env.NODE_ENV === 'development'
+  debug: process.env.NODE_ENV === 'development',
+
+  // Cookies compatibles WebView Telegram (sameSite: none requis en prod pour WebView)
+  useSecureCookies: process.env.NODE_ENV === 'production',
+  cookies:
+    process.env.NODE_ENV === 'production'
+      ? {
+          sessionToken: {
+            name: '__Secure-next-auth.session-token',
+            options: {
+              httpOnly: true,
+              sameSite: 'none' as const,
+              path: '/',
+              secure: true,
+            },
+          },
+        }
+      : undefined,
 }
 
 // Fonction utilitaire pour vérifier l'authentification
