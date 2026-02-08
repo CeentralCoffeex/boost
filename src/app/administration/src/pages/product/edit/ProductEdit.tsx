@@ -305,7 +305,7 @@ const ProductEdit = (): ReactElement => {
       </Box>
 
       {/* Espace de séparation */}
-      <Box sx={{ height: '60px' }} />
+      <Box sx={{ height: '80px' }} />
 
       {error && <Alert severity="error" sx={{ m: 0, mx: 2, mb: 2, borderRadius: 1 }} onClose={() => setError('')}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ m: 0, mx: 2, mb: 2, borderRadius: 1 }} onClose={() => setSuccess('')}>{success}</Alert>}

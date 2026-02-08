@@ -33,7 +33,7 @@ function parseFormattedText(text: string): React.ReactNode {
   const decodedText = decodeHtmlEntities(text);
   const hasHtmlTags = /<[^>]+>/.test(decodedText);
   if (hasHtmlTags) {
-    return <span dangerouslySetInnerHTML={{ __html: decodedText }} />;
+    return <span dangerouslySetInnerHTML={{ __html: decodedText || '' }} />;
   }
   
   // Sinon, parser les balises custom
@@ -87,7 +87,7 @@ function renderBlockContent(content: string) {
   const hasHtmlTags = /<[^>]+>/.test(decodedContent);
   if (hasHtmlTags) {
     const htmlWithBreaks = decodedContent.replace(/\n/g, '<br>');
-    return <div dangerouslySetInnerHTML={{ __html: htmlWithBreaks }} />;
+    return <div dangerouslySetInnerHTML={{ __html: htmlWithBreaks || '' }} />;
   }
   
   // Sinon, parser les listes et formatage custom

@@ -335,7 +335,7 @@ export default function CategoryPage() {
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden'
                 }}
-                dangerouslySetInnerHTML={{ __html: decodeHtmlEntities(product.description || '') }}
+                dangerouslySetInnerHTML={{ __html: decodeHtmlEntities(product.description) || '' }}
                 />
                 <p style={{
                   fontFamily: "'Orbitron', sans-serif",

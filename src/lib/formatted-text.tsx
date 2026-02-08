@@ -59,16 +59,17 @@ export function stripFormattedText(text: string): string {
 }
 
 /**
- * Décode les entités HTML
+ * Décode les entités HTML de manière sécurisée
  */
-export function decodeHtmlEntities(text: string): string {
-  if (!text) return '';
+export function decodeHtmlEntities(text: string | null | undefined): string {
+  if (!text || typeof text !== 'string') return '';
   if (typeof window === 'undefined') return text;
   try {
     const txt = document.createElement('textarea');
     txt.innerHTML = text;
     return txt.value;
-  } catch {
+  } catch (error) {
+    console.error('Error decoding HTML entities:', error);
     return text;
   }
 }
@@ -91,7 +92,7 @@ export function FormattedTextWithBreaks({ text, className }: { text: string; cla
     return (
       <span 
         className={className} 
-        dangerouslySetInnerHTML={{ __html: htmlWithBreaks }}
+        dangerouslySetInnerHTML={{ __html: htmlWithBreaks || '' }}
       />
     );
   }

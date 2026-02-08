@@ -156,7 +156,7 @@ const ProductCard = ({
         <h3>{title}</h3>
         <div 
           className="project-subtitle" 
-          dangerouslySetInnerHTML={{ __html: decodedSubtitle }}
+          dangerouslySetInnerHTML={{ __html: decodedSubtitle || '' }}
           style={{ 
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -306,7 +306,7 @@ export default function HomePage() {
                         )}
                       </div>
                       <h3>{category.name}</h3>
-                      <p dangerouslySetInnerHTML={{ __html: decodeHtmlEntities(category.subtitle || '') }} />
+                      <p dangerouslySetInnerHTML={{ __html: decodeHtmlEntities(category.subtitle) || '' }} />
                     </div>
                   ))}
                 </div>
