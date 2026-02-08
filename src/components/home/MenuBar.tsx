@@ -48,10 +48,10 @@ export default function MenuBar() {
   return (
     <div className="menu-bar-section w-full px-4 mb-4 relative z-50">
       <div className="menu-bar-wrapper bg-white/95 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 relative">
-        <div className="menu-bar relative flex items-center justify-center min-h-[56px] sm:min-h-[64px] px-4 py-2">
+        <div className="menu-bar relative min-h-[56px] sm:min-h-[64px] px-4 py-2">
           <div
             ref={menuRef}
-            className="cursor-pointer flex flex-col items-center justify-center gap-0.5"
+            className="cursor-pointer flex flex-col items-center justify-center gap-0.5 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
             onClick={() => setIsOpen(!isOpen)}
           >
             <span className="font-montserrat font-semibold text-gray-800 text-base">
@@ -61,7 +61,7 @@ export default function MenuBar() {
           </div>
 
           <button
-            className="menu-bar-voir-btn bg-[#1a1a1a] font-montserrat text-white py-2 px-5 border-none rounded-lg font-semibold text-xs cursor-pointer hover:bg-neutral-800 transition-colors whitespace-nowrap absolute right-4"
+            className="menu-bar-voir-btn bg-[#1a1a1a] font-montserrat text-white py-2 px-5 border-none rounded-lg font-semibold text-xs cursor-pointer hover:bg-neutral-800 transition-colors whitespace-nowrap absolute right-4 top-1/2 -translate-y-1/2"
             style={{ maxWidth: '70px', minWidth: '60px' }}
             onClick={() => {
               if (selectedUrl) {

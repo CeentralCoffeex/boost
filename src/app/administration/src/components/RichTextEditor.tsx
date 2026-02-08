@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import { Box, Stack, IconButton, Divider, Tooltip } from '@mui/material';
+import React, { useRef, useEffect, useState } from 'react';
+import { Box, Stack, IconButton, Tooltip } from '@mui/material';
 import IconifyIcon from './base/IconifyIcon';
 
 interface RichTextEditorProps {
@@ -16,6 +16,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   height = 150
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
+  const [showColorPicker, setShowColorPicker] = useState(false);
 
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== value) {
@@ -35,25 +36,21 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     handleInput();
   };
 
-  const colorOptions = [
-    { color: '#000000', label: 'Noir' },
-    { color: '#667eea', label: 'Bleu' },
-    { color: '#10b981', label: 'Vert' },
-    { color: '#ef4444', label: 'Rouge' },
-    { color: '#f59e0b', label: 'Orange' },
-    { color: '#8b5cf6', label: 'Violet' },
-  ];
+  const handleColorChange = (color: string) => {
+    execCommand('foreColor', color);
+    setShowColorPicker(false);
+  };
 
   return (
-    <Box sx={{ border: '1px solid #e0e0e0', borderRadius: 2, overflow: 'hidden' }}>
+    <Box sx={{ border: '1px solid #222', borderRadius: 1, overflow: 'hidden', bgcolor: '#0a0a0a' }}>
       {/* Toolbar */}
       <Stack 
         direction="row" 
         spacing={0.5} 
         sx={{ 
           p: 1, 
-          bgcolor: '#f8f9fa',
-          borderBottom: '1px solid #e0e0e0',
+          bgcolor: '#000',
+          borderBottom: '1px solid #222',
           flexWrap: 'wrap',
           gap: 0.5
         }}
@@ -62,9 +59,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <IconButton 
             size="small" 
             onClick={() => execCommand('bold')}
-            sx={{ border: '1px solid #ddd', bgcolor: 'white' }}
+            sx={{ bgcolor: '#0a0a0a', color: 'white', '&:hover': { bgcolor: '#1a1a1a' } }}
           >
-            <IconifyIcon icon="mdi:format-bold" width={18} />
+            <IconifyIcon icon="mdi:format-bold" width={16} />
           </IconButton>
         </Tooltip>
 
@@ -72,9 +69,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <IconButton 
             size="small" 
             onClick={() => execCommand('italic')}
-            sx={{ border: '1px solid #ddd', bgcolor: 'white' }}
+            sx={{ bgcolor: '#0a0a0a', color: 'white', '&:hover': { bgcolor: '#1a1a1a' } }}
           >
-            <IconifyIcon icon="mdi:format-italic" width={18} />
+            <IconifyIcon icon="mdi:format-italic" width={16} />
           </IconButton>
         </Tooltip>
 
@@ -82,49 +79,61 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <IconButton 
             size="small" 
             onClick={() => execCommand('underline')}
-            sx={{ border: '1px solid #ddd', bgcolor: 'white' }}
+            sx={{ bgcolor: '#0a0a0a', color: 'white', '&:hover': { bgcolor: '#1a1a1a' } }}
           >
-            <IconifyIcon icon="mdi:format-underline" width={18} />
+            <IconifyIcon icon="mdi:format-underline" width={16} />
           </IconButton>
         </Tooltip>
 
-        <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-
-        {colorOptions.map((opt) => (
-          <Tooltip key={opt.color} title={opt.label}>
+        <Box sx={{ position: 'relative' }}>
+          <Tooltip title="Couleur du texte">
             <IconButton
               size="small"
-              onClick={() => execCommand('foreColor', opt.color)}
-              sx={{ 
-                border: '1px solid #ddd', 
-                bgcolor: 'white',
-                width: 28,
-                height: 28,
-                p: 0
-              }}
+              onClick={() => setShowColorPicker(!showColorPicker)}
+              sx={{ bgcolor: '#0a0a0a', color: 'white', '&:hover': { bgcolor: '#1a1a1a' } }}
             >
-              <Box
-                sx={{
-                  width: 16,
-                  height: 16,
-                  bgcolor: opt.color,
-                  borderRadius: '50%',
-                  border: '1px solid rgba(0,0,0,0.1)'
-                }}
-              />
+              <IconifyIcon icon="mdi:palette" width={16} />
             </IconButton>
           </Tooltip>
-        ))}
-
-        <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+          
+          {showColorPicker && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                mt: 0.5,
+                p: 1.5,
+                bgcolor: '#1a1a1a',
+                border: '1px solid #333',
+                borderRadius: 1,
+                zIndex: 1000,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+              }}
+            >
+              <input
+                type="color"
+                onChange={(e) => handleColorChange(e.target.value)}
+                style={{
+                  width: '120px',
+                  height: '32px',
+                  border: '1px solid #333',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  backgroundColor: '#000'
+                }}
+              />
+            </Box>
+          )}
+        </Box>
 
         <Tooltip title="Liste à puces">
           <IconButton 
             size="small" 
             onClick={() => execCommand('insertUnorderedList')}
-            sx={{ border: '1px solid #ddd', bgcolor: 'white' }}
+            sx={{ bgcolor: '#0a0a0a', color: 'white', '&:hover': { bgcolor: '#1a1a1a' } }}
           >
-            <IconifyIcon icon="mdi:format-list-bulleted" width={18} />
+            <IconifyIcon icon="mdi:format-list-bulleted" width={16} />
           </IconButton>
         </Tooltip>
 
@@ -132,21 +141,19 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <IconButton 
             size="small" 
             onClick={() => execCommand('insertOrderedList')}
-            sx={{ border: '1px solid #ddd', bgcolor: 'white' }}
+            sx={{ bgcolor: '#0a0a0a', color: 'white', '&:hover': { bgcolor: '#1a1a1a' } }}
           >
-            <IconifyIcon icon="mdi:format-list-numbered" width={18} />
+            <IconifyIcon icon="mdi:format-list-numbered" width={16} />
           </IconButton>
         </Tooltip>
-
-        <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
 
         <Tooltip title="Effacer le formatage">
           <IconButton 
             size="small" 
             onClick={() => execCommand('removeFormat')}
-            sx={{ border: '1px solid #ddd', bgcolor: 'white' }}
+            sx={{ bgcolor: '#0a0a0a', color: 'white', '&:hover': { bgcolor: '#1a1a1a' } }}
           >
-            <IconifyIcon icon="mdi:format-clear" width={18} />
+            <IconifyIcon icon="mdi:format-clear" width={16} />
           </IconButton>
         </Tooltip>
       </Stack>
@@ -162,10 +169,11 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           fontSize: '14px',
           lineHeight: 1.6,
           outline: 'none',
-          bgcolor: 'white',
+          bgcolor: '#0a0a0a',
+          color: 'white',
           '&:empty:before': {
             content: `"${placeholder}"`,
-            color: '#999',
+            color: '#444',
           },
           '& p': { margin: '0 0 8px 0' },
           '& ul, & ol': { margin: '8px 0', paddingLeft: '24px' },

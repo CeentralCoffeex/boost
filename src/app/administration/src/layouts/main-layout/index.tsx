@@ -92,7 +92,7 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
 
   return (
     <>
-      <Box sx={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
+      <Box sx={{ display: 'flex', minHeight: '100vh', flexDirection: 'column', width: '100%', overflowX: 'hidden' }}>
         {/* Mobile Drawer */}
         <Drawer
           variant="temporary"

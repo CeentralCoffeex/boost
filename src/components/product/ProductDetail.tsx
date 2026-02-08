@@ -341,26 +341,36 @@ export default function ProductDetail() {
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="page-product-quantity-control">
-                <span className="page-product-qty-label">Quantité</span>
-                <div className="page-product-qty-controls">
-                  <button
-                    type="button"
-                    className="page-product-qty-btn"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  >
-                    −
-                  </button>
-                  <span className="page-product-qty-value">{quantity}</span>
-                  <button
-                    type="button"
-                    className="page-product-qty-btn"
-                    onClick={() => setQuantity(quantity + 1)}
-                  >
-                    +
-                  </button>
+              <div className="page-product-top-row">
+                <div className="page-product-quantity-control">
+                  <span className="page-product-qty-label">QUANTITÉ</span>
+                  <div className="page-product-qty-controls">
+                    <button
+                      type="button"
+                      className="page-product-qty-btn"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    >
+                      −
+                    </button>
+                    <span className="page-product-qty-value">{quantity}</span>
+                    <button
+                      type="button"
+                      className="page-product-qty-btn"
+                      onClick={() => setQuantity(quantity + 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="page-product-total-price">
+                  <span className="page-product-total-label">Total</span>
+                  <span className="page-product-total-value">
+                    {(parseFloat(String(selectedVariant?.price ?? product.price ?? 0)) * quantity).toFixed(2)}€
+                  </span>
                 </div>
               </div>
+
               <button
                 type="button"
                 className="page-product-add-to-cart-btn"
@@ -385,21 +395,6 @@ export default function ProductDetail() {
             </motion.div>
           )}
         </div>
-
-        {(selectedVariant || (!product.variants || product.variants.length === 0)) && (
-          <motion.div
-            className="page-product-price-display-block"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <span className="page-product-price-label">Total</span>
-            <span className="page-product-price-display">
-              {(parseFloat(String(selectedVariant?.price ?? product.price ?? 0)) * quantity).toFixed(2)}€
-            </span>
-          </motion.div>
-        )}
       </div>
       {/* Modal de succès */}
       {showSuccessModal && (

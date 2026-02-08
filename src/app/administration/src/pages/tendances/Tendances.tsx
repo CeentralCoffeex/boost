@@ -1,5 +1,6 @@
 import { ReactElement, useEffect, useState } from 'react';
-import { Box, Card, Stack, Typography, CircularProgress, Alert, Checkbox } from '@mui/material';
+import { Box, Card, Stack, Typography, CircularProgress, Alert } from '@mui/material';
+import IconifyIcon from '../../components/base/IconifyIcon';
 
 interface Product {
   id: string;
@@ -37,11 +38,10 @@ const Tendances = (): ReactElement => {
       const settings = await settingsRes.json();
       const categories = await categoriesRes.json();
 
-      // Grouper produits par catégorie
       const categoryMap = new Map<string, Category>();
       
       categories.forEach((cat: any) => {
-        if (!cat.parentId) { // Seulement catégories principales
+        if (!cat.parentId) {
           categoryMap.set(cat.id, {
             id: cat.id,
             name: cat.name,
@@ -50,21 +50,18 @@ const Tendances = (): ReactElement => {
         }
       });
 
-      // Ajouter produits aux catégories
       products.forEach((product) => {
         if (product.categoryId && categoryMap.has(product.categoryId)) {
           categoryMap.get(product.categoryId)!.products.push(product);
         }
       });
 
-      // Filtrer catégories vides et convertir en array
       const categoriesArray = Array.from(categoryMap.values())
         .filter(cat => cat.products.length > 0)
         .sort((a, b) => a.name.localeCompare(b.name));
 
       setCategoriesWithProducts(categoriesArray);
 
-      // Charger produits sélectionnés
       if (settings?.featuredTrendingIds) {
         setSelectedIds(new Set(settings.featuredTrendingIds));
       }
@@ -84,7 +81,6 @@ const Tendances = (): ReactElement => {
     }
     setSelectedIds(newSelected);
 
-    // Auto-save
     setSaving(true);
     try {
       const response = await fetch('/api/settings', {
@@ -98,7 +94,7 @@ const Tendances = (): ReactElement => {
 
       if (response.ok) {
         setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 2000);
+        setTimeout(() => setShowSuccess(false), 1500);
       }
     } catch (error) {
       console.error('Error saving:', error);
@@ -110,41 +106,35 @@ const Tendances = (): ReactElement => {
   if (loading) {
     return (
       <Stack alignItems="center" justifyContent="center" sx={{ minHeight: '60vh' }}>
-        <CircularProgress />
+        <CircularProgress sx={{ color: 'white' }} />
       </Stack>
     );
   }
 
   return (
     <Box sx={{ pb: 4 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
         <Box>
-          <Typography variant="h4" fontWeight={700}>
+          <Typography variant="h5" fontWeight={700} color="white">
             Gérer les tendances
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Sélectionnez les produits à afficher dans la section "Tendances"
+          <Typography variant="body2" color="#999" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
+            Sélectionnez les produits à afficher dans "Tendances"
           </Typography>
         </Box>
-        {saving && (
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <CircularProgress size={20} />
-            <Typography variant="body2" color="text.secondary">
-              Enregistrement...
-            </Typography>
-          </Stack>
-        )}
       </Stack>
 
       {showSuccess && (
         <Alert 
           severity="success" 
           sx={{ 
-            mb: 3, 
+            mb: 2, 
             bgcolor: '#10b981', 
             color: 'white',
+            fontWeight: 600,
             '& .MuiAlert-icon': { color: 'white' }
           }}
+          onClose={() => setShowSuccess(false)}
         >
           Tendances enregistrées
         </Alert>
@@ -152,49 +142,33 @@ const Tendances = (): ReactElement => {
 
       <Stack spacing={3}>
         {categoriesWithProducts.length === 0 ? (
-          <Card sx={{ p: 4, textAlign: 'center' }}>
-            <Typography color="text.secondary">
-              Aucun produit disponible
-            </Typography>
-          </Card>
+          <Box sx={{ p: 4, textAlign: 'center', bgcolor: '#111', borderRadius: 2 }}>
+            <Typography color="#666">Aucun produit disponible</Typography>
+          </Box>
         ) : (
           categoriesWithProducts.map((category) => (
             <Box key={category.id}>
-              {/* Header catégorie */}
               <Typography 
-                variant="h6" 
+                variant="subtitle1" 
                 fontWeight={700} 
                 sx={{ 
-                  mb: 2, 
-                  pb: 1, 
-                  borderBottom: '2px solid #667eea',
-                  color: '#667eea'
+                  mb: 1.5, 
+                  color: 'white',
+                  fontSize: '1rem'
                 }}
               >
                 {category.name}
               </Typography>
 
-              {/* Scroll horizontal des produits */}
               <Box
                 sx={{
                   display: 'flex',
-                  gap: 2,
+                  gap: 1.5,
                   overflowX: 'auto',
-                  pb: 2,
-                  '&::-webkit-scrollbar': {
-                    height: 8,
-                  },
-                  '&::-webkit-scrollbar-track': {
-                    bgcolor: '#f1f1f1',
-                    borderRadius: 1,
-                  },
-                  '&::-webkit-scrollbar-thumb': {
-                    bgcolor: '#667eea',
-                    borderRadius: 1,
-                    '&:hover': {
-                      bgcolor: '#5568d3',
-                    },
-                  },
+                  pb: 1.5,
+                  '&::-webkit-scrollbar': { height: 6 },
+                  '&::-webkit-scrollbar-track': { bgcolor: '#222', borderRadius: 1 },
+                  '&::-webkit-scrollbar-thumb': { bgcolor: '#444', borderRadius: 1, '&:hover': { bgcolor: '#555' } },
                 }}
               >
                 {category.products.map((product) => {
@@ -204,24 +178,24 @@ const Tendances = (): ReactElement => {
                       key={product.id}
                       onClick={() => handleToggle(product.id)}
                       sx={{
-                        minWidth: 140,
-                        maxWidth: 140,
+                        minWidth: 120,
+                        maxWidth: 120,
                         cursor: 'pointer',
-                        border: isSelected ? '3px solid #667eea' : '2px solid #e5e7eb',
+                        border: isSelected ? '3px solid #10b981' : '2px solid #333',
                         transition: 'all 0.2s',
-                        bgcolor: isSelected ? '#f5f5ff' : 'white',
+                        bgcolor: isSelected ? '#064e3b' : '#0a0a0a',
+                        position: 'relative',
                         '&:hover': {
-                          borderColor: '#667eea',
-                          transform: 'translateY(-2px)',
-                          boxShadow: 2,
+                          borderColor: isSelected ? '#10b981' : '#555',
+                          transform: 'scale(1.02)',
+                          boxShadow: isSelected ? '0 0 12px rgba(16,185,129,0.4)' : '0 0 8px rgba(255,255,255,0.1)',
                         },
                       }}
                     >
-                      {/* Image */}
                       <Box
                         sx={{
                           height: 100,
-                          bgcolor: '#f8f8f8',
+                          bgcolor: '#111',
                           position: 'relative',
                           overflow: 'hidden',
                         }}
@@ -237,48 +211,50 @@ const Tendances = (): ReactElement => {
                             }}
                           />
                         ) : (
-                          <Stack
-                            alignItems="center"
-                            justifyContent="center"
-                            sx={{ height: '100%' }}
-                          >
-                            <Typography variant="caption" color="text.secondary">
-                              Pas d'image
-                            </Typography>
+                          <Stack alignItems="center" justifyContent="center" sx={{ height: '100%' }}>
+                            <IconifyIcon icon="mdi:image-off" width={32} color="#333" />
                           </Stack>
                         )}
-                        {/* Checkbox badge */}
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: 4,
-                            right: 4,
-                            bgcolor: 'white',
-                            borderRadius: '50%',
-                            width: 28,
-                            height: 28,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: 1,
-                          }}
-                        >
-                          <Checkbox
-                            checked={isSelected}
-                            size="small"
-                            sx={{ p: 0 }}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </Box>
+                        
+                        {isSelected && (
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              bgcolor: 'rgba(16,185,129,0.2)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                bgcolor: '#10b981',
+                                borderRadius: '50%',
+                                width: 40,
+                                height: 40,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                              }}
+                            >
+                              <IconifyIcon icon="mdi:check-bold" width={24} color="white" />
+                            </Box>
+                          </Box>
+                        )}
                       </Box>
 
-                      {/* Titre */}
-                      <Box sx={{ p: 1.5 }}>
+                      <Box sx={{ p: 1, bgcolor: isSelected ? '#064e3b' : '#0a0a0a' }}>
                         <Typography
                           variant="body2"
                           fontWeight={600}
+                          color={isSelected ? 'white' : '#ddd'}
                           sx={{
-                            fontSize: '0.8rem',
+                            fontSize: '0.75rem',
                             lineHeight: 1.3,
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
@@ -300,10 +276,22 @@ const Tendances = (): ReactElement => {
         )}
       </Stack>
 
-      <Box sx={{ mt: 4, p: 2, bgcolor: '#f9fafb', borderRadius: 2, border: '1px solid #e5e7eb' }}>
-        <Typography variant="body2" color="text.secondary">
-          💡 <strong>{selectedIds.size}</strong> produit(s) sélectionné(s) • Enregistrement automatique
-        </Typography>
+      <Box sx={{ 
+        mt: 3, 
+        p: 2, 
+        bgcolor: selectedIds.size > 0 ? '#064e3b' : '#111', 
+        borderRadius: 2, 
+        border: selectedIds.size > 0 ? '1px solid #10b981' : '1px solid #222',
+        transition: 'all 0.3s'
+      }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Typography variant="body2" color={selectedIds.size > 0 ? 'white' : '#999'} fontWeight={600}>
+            {selectedIds.size > 0 ? `✓ ${selectedIds.size} produit(s) sélectionné(s)` : 'Aucun produit sélectionné'}
+          </Typography>
+          {saving && (
+            <CircularProgress size={16} sx={{ color: 'white' }} />
+          )}
+        </Stack>
       </Box>
     </Box>
   );

@@ -3,9 +3,21 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 body {
-  overflow: auto !important;
+  overflow-x: hidden !important;
+  max-width: 100vw;
   padding-right: 0 !important;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#root {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
