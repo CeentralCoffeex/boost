@@ -162,7 +162,7 @@ const ProductCard = ({
             WebkitBoxOrient: 'vertical' as any
           }}
         >
-          {subtitle || ''}
+          {subtitle}
         </p>
         <button className="project-button project-button-details">Voir les détails</button>
       </div>
@@ -178,37 +178,17 @@ export default function HomePage() {
 
   useEffect(() => {
     let cancelled = false;
-    
-    const loadData = async () => {
-      try {
-        const [productsRes, categoriesRes, settingsRes] = await Promise.all([
-          fetch('/api/products').catch(() => null),
-          fetch('/api/categories').catch(() => null),
-          fetch('/api/settings').catch(() => null),
-        ]);
-        
-        if (!cancelled) {
-          if (productsRes && productsRes.ok) {
-            const data = await productsRes.json().catch(() => []);
-            if (Array.isArray(data)) setProducts(data);
-          }
-          
-          if (categoriesRes && categoriesRes.ok) {
-            const data = await categoriesRes.json().catch(() => []);
-            if (Array.isArray(data)) setCategories(data);
-          }
-          
-          if (settingsRes && settingsRes.ok) {
-            const data = await settingsRes.json().catch(() => ({}));
-            if (data) setSettings(data);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading data:', error);
-      }
-    };
-    
-    loadData();
+    Promise.all([
+      fetch('/api/products').then(res => res.json()).then(data => {
+        if (!cancelled && Array.isArray(data)) setProducts(data);
+      }).catch(() => {}),
+      fetch('/api/categories').then(res => res.json()).then(data => {
+        if (!cancelled && Array.isArray(data)) setCategories(data);
+      }).catch(() => {}),
+      fetch('/api/settings').then(res => res.json()).then(data => {
+        if (!cancelled && data) setSettings(data);
+      }).catch(() => {}),
+    ]);
     return () => { cancelled = true; };
   }, []);
 
@@ -308,38 +288,26 @@ export default function HomePage() {
               <div className="my-projects-section">
                 <h2>Catégories</h2>
                 <div className="projects-grid">
-                  {categories && categories.length > 0 ? categories.map((category) => {
-                    if (!category || !category.id) return null;
-                    return (
-                      <div 
-                        key={category.id} 
-                        className="project-card" 
-                        onClick={() => handleProjectCardClick(`/categorie/${category.id}`)}
-                      >
-                        <div className={`project-icon ${category.icon ? 'project-icon--image' : ''}`}>
-                          {category.icon ? (
-                            <img src={category.icon} alt={category.name || ''} className="project-card-category-img" />
-                          ) : (
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
-                              <path d="M8 21l4-7 4 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          )}
-                        </div>
-                        <h3>{category.name || ''}</h3>
-                        <p>{category.subtitle || ''}</p>
+                  {categories.map((category) => (
+                    <div 
+                      key={category.id} 
+                      className="project-card" 
+                      onClick={() => handleProjectCardClick(`/categorie/${category.id}`)}
+                    >
+                      <div className={`project-icon ${category.icon ? 'project-icon--image' : ''}`}>
+                        {category.icon ? (
+                          <img src={category.icon} alt={category.name} className="project-card-category-img" />
+                        ) : (
+                          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
+                            <path d="M8 21l4-7 4 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
                       </div>
-                    );
-                  }) : (
-                    <div style={{ 
-                      gridColumn: '1 / -1', 
-                      textAlign: 'center', 
-                      padding: '40px 20px',
-                      color: '#666'
-                    }}>
-                      Chargement des catégories...
+                      <h3>{category.name}</h3>
+                      <p>{category.subtitle}</p>
                     </div>
-                  )}
+                  ))}
                 </div>
               </div>
 
@@ -389,9 +357,9 @@ export default function HomePage() {
                       key={product.id}
                       productId={product.id}
                       likesCount={product.likesCount ?? 0}
-                      title={product.title || ''}
+                      title={product.title}
                       subtitle={product.description || ''}
-                      tag={product.category?.name ?? product.category?.parent?.name ?? product.tag ?? ''}
+                      tag={product.category?.name ?? product.category?.parent?.name ?? product.tag ?? undefined}
                       image={product.image || undefined}
                       videoUrl={product.videoUrl || undefined}
                       onClick={() => handleProjectCardClick(`/product/${product.id}`)}
