@@ -546,6 +546,32 @@ def _build_welcome_keyboard_layout(cfg, hidden=None, bot_username=None):
     if row4:
         rows.append(row4)
 
+    # Boutons personnalisés : 2 par ligne
+    customs = cfg.get("custom_buttons", [])
+    if customs:
+        temp_row = []
+        for c in customs:
+            label = c.get("label", "Bouton")
+            cid = c.get("id")
+            ctype = c.get("type", "message")
+            value = c.get("value", "")
+            
+            if ctype == "url" and value:
+                btn = InlineKeyboardButton(label, url=value)
+            else:
+                btn = InlineKeyboardButton(label, callback_data=f"custom:{cid}")
+            
+            temp_row.append(btn)
+            
+            # 2 boutons par ligne
+            if len(temp_row) == 2:
+                rows.append(temp_row)
+                temp_row = []
+        
+        # Ajouter le dernier bouton s'il reste
+        if temp_row:
+            rows.append(temp_row)
+
     return InlineKeyboardMarkup(rows) if rows else InlineKeyboardMarkup([[]])
 
 
@@ -1151,7 +1177,7 @@ def _admin_keyboard():
         [InlineKeyboardButton("💬 Message accueil", callback_data="adm_edit_welcome"), InlineKeyboardButton("☎️ Contact", callback_data="adm_edit_contact")],
         [InlineKeyboardButton("✏️ Nom MiniApp", callback_data="adm_edit_miniapp_label"), InlineKeyboardButton("🛒 @ Panier", callback_data="adm_edit_order_username")],
         [InlineKeyboardButton("🛠️ Liens boutons", callback_data="adm_links"), InlineKeyboardButton("🛒 Produits", callback_data="adm_products")],
-        [InlineKeyboardButton("📂 Catégories", callback_data="adm_categories")],
+        [InlineKeyboardButton("📂 Catégories", callback_data="adm_categories"), InlineKeyboardButton("🎛️ Gérer boutons", callback_data="adm_manage_buttons")],
         [InlineKeyboardButton("📝 Profil (textes)", callback_data="adm_profil_blocks"), InlineKeyboardButton("🚫 Bans", callback_data="adm_bans")],
         [InlineKeyboardButton("🖼️ Logo", callback_data="adm_change_logo"), InlineKeyboardButton("👑 Admins", callback_data="adm_admins")],
         [InlineKeyboardButton("❓ Aide", callback_data="adm_help")],
@@ -1929,21 +1955,48 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
     # Manage buttons submenu
     if data == "adm_manage_buttons":
         kb = InlineKeyboardMarkup([
+            [InlineKeyboardButton("📜 Liste boutons", callback_data="adm_btn_list")],
             [InlineKeyboardButton("➕ Ajouter", callback_data="adm_btn_add"), InlineKeyboardButton("✏️ Modifier", callback_data="adm_btn_edit")],
+            [InlineKeyboardButton("🗑️ Supprimer", callback_data="adm_btn_delete")],
             [InlineKeyboardButton("🙈 Masquer défaut", callback_data="adm_btn_hide"), InlineKeyboardButton("👀 Afficher défaut", callback_data="adm_btn_show")],
         ])
-        await _admin_edit("Gérez les boutons: ajoutez/modifiez, et masquez/affichez les boutons par défaut.", reply_markup=_with_back(kb))
+        await _admin_edit("🎛️ Gestion des boutons\n\nVous pouvez :\n• Créer des boutons personnalisés\n• Modifier les boutons existants\n• Supprimer des boutons\n• Masquer/afficher les boutons par défaut", reply_markup=_with_back(kb))
         return
     if data == "adm_btn_list":
         cfg = _load_config()
         hidden = cfg.get("hidden_buttons", [])
         customs = cfg.get("custom_buttons", [])
-        lines = ["Boutons cachés (défaut): " + (", ".join(hidden) or "aucun")] 
+        
+        lines = ["📜 LISTE DES BOUTONS\n"]
+        
+        # Boutons par défaut visibles
+        lines.append("✅ Boutons par défaut actifs:")
+        default_buttons = ["miniapp", "potato", "contact", "tg", "instagram", "linktree", "bots", "ig_backup", "infos"]
+        visible_defaults = [b for b in default_buttons if b not in hidden]
+        if visible_defaults:
+            for b in visible_defaults:
+                lines.append(f"  • {b}")
+        else:
+            lines.append("  Aucun")
+        
+        # Boutons personnalisés
+        lines.append("\n🎨 Boutons personnalisés:")
         if customs:
             for c in customs:
-                lines.append(f"• #{c.get('id','?')} {c.get('label','(sans)')} [{c.get('type','?')}] -> {c.get('value','')}")
+                cid = c.get('id', '?')
+                label = c.get('label', '(sans nom)')
+                ctype = c.get('type', '?')
+                value = c.get('value', '')
+                # Tronquer la valeur si trop longue
+                display_value = value[:50] + "..." if len(value) > 50 else value
+                lines.append(f"  • #{cid} - {label}")
+                lines.append(f"    Type: {ctype}")
+                lines.append(f"    Valeur: {display_value}")
         else:
-            lines.append("Aucun bouton personnalisé")
+            lines.append("  Aucun")
+        
+        lines.append(f"\n🙈 Boutons masqués: {', '.join(hidden) or 'aucun'}")
+        
         await _admin_edit("\n".join(lines), reply_markup=_with_back(None))
         return
     if data == "adm_btn_add":
@@ -2064,8 +2117,25 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
         if kind == "def":
             await _admin_edit("Ce bouton par défaut ne peut pas être supprimé. Utilisez '🙈 Masquer défaut' pour le retirer de l’accueil.", reply_markup=_with_back(None))
             return
-        confirm_kb = InlineKeyboardMarkup([[InlineKeyboardButton("✅ Oui", callback_data=f"adm_confirm_delete:yes:{ident}"), InlineKeyboardButton("❌ Non", callback_data="adm_manage_buttons")]])
-        await _admin_edit(f"Voulez-vous supprimer le bouton personnalisé #{ident} ?", reply_markup=_with_back(confirm_kb))
+        # Afficher les détails du bouton avant confirmation
+        cfgv = _load_config()
+        customs = cfgv.get("custom_buttons", [])
+        button_info = None
+        for c in customs:
+            if str(c.get("id")) == str(ident):
+                button_info = c
+                break
+        
+        if button_info:
+            label = button_info.get("label", "(sans nom)")
+            ctype = button_info.get("type", "?")
+            value = button_info.get("value", "")
+            confirm_text = f"🗑️ CONFIRMER LA SUPPRESSION\n\nBouton #{ident}\n📝 Nom: {label}\n🔧 Type: {ctype}\n🔗 Valeur: {value[:80]}{'...' if len(value) > 80 else ''}\n\n⚠️ Cette action est irréversible. Continuer ?"
+        else:
+            confirm_text = f"Voulez-vous supprimer le bouton #{ident} ?"
+        
+        confirm_kb = InlineKeyboardMarkup([[InlineKeyboardButton("✅ Oui, supprimer", callback_data=f"adm_confirm_delete:yes:{ident}"), InlineKeyboardButton("❌ Annuler", callback_data="adm_manage_buttons")]])
+        await _admin_edit(confirm_text, reply_markup=_with_back(confirm_kb))
         return
     if data.startswith("adm_confirm_delete:"):
         parts = data.split(":")
@@ -2088,7 +2158,15 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
             return
         cfgv["custom_buttons"] = new_list
         _save_config(cfgv)
-        await _admin_edit(f"Bouton #{ident} supprimé.", reply_markup=_with_back(_admin_keyboard()))
+        
+        # Retourner au menu de gestion des boutons
+        kb = InlineKeyboardMarkup([
+            [InlineKeyboardButton("📜 Liste boutons", callback_data="adm_btn_list")],
+            [InlineKeyboardButton("➕ Ajouter", callback_data="adm_btn_add"), InlineKeyboardButton("✏️ Modifier", callback_data="adm_btn_edit")],
+            [InlineKeyboardButton("🗑️ Supprimer", callback_data="adm_btn_delete")],
+            [InlineKeyboardButton("🙈 Masquer défaut", callback_data="adm_btn_hide"), InlineKeyboardButton("👀 Afficher défaut", callback_data="adm_btn_show")],
+        ])
+        await _admin_edit(f"✅ Bouton #{ident} supprimé avec succès.", reply_markup=_with_back(kb))
         return
     if data == "adm_btn_hide":
         cfgv = _load_config()
@@ -2891,7 +2969,7 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
             customs.append({"id": new_id, "label": label, "type": ctype, "value": value})
             cfg["custom_buttons"] = customs
             _save_config(cfg)
-            await msg.reply_text(f"Bouton ajouté: #{new_id} {label} [{ctype}].")
+            await msg.reply_text(f"✅ Bouton créé avec succès !\n\n📝 Nom: {label}\n🆔 ID: #{new_id}\n🔧 Type: {ctype}\n\nLe bouton apparaîtra dans le menu principal du bot.")
             try:
                 context.user_data.pop("await_action", None)
                 context.user_data.pop("btn_add_selected_type", None)
@@ -2953,7 +3031,7 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 return
             cfg["custom_buttons"] = customs
             _save_config(cfg)
-            await msg.reply_text(f"Bouton #{sel_id} mis à jour.")
+            await msg.reply_text(f"✅ Bouton #{sel_id} modifié avec succès !\n\n📝 Nouveau nom: {label}\n🔧 Type: {ctype}")
             try:
                 context.user_data.pop("selected_custom_id", None)
                 context.user_data.pop("await_action", None)

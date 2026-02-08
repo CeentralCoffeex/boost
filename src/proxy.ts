@@ -123,12 +123,12 @@ export async function proxy(request: NextRequest) {
   // --- RATE LIMITING + BRUTE FORCE + IP FILTER ---
   const securityConfig = {
     enableIPFiltering: process.env.NODE_ENV === 'production',
-    enableRateLimiting: true,
+    enableRateLimiting: false,
     enableBruteForceProtection: true,
     maxLoginAttempts: 12,
     lockoutDuration: 15,
     rateLimitWindow: 15,
-    rateLimitMax: 500,
+    rateLimitMax: 999999,
   };
   const securityResult = await securityMiddleware(request, securityConfig);
   if (securityResult) return securityResult;
