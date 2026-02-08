@@ -46,12 +46,26 @@ export default function TelegramLoginHandler() {
         })
         .catch(() => { triedRef.current = false; });
     } else if (status === 'authenticated') {
-      fetch('/api/user/telegram', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ initData }),
-      }).catch(() => {});
+      const doLink = (attempt = 0) => {
+        fetch('/api/user/telegram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ initData }),
+        })
+          .then(async (res) => {
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data?.success) {
+              window.dispatchEvent(new CustomEvent('telegram-linked', { detail: data }));
+            } else if (res.status >= 500 && attempt < 2) {
+              setTimeout(() => doLink(attempt + 1), 1500);
+            }
+          })
+          .catch(() => {
+            if (attempt < 2) setTimeout(() => doLink(attempt + 1), 1500);
+          });
+      };
+      doLink();
     }
   }, [status, initDataReady]);
 
