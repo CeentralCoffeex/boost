@@ -35,28 +35,37 @@ export default function TelegramLoginHandler() {
     if (triedRef.current) return;
     triedRef.current = true;
     const inTg = !!(typeof window !== 'undefined' && (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram?.WebApp);
-    // API directe = connexion fiable dans le WebView Telegram
+    // WebView : form POST (cookie NextAuth correct). Sinon : signIn()
     if (inTg) {
-      fetch('/api/telegram/connect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ initData }),
-      })
+      fetch('/api/auth/csrf', { credentials: 'include' })
         .then((r) => r.json())
-        .then((data) => {
-          if (data?.success) window.location.reload();
-          else {
-            triedRef.current = false;
-            signIn('telegram-login', { initData, redirect: true });
-          }
+        .then((d) => d?.csrfToken || '')
+        .then((csrf) => {
+          const f = document.createElement('form');
+          f.method = 'POST';
+          f.action = '/api/auth/callback/credentials';
+          f.style.display = 'none';
+          [
+            ['csrfToken', csrf],
+            ['callbackUrl', window.location.pathname || '/'],
+            ['json', 'true'],
+            ['initData', initData],
+          ].forEach(([k, v]) => {
+            const i = document.createElement('input');
+            i.name = k;
+            i.value = v;
+            i.type = 'hidden';
+            f.appendChild(i);
+          });
+          document.body.appendChild(f);
+          f.submit();
         })
         .catch(() => {
           triedRef.current = false;
           signIn('telegram-login', { initData, redirect: true });
         });
     } else {
-      signIn('telegram-login', { initData, redirect: false, callbackUrl: typeof window !== 'undefined' ? window.location.pathname || '/' : '/' })
+      signIn('telegram-login', { initData, redirect: false })
         .then((r: { ok?: boolean } | undefined) => { if (r?.ok) window.location.reload(); })
         .catch(() => { triedRef.current = false; });
     }

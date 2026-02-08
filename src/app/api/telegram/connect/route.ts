@@ -99,25 +99,34 @@ async function createSessionCookie(user: { id: string; email: string | null; nam
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret) return '';
 
-  const { encode } = await import('next-auth/jwt');
-  const now = Math.floor(Date.now() / 1000);
-  const maxAge = 30 * 24 * 60 * 60;
-  const token = await encode({
-    secret,
-    token: {
-      sub: user.id,
-      email: user.email,
-      name: user.name,
-      picture: user.image,
-      userId: user.id,
-      role: user.role,
-      iat: now,
-      exp: now + maxAge,
-    },
-    maxAge,
-  });
+  try {
+    const jwt = await import('next-auth/jwt');
+    const encode = (jwt as { encode?: (o: { token: object; secret: string; maxAge?: number }) => Promise<string> }).encode;
+    if (!encode) return '';
 
-  const isProd = process.env.NODE_ENV === 'production';
-  const cookieName = isProd ? '__Secure-next-auth.session-token' : 'next-auth.session-token';
-  return `${cookieName}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${isProd ? '; Secure' : ''}`;
+    const now = Math.floor(Date.now() / 1000);
+    const maxAge = 30 * 24 * 60 * 60;
+    const token = await encode({
+      secret,
+      token: {
+        sub: user.id,
+        email: user.email || '',
+        name: user.name || '',
+        picture: user.image || '',
+        userId: user.id,
+        role: user.role,
+        iat: now,
+        exp: now + maxAge,
+      },
+      maxAge,
+    });
+
+    const isProd = process.env.NODE_ENV === 'production';
+    const cookieName = isProd ? '__Secure-next-auth.session-token' : 'next-auth.session-token';
+    const sameSite = isProd ? 'None' : 'Lax';
+    return `${cookieName}=${token}; Path=/; HttpOnly; SameSite=${sameSite}; Max-Age=${maxAge}${isProd ? '; Secure' : ''}`;
+  } catch (e) {
+    console.error('[telegram/connect] createSessionCookie:', e);
+    return '';
+  }
 }
