@@ -21,6 +21,7 @@ interface Product {
   section: string;
   category?: { name: string } | null;
   variants?: ProductVariant[];
+  defaultUnit?: 'gramme' | 'ml';
 }
 
 import { motion } from 'framer-motion';
@@ -272,7 +273,8 @@ export default function ProductDetail() {
             onClick={() => {
               const cart = JSON.parse(localStorage.getItem('cart') || '[]');
               const price = selectedVariant ? selectedVariant.price : product.price;
-              const variantName = selectedVariant ? (selectedVariant.type === 'weight' ? `${selectedVariant.name}G` : selectedVariant.name) : '';
+              const unit = product.defaultUnit === 'ml' ? 'ML' : 'G';
+              const variantName = selectedVariant ? (selectedVariant.type === 'weight' ? `${selectedVariant.name}${unit}` : selectedVariant.name) : '';
               const title = selectedVariant ? `${product.title} (${variantName})` : product.title;
               const variantId = selectedVariant ? `${product.id}-${selectedVariant.name}` : product.id;
               const existingItem = cart.find((item: any) => item.id === variantId);
@@ -315,7 +317,7 @@ export default function ProductDetail() {
               >
                 {sortedVariants.map((v, i) => (
                   <option key={i} value={i}>
-                    {(v.type === 'weight' ? `${v.name}G` : v.name)} — {v.price}€
+                    {(v.type === 'weight' ? `${v.name}${product.defaultUnit === 'ml' ? 'ML' : 'G'}` : v.name)} — {v.price}€
                   </option>
                 ))}
               </select>
@@ -329,7 +331,7 @@ export default function ProductDetail() {
                     onClick={() => setSelectedVariant(v)}
                   >
                     <span className="page-product-variant-name">
-                      {v.type === 'weight' ? `${v.name}G` : v.name}
+                      {v.type === 'weight' ? `${v.name}${product.defaultUnit === 'ml' ? 'ML' : 'G'}` : v.name}
                     </span>
                     <span className="page-product-price">{v.price}€</span>
                   </button>
@@ -383,7 +385,8 @@ export default function ProductDetail() {
                 onClick={() => {
                   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
                   const price = selectedVariant ? selectedVariant.price : product.price;
-                  const variantName = selectedVariant ? (selectedVariant.type === 'weight' ? `${selectedVariant.name}G` : selectedVariant.name) : '';
+                  const unit = product.defaultUnit === 'ml' ? 'ML' : 'G';
+                  const variantName = selectedVariant ? (selectedVariant.type === 'weight' ? `${selectedVariant.name}${unit}` : selectedVariant.name) : '';
                   const title = selectedVariant ? `${product.title} (${variantName})` : product.title;
                   const variantId = selectedVariant ? `${product.id}-${selectedVariant.name}` : product.id;
                   const existingItem = cart.find((item: any) => item.id === variantId);

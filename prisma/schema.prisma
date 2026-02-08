@@ -203,8 +203,7 @@ model Product {
   icon3             String?
   icon4             String?
   section           String   @default("DECOUVRIR") // 'PHARE', 'DECOUVRIR', 'CATEGORIE'
-  featuredInRecent  Boolean  @default(false)
-  featuredInTrending Boolean @default(false)
+  defaultUnit       String?  @default("gramme") // 'gramme' ou 'ml'
   likesCount        Int      @default(0)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

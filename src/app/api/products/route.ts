@@ -7,36 +7,11 @@ export async function GET() {
   try {
     const products = await (prisma.product as any).findMany({
       orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        price: true,
-        basePrice: true,
-        image: true,
-        videoUrl: true,
-        tag: true,
-        section: true,
-        createdAt: true,
-        updatedAt: true,
-        categoryId: true,
-        likesCount: true,
+      include: {
         category: {
-          select: {
-            id: true,
-            name: true,
-            parent: { 
-              select: { id: true, name: true } 
-            }
-          }
+          include: { parent: { select: { id: true, name: true } } }
         },
         variants: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-            price: true,
-          },
           orderBy: [
             { type: 'asc' },
             { name: 'asc' }

@@ -11,6 +11,8 @@ import {
   Grid,
   MenuItem,
   LinearProgress,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material';
 import IconifyIcon from '../../../components/base/IconifyIcon';
 import { fetchWithCSRF, uploadWithProgress } from '../../../utils/csrf';
@@ -22,6 +24,7 @@ interface ProductForm {
   image: string;
   videoUrl: string;
   categoryId: string;
+  defaultUnit: 'gramme' | 'ml';
 }
 
 interface Category {
@@ -59,6 +62,7 @@ const ProductEdit = (): ReactElement => {
     image: '',
     videoUrl: '',
     categoryId: '',
+    defaultUnit: 'gramme',
   });
 
   const [previewImage, setPreviewImage] = useState<string>('');
@@ -113,6 +117,7 @@ const ProductEdit = (): ReactElement => {
           image: product.image || '',
           videoUrl: product.videoUrl || '',
           categoryId: product.categoryId || '',
+          defaultUnit: product.defaultUnit || 'gramme',
         });
         
         // Trier les variantes par prix avant de les afficher
@@ -494,6 +499,44 @@ const ProductEdit = (): ReactElement => {
                 } 
               }}
             />
+          </Grid>
+
+          {/* UNITÉ PAR DÉFAUT */}
+          <Grid item xs={12} sx={{ pl: '0 !important', pr: '0 !important' }}>
+            <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ color: '#999', fontSize: '0.85rem' }}>
+                Unité de mesure :
+              </Typography>
+              <ToggleButtonGroup
+                value={formData.defaultUnit}
+                exclusive
+                onChange={(_e: any, newUnit: any) => {
+                  if (newUnit !== null) {
+                    setFormData({ ...formData, defaultUnit: newUnit });
+                  }
+                }}
+                size="small"
+                sx={{
+                  '& .MuiToggleButton-root': {
+                    color: 'white',
+                    borderColor: '#222',
+                    px: 2,
+                    py: 0.5,
+                    fontSize: '0.75rem',
+                    '&.Mui-selected': {
+                      bgcolor: 'white',
+                      color: 'black',
+                      '&:hover': {
+                        bgcolor: '#e0e0e0',
+                      }
+                    }
+                  }
+                }}
+              >
+                <ToggleButton value="gramme">G (Grammes)</ToggleButton>
+                <ToggleButton value="ml">ML (Millilitres)</ToggleButton>
+              </ToggleButtonGroup>
+            </Stack>
           </Grid>
 
           {/* TARIFS */}
