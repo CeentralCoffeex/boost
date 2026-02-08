@@ -322,7 +322,7 @@ export default function CategoryPage() {
                   color: '#333',
                   margin: '0 0 4px 0'
                 }}>
-                  {product.title}
+                  {product.title || ''}
                 </h3>
                 <p style={{
                   fontFamily: "'Montserrat', sans-serif",
@@ -334,7 +334,7 @@ export default function CategoryPage() {
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden'
                 }}>
-                  {product.description}
+                  {product.description || ''}
                 </p>
                 <p style={{
                   fontFamily: "'Orbitron', sans-serif",

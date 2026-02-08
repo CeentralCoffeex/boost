@@ -8,7 +8,6 @@ import {
   TextField,
   Grid,
 } from '@mui/material';
-import RichTextEditor from '../../components/RichTextEditor';
 import { fetchWithCSRF } from '../../utils/csrf';
 
 const DEFAULT_BLOCK1_TITLE = 'Bienvenue ⭐';
@@ -162,11 +161,17 @@ const ProfilBlocks = (): ReactElement => {
                     '& input::placeholder': { color: '#555', opacity: 1 }
                   }}
                 />
-                <RichTextEditor
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={6}
                   value={formData.profileBlock1Content}
-                  onChange={(value) => setFormData({ ...formData, profileBlock1Content: value })}
+                  onChange={(e) => setFormData({ ...formData, profileBlock1Content: e.target.value })}
                   placeholder="Contenu du bloc 1..."
-                  height={150}
+                  sx={{ 
+                    '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '14px' }, 
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' }
+                  }}
                 />
               </Stack>
             </Box>
@@ -190,11 +195,17 @@ const ProfilBlocks = (): ReactElement => {
                     '& input::placeholder': { color: '#555', opacity: 1 }
                   }}
                 />
-                <RichTextEditor
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={8}
                   value={formData.profileBlock2Content}
-                  onChange={(value) => setFormData({ ...formData, profileBlock2Content: value })}
+                  onChange={(e) => setFormData({ ...formData, profileBlock2Content: e.target.value })}
                   placeholder="Contenu du bloc 2..."
-                  height={200}
+                  sx={{ 
+                    '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '14px' }, 
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' }
+                  }}
                 />
               </Stack>
             </Box>

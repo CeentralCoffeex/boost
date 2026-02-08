@@ -162,7 +162,7 @@ const ProductCard = ({
             WebkitBoxOrient: 'vertical' as any
           }}
         >
-          {subtitle}
+          {subtitle || ''}
         </p>
         <button className="project-button project-button-details">Voir les détails</button>
       </div>
@@ -304,8 +304,8 @@ export default function HomePage() {
                           </svg>
                         )}
                       </div>
-                      <h3>{category.name}</h3>
-                      <p>{category.subtitle}</p>
+                      <h3>{category.name || ''}</h3>
+                      <p>{category.subtitle || ''}</p>
                     </div>
                   ))}
                 </div>
@@ -325,9 +325,9 @@ export default function HomePage() {
                       key={product.id}
                       productId={product.id}
                       likesCount={product.likesCount ?? 0}
-                      title={product.title}
+                      title={product.title || ''}
                       subtitle={product.description || ''}
-                      tag={product.category?.name ?? product.category?.parent?.name ?? product.tag ?? undefined}
+                      tag={product.category?.name ?? product.category?.parent?.name ?? product.tag ?? ''}
                       image={product.image || undefined}
                       videoUrl={product.videoUrl || undefined}
                       onClick={() => handleProjectCardClick(`/product/${product.id}`)}
@@ -357,9 +357,9 @@ export default function HomePage() {
                       key={product.id}
                       productId={product.id}
                       likesCount={product.likesCount ?? 0}
-                      title={product.title}
+                      title={product.title || ''}
                       subtitle={product.description || ''}
-                      tag={product.category?.name ?? product.category?.parent?.name ?? product.tag ?? undefined}
+                      tag={product.category?.name ?? product.category?.parent?.name ?? product.tag ?? ''}
                       image={product.image || undefined}
                       videoUrl={product.videoUrl || undefined}
                       onClick={() => handleProjectCardClick(`/product/${product.id}`)}

@@ -14,7 +14,6 @@ import {
 } from '@mui/material';
 import IconifyIcon from '../../../components/base/IconifyIcon';
 import { fetchWithCSRF, uploadWithProgress } from '../../../utils/csrf';
-import RichTextEditor from '../../../components/RichTextEditor';
 
 interface ProductForm {
   title: string;
@@ -465,7 +464,21 @@ const ProductEdit = (): ReactElement => {
 
           {/* DESCRIPTION */}
           <Grid item xs={12} sx={{ pl: '0 !important', pr: '0 !important' }}>
-            <RichTextEditor value={formData.description} onChange={(value) => setFormData({ ...formData, description: value })} placeholder="Description..." height={80} />
+            <TextField 
+              fullWidth 
+              multiline 
+              rows={4}
+              value={formData.description} 
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
+              placeholder="Description..." 
+              sx={{ 
+                '& .MuiInputBase-root': { 
+                  bgcolor: '#0a0a0a', 
+                  color: 'white',
+                  fontSize: '14px'
+                } 
+              }}
+            />
           </Grid>
 
           {/* TARIFS */}
