@@ -35,15 +35,31 @@ export default function TelegramLoginHandler() {
     if (triedRef.current) return;
     triedRef.current = true;
     const inTg = !!(typeof window !== 'undefined' && (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram?.WebApp);
-    signIn('telegram-login', {
-      initData,
-      redirect: inTg,
-      callbackUrl: '/profil',
-    })
-      .then((r) => {
-        if (r?.ok && !inTg) window.location.reload();
+    // API directe = connexion fiable dans le WebView Telegram
+    if (inTg) {
+      fetch('/api/telegram/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ initData }),
       })
-      .catch(() => { triedRef.current = false; });
+        .then((r) => r.json())
+        .then((data) => {
+          if (data?.success) window.location.reload();
+          else {
+            triedRef.current = false;
+            signIn('telegram-login', { initData, redirect: true });
+          }
+        })
+        .catch(() => {
+          triedRef.current = false;
+          signIn('telegram-login', { initData, redirect: true });
+        });
+    } else {
+      signIn('telegram-login', { initData, redirect: false, callbackUrl: typeof window !== 'undefined' ? window.location.pathname || '/' : '/' })
+        .then((r: { ok?: boolean } | undefined) => { if (r?.ok) window.location.reload(); })
+        .catch(() => { triedRef.current = false; });
+    }
   };
 
   useEffect(() => {
