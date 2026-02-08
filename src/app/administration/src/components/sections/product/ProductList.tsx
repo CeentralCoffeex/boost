@@ -144,14 +144,20 @@ export default function ProductList() {
     return [selectedId];
   };
 
-  const filteredProducts = categoryFilter
+  const filteredProducts = (categoryFilter
     ? products.filter((p) => {
         const catId = p.categoryId ?? p.category?.id;
         if (!catId) return false;
         const ids = getCategoryIdsForFilter(categoryFilter);
         return ids.includes(catId);
       })
-    : products;
+    : products
+  ).sort((a, b) => {
+    // Trier par prix (du moins cher au plus cher)
+    const priceA = parseFloat(String(a.basePrice || a.price || 0).replace(',', '.')) || 0;
+    const priceB = parseFloat(String(b.basePrice || b.price || 0).replace(',', '.')) || 0;
+    return priceA - priceB;
+  });
 
   const handleDelete = async (id: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return;

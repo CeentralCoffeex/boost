@@ -93,9 +93,15 @@ export default function CategoryPage() {
   const selectedSubcategoryName = selectedSubcategoryId
     ? subcategories.find((s) => s.id === selectedSubcategoryId)?.name ?? 'Tous'
     : 'Tous';
-  const displayedProducts = selectedSubcategoryId
+  const displayedProducts = (selectedSubcategoryId
     ? (category?.products || []).filter((p) => p.categoryId === selectedSubcategoryId)
-    : (category?.products || []);
+    : (category?.products || [])
+  ).sort((a, b) => {
+    // Trier par prix (du moins cher au plus cher)
+    const priceA = parseFloat(String(a.basePrice || a.price || 0).replace(',', '.')) || 0;
+    const priceB = parseFloat(String(b.basePrice || b.price || 0).replace(',', '.')) || 0;
+    return priceA - priceB;
+  });
 
   if (loading) {
     return (

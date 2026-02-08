@@ -174,7 +174,6 @@ export default function HomePage() {
   const router = useRouter()
   const [products, setProducts] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
-  const [settings, setSettings] = useState<{ featuredRecentIds?: string; featuredTrendingIds?: string }>({})
 
   useEffect(() => {
     let cancelled = false;
@@ -185,9 +184,6 @@ export default function HomePage() {
       fetch('/api/categories').then(res => res.json()).then(data => {
         if (!cancelled && Array.isArray(data)) setCategories(data);
       }).catch(() => {}),
-      fetch('/api/settings').then(res => res.json()).then(data => {
-        if (!cancelled && data) setSettings(data);
-      }).catch(() => {}),
     ]);
     return () => { cancelled = true; };
   }, []);
@@ -196,44 +192,29 @@ export default function HomePage() {
     router.push(url)
   }
 
-  // IDs manuellement configurés (settings) ou fallback produit.featuredInRecent/Trending
-  const parseIds = (json?: string | null): string[] => {
-    if (!json) return [];
-    try {
-      const arr = JSON.parse(json);
-      return Array.isArray(arr) ? arr.filter((x): x is string => typeof x === 'string') : [];
-    } catch { return []; }
-  };
-
-  const featuredRecentIds = parseIds(settings.featuredRecentIds);
-  const featuredTrendingIds = parseIds(settings.featuredTrendingIds);
-
   const getRecentProducts = (limit: number = 6) => {
     const list = Array.isArray(products) ? products : [];
-    if (featuredRecentIds.length > 0) {
-      const byId = new Map(list.map(p => [p.id, p]));
-      return featuredRecentIds
-        .map(id => byId.get(id))
-        .filter(Boolean)
-        .slice(0, limit);
-    }
     return [...list]
-      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+      .sort((a, b) => {
+        // Trier par prix (du moins cher au plus cher)
+        const priceA = parseFloat(String(a.basePrice || a.price || 0).replace(',', '.')) || 0;
+        const priceB = parseFloat(String(b.basePrice || b.price || 0).replace(',', '.')) || 0;
+        return priceA - priceB;
+      })
       .slice(0, limit);
   }
 
   const getTrendingProducts = (limit: number = 6) => {
     const list = Array.isArray(products) ? products : [];
-    if (featuredTrendingIds.length > 0) {
-      const byId = new Map(list.map(p => [p.id, p]));
-      return featuredTrendingIds
-        .map(id => byId.get(id))
-        .filter(Boolean)
-        .slice(0, limit);
-    }
-    const featured = list.filter(p => p.featuredInTrending);
-    if (featured.length > 0) return featured.slice(0, limit);
-    return list.filter(p => p.section === 'DECOUVRIR').slice(0, limit);
+    return list
+      .filter(p => p.section === 'DECOUVRIR')
+      .sort((a, b) => {
+        // Trier par prix (du moins cher au plus cher)
+        const priceA = parseFloat(String(a.basePrice || a.price || 0).replace(',', '.')) || 0;
+        const priceB = parseFloat(String(b.basePrice || b.price || 0).replace(',', '.')) || 0;
+        return priceA - priceB;
+      })
+      .slice(0, limit);
   }
 
   useEffect(() => {
