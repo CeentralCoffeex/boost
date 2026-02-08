@@ -29,10 +29,10 @@ export default function AdminError({
       }}
     >
       <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '12px' }}>
-        Erreur admin
+        Erreur
       </h1>
       <p style={{ fontSize: '0.95rem', marginBottom: '24px', textAlign: 'center', maxWidth: 400 }}>
-        Ouvrez l&apos;administration depuis le bouton « Administration » dans la page Profil de la Mini App.
+        Une erreur s&apos;est produite. Réessayez ou retournez au profil.
       </p>
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
         <button

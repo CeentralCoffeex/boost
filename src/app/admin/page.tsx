@@ -1,19 +1,15 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { getInitData } from '@/lib/telegram-client'
 
 export default function AdminPage() {
-  const { data: session, status } = useSession()
   const router = useRouter()
   const [adminVerified, setAdminVerified] = useState<boolean | null>(null)
   const [initDataToPass, setInitDataToPass] = useState<string | null>(null)
 
   useEffect(() => {
-    if (status === 'loading') return
-
     const doVerify = (initData?: string) => {
       const headers: Record<string, string> = { 'Cache-Control': 'no-cache' }
       if (initData) headers['Authorization'] = `tma ${initData}`
@@ -45,14 +41,17 @@ export default function AdminPage() {
       doVerify(initData)
       return
     }
-    if (session) {
-      doVerify()
-      return
-    }
-    router.push('/unauthorized')
-  }, [session, status, router])
+    // Pas d'initData = admin navigateur (session)
+    fetch('/api/auth/session', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((session) => {
+        if (session?.user) doVerify()
+        else router.push('/unauthorized')
+      })
+      .catch(() => router.push('/unauthorized'))
+  }, [router])
 
-  if (status === 'loading' || adminVerified !== true) {
+  if (adminVerified !== true) {
     return (
       <div style={{ 
         display: 'flex', 
@@ -67,11 +66,14 @@ export default function AdminPage() {
     )
   }
 
-  // Admin vérifié : afficher le panneau (initData ou session)
+  // Admin vérifié : passer initData dans l'URL pour que l'iframe l'ait dès le chargement
   const hash = typeof window !== 'undefined' ? (window.location.hash || '#/') : '#/';
-  const iframeUrl = adminVerified
-    ? `/administration/index.html${hash === '#' ? '#/' : hash}`
-    : '/administration/index.html#/authentication/login';
+  const initForIframe = initDataToPass || (typeof window !== 'undefined' ? (sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')) : null);
+  const hashPart = hash === '#' ? '#/' : hash;
+  const sep = hashPart.includes('?') ? '&' : '?';
+  const iframeUrl = initForIframe
+    ? `/administration/index.html${hashPart}${sep}tgWebAppData=${encodeURIComponent(initForIframe)}`
+    : `/administration/index.html${hashPart}`;
 
   const handleIframeLoad = useCallback(() => {
     const data = initDataToPass || sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')

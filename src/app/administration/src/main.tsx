@@ -10,6 +10,19 @@ import './admin-theme.css';
 
 const THEMES = ['blanc', 'blue-white', 'noir', 'orange', 'violet', 'rouge', 'jaune'] as const;
 
+// Récupérer initData depuis l'URL (parent le passe en param) et le stocker immédiatement
+(function initFromUrl() {
+  try {
+    const hash = window.location.hash || '';
+    const qs = hash.includes('?') ? hash.split('?')[1] : '';
+    const initData = qs ? new URLSearchParams(qs).get('tgWebAppData') : null;
+    if (initData) {
+      sessionStorage.setItem('tgInitData', initData);
+      localStorage.setItem('tgInitData', initData);
+    }
+  } catch {}
+})();
+
 // Intercepteur fetch : ajoute initData à toutes les requêtes /api/ (WebView Telegram sans cookies)
 (function patchFetch() {
   const orig = window.fetch;
