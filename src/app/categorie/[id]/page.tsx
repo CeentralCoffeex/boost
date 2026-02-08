@@ -6,13 +6,6 @@ import { ChevronLeft, ChevronDown, ShoppingCart, Cannabis, Check } from 'lucide-
 import { useRouter, usePathname } from 'next/navigation';
 import ProductThumbnail from '@/components/product/ProductThumbnail';
 
-// Fonction pour gérer l'affichage HTML en toute sécurité
-const safeHtmlContent = (content: any): string => {
-  if (!content) return '';
-  if (typeof content !== 'string') return '';
-  return content;
-};
-
 interface Product {
   id: string;
   title: string;
@@ -340,9 +333,9 @@ export default function CategoryPage() {
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden'
-                }}
-                dangerouslySetInnerHTML={{ __html: safeHtmlContent(product.description) }}
-                />
+                }}>
+                  {product.description}
+                </p>
                 <p style={{
                   fontFamily: "'Orbitron', sans-serif",
                   fontSize: '18px',

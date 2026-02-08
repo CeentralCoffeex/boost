@@ -5,7 +5,6 @@ import { ChevronLeft, Share2, Send, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useTelegramProfile, type TelegramInfo } from '@/contexts/TelegramProfileContext';
-import { decodeHtmlEntities } from '@/lib/formatted-text';
 
 interface ProfileClientProps {
   initialTelegramInfo: TelegramInfo | null;
@@ -27,21 +26,8 @@ function hexToRgb(hex: string): string {
   return `${r}, ${g}, ${b}`;
 }
 
-// Fonction pour gérer l'affichage HTML en toute sécurité
-const safeHtmlContent = (content: any): string => {
-  if (!content) return '';
-  if (typeof content !== 'string') return '';
-  return content;
-};
-
-/** Parse **bold**, [c=#hex]texte coloré[/c] et HTML */
+/** Parse **bold**, [c=#hex]texte coloré[/c] */
 function parseFormattedText(text: string): React.ReactNode {
-  // Si le texte contient des balises HTML, l'afficher directement
-  const decodedText = safeHtmlContent(decodeHtmlEntities(text));
-  const hasHtmlTags = /<[^>]+>/.test(decodedText);
-  if (hasHtmlTags) {
-    return <span dangerouslySetInnerHTML={{ __html: decodedText }} />;
-  }
   
   // Sinon, parser les balises custom
   const parts: React.ReactNode[] = [];
@@ -89,13 +75,6 @@ function parseFormattedText(text: string): React.ReactNode {
 }
 
 function renderBlockContent(content: string) {
-  // Si le contenu contient des balises HTML, l'afficher directement
-  const decodedContent = safeHtmlContent(decodeHtmlEntities(content));
-  const hasHtmlTags = /<[^>]+>/.test(decodedContent);
-  if (hasHtmlTags) {
-    const htmlWithBreaks = decodedContent.replace(/\n/g, '<br>');
-    return <div dangerouslySetInnerHTML={{ __html: htmlWithBreaks }} />;
-  }
   
   // Sinon, parser les listes et formatage custom
   const lines = content.split('\n');
