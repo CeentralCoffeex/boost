@@ -335,14 +335,16 @@ async function main() {
     if (!amnesiaExists) {
       await prisma.product.create({
         data: {
-        title: '🍓 Amnesia',
-        description: 'DECOUVRIR',
-        tag: 'DECOUVRIR',
-        basePrice: '80',
-        section: 'DECOUVRIR',
-        defaultUnit: 'gramme',
-      }
-    });
+          title: '🍓 Amnesia',
+          description: 'DECOUVRIR',
+          tag: 'DECOUVRIR',
+          basePrice: '80',
+          section: 'DECOUVRIR',
+          defaultUnit: 'gramme',
+        }
+      });
+      console.log('✓ Produit créé: Amnesia');
+    }
 
     console.log('✅ Données restaurées avec succès !');
     console.log(`📂 ${4} catégories créées`);
