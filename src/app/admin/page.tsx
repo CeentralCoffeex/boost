@@ -1,133 +1,38 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { getInitData } from '@/lib/telegram-client'
+import { useEffect } from 'react'
 
 export default function AdminPage() {
-  const router = useRouter()
-  const [adminVerified, setAdminVerified] = useState<boolean | null>(null)
-  const [initDataToPass, setInitDataToPass] = useState<string | null>(null)
-
   useEffect(() => {
-    const doVerify = (initData?: string) => {
-      console.log('[admin page] doVerify called, initData:', initData ? 'present' : 'null');
-      const headers: Record<string, string> = { 'Cache-Control': 'no-cache' }
-      if (initData) {
-        headers['Authorization'] = `tma ${initData}`
-        headers['X-Telegram-Init-Data'] = initData
-      }
-      fetch('/api/admin/verify', {
-        credentials: 'include',
-        cache: 'no-store',
-        headers,
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          console.log('[admin page] verify result:', data);
-          if (!data.allowed) {
-            console.log('[admin page] REDIRECT to /unauthorized');
-            router.push('/unauthorized')
-          } else {
-            console.log('[admin page] verify SUCCESS');
-            if (initData) {
-              try {
-                sessionStorage.setItem('tgInitData', initData)
-                localStorage.setItem('tgInitData', initData)
-                console.log('[admin page] stored initData');
-              } catch (e) {
-                console.error('[admin page] failed to store initData:', e);
-              }
-              setInitDataToPass(initData)
-            }
-            console.log('[admin page] setting adminVerified = true');
-            setAdminVerified(true)
-          }
-        })
-        .catch((err) => {
-          console.error('[admin page] verify fetch error:', err);
-          router.push('/unauthorized')
-        })
-    }
-
-    const initData = getInitData()
+    // Récupérer initData depuis Telegram
+    const initData = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
+    
     if (initData) {
-      doVerify(initData)
-      return
+      // Stocker pour que l'administration puisse l'utiliser
+      try {
+        sessionStorage.setItem('tgInitData', initData);
+        localStorage.setItem('tgInitData', initData);
+      } catch (e) {
+        console.error('Failed to store initData:', e);
+      }
+      // Redirection vers administration avec initData en URL
+      window.location.href = `/administration/index.html#/?tgWebAppData=${encodeURIComponent(initData)}`;
+    } else {
+      // Pas de Telegram, rediriger vers administration simple
+      window.location.href = '/administration/index.html';
     }
-    // Pas d'initData = admin navigateur (session)
-    fetch('/api/auth/session', { credentials: 'include' })
-      .then((r) => r.json())
-      .then((session) => {
-        if (session?.user) doVerify()
-        else router.push('/unauthorized')
-      })
-      .catch(() => router.push('/unauthorized'))
-  }, [router])
-
-  if (adminVerified !== true) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        fontSize: '18px',
-        fontFamily: 'system-ui, -apple-system, sans-serif'
-      }}>
-        Chargement...
-      </div>
-    )
-  }
-
-  // Admin vérifié : passer initData dans l'URL pour que l'iframe l'ait dès le chargement
-  const hash = typeof window !== 'undefined' ? (window.location.hash || '#/') : '#/';
-  const initForIframe = initDataToPass || (typeof window !== 'undefined' ? (sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')) : null);
-  const hashPart = hash === '#' ? '#/' : hash;
-  const sep = hashPart.includes('?') ? '&' : '?';
-  const iframeUrl = initForIframe
-    ? `/administration/index.html${hashPart}${sep}tgWebAppData=${encodeURIComponent(initForIframe)}`
-    : `/administration/index.html${hashPart}`;
-
-  console.log('[admin page] rendering iframe, url:', iframeUrl);
-
-  const handleIframeLoad = useCallback(() => {
-    console.log('[admin page] iframe loaded');
-    const data = initDataToPass || sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')
-    if (data) {
-      console.log('[admin page] posting message to iframe');
-      const iframe = document.querySelector('iframe[title="Administration Panel"]') as HTMLIFrameElement
-      iframe?.contentWindow?.postMessage({ type: 'TG_INIT_DATA', initData: data }, '*')
-    }
-  }, [initDataToPass])
+  }, []);
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      width: '100vw',
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
       height: '100vh',
-      margin: 0,
-      padding: 0,
-      overflow: 'hidden'
+      fontSize: '18px',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
     }}>
-      <iframe 
-        src={iframeUrl}
-        onLoad={handleIframeLoad}
-        style={{ 
-          width: '100%', 
-          height: '100%',
-          border: 'none',
-          margin: 0,
-          padding: 0,
-          display: 'block'
-        }}
-        title="Administration Panel"
-        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-top-navigation"
-      />
+      Redirection...
     </div>
   )
 }
