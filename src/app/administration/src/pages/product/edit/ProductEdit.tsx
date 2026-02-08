@@ -189,7 +189,6 @@ const ProductEdit = (): ReactElement => {
         setSuccess('Fichier uploadé avec succès');
         // On ne change PAS previewImage, on garde la version locale qui est instantanée et fiable
       } else {
-        console.warn('Upload success but no URL or failed', data);
         if (!data.success) {
              setError(data.message || 'Erreur lors de l\'upload');
         }
@@ -231,15 +230,6 @@ const ProductEdit = (): ReactElement => {
       }
 
       const data = await response.json();
-      
-      console.log('Upload response:', {
-        success: data.success,
-        url: data.url,
-        type: data.type,
-        fileName: data.fileName,
-        size: data.size
-      });
-
       if (data.success && data.url) {
         try { URL.revokeObjectURL(objectUrl); } catch { /* ignore */ }
         const videoUrl = data.url.startsWith('http') ? data.url : (typeof window !== 'undefined' ? window.location.origin : '') + data.url;
@@ -247,7 +237,6 @@ const ProductEdit = (): ReactElement => {
         setPreviewVideo(videoUrl);
         setSuccess('Vidéo uploadée avec succès');
       } else {
-        console.warn('Video upload success but no URL or failed', data);
         if (!data.success) {
             setError(data.message || 'Erreur lors de l\'upload');
         }

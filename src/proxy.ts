@@ -144,7 +144,6 @@ export async function proxy(request: NextRequest) {
       '/api/auth/',
       '/api/telegram/webhook',  // secret_token
       '/api/telegram/refresh-profile',  // session + initData
-      '/api/telegram/debug',    // diagnostic initData
       '/api/telegram/me',       // auth via initData (doc Telegram)
       '/api/analytics/',
       '/api/public',

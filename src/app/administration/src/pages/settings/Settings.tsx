@@ -64,13 +64,8 @@ const Settings = (): ReactElement => {
 
   const fetchSettings = async () => {
     try {
-      console.log('[Settings] Fetching settings from API...');
       const response = await fetch('/api/settings');
       const data = await response.json();
-      
-      console.log('[Settings] Received data:', data);
-      console.log('[Settings] heroImage value:', data.heroImage);
-      
       setFormData({
         heroTitle: data.heroTitle || '',
         heroSubtitle1: data.heroSubtitle1 || '',
@@ -96,16 +91,7 @@ const Settings = (): ReactElement => {
           } catch { return ''; }
         })(),
       });
-      
-      console.log('[Settings] Form data updated:', {
-        heroTitle: data.heroTitle || '',
-        heroImage: data.heroImage || '',
-        facebookUrl: data.facebookUrl || '',
-        twitterUrl: data.twitterUrl || '',
-        instagramUrl: data.instagramUrl || '',
-      });
-    } catch (error) {
-      console.error('[Settings] Error fetching settings:', error);
+    } catch {
       setError('Erreur lors du chargement des paramètres');
     }
   };
