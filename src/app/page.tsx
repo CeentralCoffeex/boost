@@ -194,7 +194,9 @@ export default function HomePage() {
               </div>
 
               {/* Barre Menu (au-dessus des catégories) */}
-              <MenuBar />
+              <div className="flex-shrink-0 w-full">
+                <MenuBar />
+              </div>
 
               {/* Section 1: Catégories */}
               <div className="my-projects-section">

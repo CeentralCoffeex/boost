@@ -65,6 +65,7 @@ export default function TelegramLoginHandler() {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
           body: JSON.stringify({ initData }),
         })
         .then(async (res) => {

@@ -47,6 +47,38 @@
 .font-montserrat { font-family: 'Montserrat', 'Arial', sans-serif; }
 .hero-footer-offset { transform: translateY(-15px); }
 
+/* Menu bar (au-dessus des catégories) */
+.menu-bar-section {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.menu-bar-wrapper {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+}
+.menu-bar {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.menu-bar-voir-btn {
+  min-width: 58px;
+  flex-shrink: 0;
+}
+@media (max-width: 360px) {
+  .menu-bar-voir-btn {
+    min-width: 50px;
+    padding: 8px 12px !important;
+    font-size: 11px !important;
+  }
+}
+
 /* ========================================
    CSS SPÉCIFIQUE POUR LES STATISTIQUES DE LA PAGE PRINCIPALE
    ======================================== */

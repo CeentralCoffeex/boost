@@ -143,6 +143,7 @@ export async function proxy(request: NextRequest) {
     const csrfExempt = [
       '/api/auth/',
       '/api/telegram/webhook',  // secret_token
+      '/api/telegram/refresh-profile',  // session + initData
       '/api/bot/link',          // x-api-key
       '/api/analytics/',
       '/api/public',
