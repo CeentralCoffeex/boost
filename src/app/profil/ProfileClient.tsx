@@ -150,7 +150,8 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
       .catch(() => setDebugInfo({ initData, valid: false, loading: false }));
   }, []);
 
-  // Rafraîchir la photo Telegram à chaque ouverture de l'app
+  // Doc Telegram : "transmit initData at each request" — pas de cookies/session
+  // GET /api/telegram/me avec Authorization: tma <initData>
   useEffect(() => {
     let cancelled = false;
     const run = () => {
@@ -160,23 +161,20 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
         setTimeout(run, 300);
         return;
       }
-      fetch('/api/telegram/refresh-profile', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData }),
-      credentials: 'include',
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (cancelled) return;
-        if (data?.success && data?.telegramInfo) {
-          setTelegramInfo((prev) =>
-            prev ? { ...prev, ...data.telegramInfo } : data.telegramInfo
-          );
-          if (data.telegramInfo?.telegramPhoto) setPhotoKey((k) => k + 1);
-        }
+      fetch('/api/telegram/me', {
+        headers: { Authorization: `tma ${initData}` },
       })
-      .catch(() => {});
+        .then((res) => res.json())
+        .then((data) => {
+          if (cancelled) return;
+          if (data?.success && data?.telegramInfo) {
+            setTelegramInfo((prev) =>
+              prev ? { ...prev, ...data.telegramInfo } : data.telegramInfo
+            );
+            if (data.telegramInfo?.telegramPhoto) setPhotoKey((k) => k + 1);
+          }
+        })
+        .catch(() => {});
     };
     run();
     return () => { cancelled = true; };
