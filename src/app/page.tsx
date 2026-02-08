@@ -178,17 +178,37 @@ export default function HomePage() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([
-      fetch('/api/products').then(res => res.json()).then(data => {
-        if (!cancelled && Array.isArray(data)) setProducts(data);
-      }).catch(() => {}),
-      fetch('/api/categories').then(res => res.json()).then(data => {
-        if (!cancelled && Array.isArray(data)) setCategories(data);
-      }).catch(() => {}),
-      fetch('/api/settings').then(res => res.json()).then(data => {
-        if (!cancelled && data) setSettings(data);
-      }).catch(() => {}),
-    ]);
+    
+    const loadData = async () => {
+      try {
+        const [productsRes, categoriesRes, settingsRes] = await Promise.all([
+          fetch('/api/products').catch(() => null),
+          fetch('/api/categories').catch(() => null),
+          fetch('/api/settings').catch(() => null),
+        ]);
+        
+        if (!cancelled) {
+          if (productsRes && productsRes.ok) {
+            const data = await productsRes.json().catch(() => []);
+            if (Array.isArray(data)) setProducts(data);
+          }
+          
+          if (categoriesRes && categoriesRes.ok) {
+            const data = await categoriesRes.json().catch(() => []);
+            if (Array.isArray(data)) setCategories(data);
+          }
+          
+          if (settingsRes && settingsRes.ok) {
+            const data = await settingsRes.json().catch(() => ({}));
+            if (data) setSettings(data);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    };
+    
+    loadData();
     return () => { cancelled = true; };
   }, []);
 
@@ -288,26 +308,38 @@ export default function HomePage() {
               <div className="my-projects-section">
                 <h2>Catégories</h2>
                 <div className="projects-grid">
-                  {categories.map((category) => (
-                    <div 
-                      key={category.id} 
-                      className="project-card" 
-                      onClick={() => handleProjectCardClick(`/categorie/${category.id}`)}
-                    >
-                      <div className={`project-icon ${category.icon ? 'project-icon--image' : ''}`}>
-                        {category.icon ? (
-                          <img src={category.icon} alt={category.name} className="project-card-category-img" />
-                        ) : (
-                          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
-                            <path d="M8 21l4-7 4 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        )}
+                  {categories && categories.length > 0 ? categories.map((category) => {
+                    if (!category || !category.id) return null;
+                    return (
+                      <div 
+                        key={category.id} 
+                        className="project-card" 
+                        onClick={() => handleProjectCardClick(`/categorie/${category.id}`)}
+                      >
+                        <div className={`project-icon ${category.icon ? 'project-icon--image' : ''}`}>
+                          {category.icon ? (
+                            <img src={category.icon} alt={category.name || ''} className="project-card-category-img" />
+                          ) : (
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
+                              <path d="M8 21l4-7 4 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          )}
+                        </div>
+                        <h3>{category.name || ''}</h3>
+                        <p>{category.subtitle || ''}</p>
                       </div>
-                      <h3>{category.name || ''}</h3>
-                      <p>{category.subtitle || ''}</p>
+                    );
+                  }) : (
+                    <div style={{ 
+                      gridColumn: '1 / -1', 
+                      textAlign: 'center', 
+                      padding: '40px 20px',
+                      color: '#666'
+                    }}>
+                      Chargement des catégories...
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
