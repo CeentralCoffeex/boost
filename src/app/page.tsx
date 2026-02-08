@@ -9,6 +9,14 @@ import MenuBar from '@/components/home/MenuBar'
 import ProductThumbnail from '@/components/product/ProductThumbnail'
 import '@/styles/index-mobile.css'
 
+// Décode les entités HTML
+const decodeHtmlEntities = (text: string): string => {
+  if (typeof document === 'undefined') return text;
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+};
+
 // Composant Carte Produit - étiquette sur image, bouton Détails redesigné, like
 const ProductCard = ({ 
   title, 
