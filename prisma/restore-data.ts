@@ -9,35 +9,77 @@ async function main() {
     // Nettoyer les références à "futureworld"
     console.log('🧹 Nettoyage des références à futureworld...');
     
-    await prisma.product.updateMany({
-      where: {
-        OR: [
-          { title: { contains: 'futureworld' } },
-          { title: { contains: 'FutureWorld' } },
-          { description: { contains: 'futureworld' } },
-          { description: { contains: 'FutureWorld' } },
-        ]
-      },
-      data: {
-        title: prisma.$raw`REPLACE(REPLACE(title, 'futureworld', ''), 'FutureWorld', '')`,
-        description: prisma.$raw`REPLACE(REPLACE(description, 'futureworld', ''), 'FutureWorld', '')`,
+    // Récupérer et nettoyer les produits
+    const products = await prisma.product.findMany();
+    for (const product of products) {
+      const cleanTitle = product.title.replace(/futureworld/gi, '').replace(/FutureWorld/g, '');
+      const cleanDesc = product.description.replace(/futureworld/gi, '').replace(/FutureWorld/g, '');
+      
+      if (cleanTitle !== product.title || cleanDesc !== product.description) {
+        await prisma.product.update({
+          where: { id: product.id },
+          data: {
+            title: cleanTitle,
+            description: cleanDesc,
+          }
+        });
+        console.log(`✓ Nettoyé: ${product.title} → ${cleanTitle}`);
       }
-    });
+    }
 
-    await prisma.category.updateMany({
-      where: {
-        OR: [
-          { name: { contains: 'futureworld' } },
-          { name: { contains: 'FutureWorld' } },
-          { subtitle: { contains: 'futureworld' } },
-          { subtitle: { contains: 'FutureWorld' } },
-        ]
-      },
-      data: {
-        name: prisma.$raw`REPLACE(REPLACE(name, 'futureworld', ''), 'FutureWorld', '')`,
-        subtitle: prisma.$raw`REPLACE(REPLACE(subtitle, 'futureworld', ''), 'FutureWorld', '')`,
+    // Récupérer et nettoyer les catégories
+    const categories = await prisma.category.findMany();
+    for (const category of categories) {
+      const cleanName = category.name.replace(/futureworld/gi, '').replace(/FutureWorld/g, '');
+      const cleanSubtitle = category.subtitle.replace(/futureworld/gi, '').replace(/FutureWorld/g, '');
+      
+      if (cleanName !== category.name || cleanSubtitle !== category.subtitle) {
+        await prisma.category.update({
+          where: { id: category.id },
+          data: {
+            name: cleanName,
+            subtitle: cleanSubtitle,
+          }
+        });
+        console.log(`✓ Nettoyé: ${category.name} → ${cleanName}`);
       }
-    });
+    }
+
+    // Nettoyer les settings
+    const settings = await prisma.siteSettings.findFirst();
+    if (settings) {
+      const cleanSettings: any = {};
+      let hasChanges = false;
+
+      if (settings.heroTitle?.includes('futureworld') || settings.heroTitle?.includes('FutureWorld')) {
+        cleanSettings.heroTitle = settings.heroTitle.replace(/futureworld/gi, '').replace(/FutureWorld/g, '');
+        hasChanges = true;
+      }
+      if (settings.heroSubtitle1?.includes('futureworld') || settings.heroSubtitle1?.includes('FutureWorld')) {
+        cleanSettings.heroSubtitle1 = settings.heroSubtitle1.replace(/futureworld/gi, '').replace(/FutureWorld/g, '');
+        hasChanges = true;
+      }
+      if (settings.heroSubtitle2?.includes('futureworld') || settings.heroSubtitle2?.includes('FutureWorld')) {
+        cleanSettings.heroSubtitle2 = settings.heroSubtitle2.replace(/futureworld/gi, '').replace(/FutureWorld/g, '');
+        hasChanges = true;
+      }
+      if (settings.heroSubtitle3?.includes('futureworld') || settings.heroSubtitle3?.includes('FutureWorld')) {
+        cleanSettings.heroSubtitle3 = settings.heroSubtitle3.replace(/futureworld/gi, '').replace(/FutureWorld/g, '');
+        hasChanges = true;
+      }
+      if (settings.heroTagline?.includes('futureworld') || settings.heroTagline?.includes('FutureWorld')) {
+        cleanSettings.heroTagline = settings.heroTagline.replace(/futureworld/gi, '').replace(/FutureWorld/g, '');
+        hasChanges = true;
+      }
+
+      if (hasChanges) {
+        await prisma.siteSettings.update({
+          where: { id: settings.id },
+          data: cleanSettings
+        });
+        console.log('✓ Settings nettoyés');
+      }
+    }
 
     // Créer les catégories
     console.log('📂 Création des catégories...');
