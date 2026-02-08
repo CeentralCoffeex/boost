@@ -12,8 +12,10 @@ export default function TelegramLoginHandler() {
   // Attendre que initData soit disponible (script Telegram peut charger en retard)
   useEffect(() => {
     let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 30; // ~6 s max
     const check = () => {
-      if (cancelled) return;
+      if (cancelled || attempts++ > maxAttempts) return;
       const id = getInitData();
       if (id) {
         setInitDataReady(true);
@@ -29,6 +31,21 @@ export default function TelegramLoginHandler() {
     };
   }, []);
 
+  const doSignIn = (initData: string) => {
+    if (triedRef.current) return;
+    triedRef.current = true;
+    const inTg = !!(typeof window !== 'undefined' && (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram?.WebApp);
+    signIn('telegram-login', {
+      initData,
+      redirect: inTg,
+      callbackUrl: '/profil',
+    })
+      .then((r) => {
+        if (r?.ok && !inTg) window.location.reload();
+      })
+      .catch(() => { triedRef.current = false; });
+  };
+
   useEffect(() => {
     if (status === 'loading' || !initDataReady) return;
 
@@ -38,13 +55,7 @@ export default function TelegramLoginHandler() {
     window.Telegram?.WebApp?.expand?.();
 
     if (status === 'unauthenticated') {
-      if (triedRef.current) return;
-      triedRef.current = true;
-      signIn('telegram-login', { initData, redirect: false })
-        .then((r) => {
-          if (r?.ok) window.location.reload();
-        })
-        .catch(() => { triedRef.current = false; });
+      doSignIn(initData);
     } else if (status === 'authenticated') {
       const doLink = (attempt = 0) => {
         fetch('/api/user/telegram', {
