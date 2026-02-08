@@ -18,8 +18,6 @@ import { fetchWithCSRF } from '../../../utils/csrf';
 
 interface SubcategoryForm {
   name: string;
-  subtitle: string;
-  icon: string;
   backgroundColor: string;
   url: string;
   order: number;
@@ -42,8 +40,6 @@ const SubcategoryEdit = (): ReactElement => {
 
   const [formData, setFormData] = useState<SubcategoryForm>({
     name: prefillName,
-    subtitle: prefillName,
-    icon: '',
     backgroundColor: '#000000',
     url: '',
     order: 0,
@@ -51,9 +47,7 @@ const SubcategoryEdit = (): ReactElement => {
   });
 
   const [parentCategory, setParentCategory] = useState<ParentCategory | null>(null);
-  const [previewIcon, setPreviewIcon] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -62,7 +56,6 @@ const SubcategoryEdit = (): ReactElement => {
       setFormData((prev) => ({
         ...prev,
         name: prefillName,
-        subtitle: prefillName,
       }));
     }
   }, [prefillName]);
@@ -100,14 +93,11 @@ const SubcategoryEdit = (): ReactElement => {
       if (data) {
         setFormData({
           name: data.name || '',
-          subtitle: data.subtitle || data.name || '',
-          icon: data.icon || '',
           backgroundColor: data.backgroundColor || '#000000',
           url: data.url || '',
           order: data.order ?? 0,
           isActive: data.isActive ?? true,
         });
-        setPreviewIcon(data.icon || '');
         if (data.parentId) {
           setParentCategory({ id: data.parentId, name: data.parent?.name || '' });
         }
@@ -118,51 +108,6 @@ const SubcategoryEdit = (): ReactElement => {
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewIcon(objectUrl);
-    setUploading(true);
-
-    try {
-      const isSmallImage = file.type.startsWith('image/') && file.size < 1024 * 1024;
-      let response;
-
-      if (!isSmallImage) {
-        const uploadUrl = `/api/upload?filename=${encodeURIComponent(file.name)}`;
-        response = await fetchWithCSRF(uploadUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/octet-stream',
-            'x-file-name': encodeURIComponent(file.name),
-          },
-          body: file,
-        });
-      } else {
-        const formDataUpload = new FormData();
-        formDataUpload.append('file', file);
-        response = await fetchWithCSRF('/api/upload', {
-          method: 'POST',
-          body: formDataUpload,
-        });
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setFormData((prev) => ({ ...prev, icon: data.url }));
-        setSuccess('Image uploadée avec succès');
-      } else {
-        setError(data.message || "Erreur lors de l'upload");
-      }
-    } catch (err) {
-      console.error('Upload error:', err);
-      setError("Erreur lors de l'upload du fichier");
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleSubmit = async () => {
     setError('');
@@ -192,7 +137,8 @@ const SubcategoryEdit = (): ReactElement => {
     const payload = {
       ...formData,
       url,
-      subtitle: formData.subtitle?.trim() || formData.name,
+      subtitle: formData.name,
+      icon: '',
       parentId: isEditing ? undefined : parentId,
     };
 
@@ -265,7 +211,7 @@ const SubcategoryEdit = (): ReactElement => {
 
       <Paper sx={{ p: { xs: 3, sm: 4 } }}>
         <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12}>
             <TextField
               label="Nom *"
               fullWidth
@@ -274,23 +220,13 @@ const SubcategoryEdit = (): ReactElement => {
                 setFormData((prev) => ({
                   ...prev,
                   name: e.target.value,
-                  subtitle: prev.subtitle === prev.name ? e.target.value : prev.subtitle,
                 }))
               }
               placeholder="ex: Espagnol"
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Sous-titre"
-              fullWidth
-              value={formData.subtitle}
-              onChange={(e) => setFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
-              placeholder="ex: ESPAGNOL"
-            />
-          </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12}>
             <FormControlLabel
               control={
                 <Switch
@@ -303,52 +239,6 @@ const SubcategoryEdit = (): ReactElement => {
           </Grid>
 
           <Grid item xs={12}>
-            <Typography variant="subtitle2" color="text.disabled" mb={1}>
-              Photo
-            </Typography>
-            {(previewIcon || formData.icon) && (
-              <Box sx={{ mb: 2 }}>
-                <img
-                  src={previewIcon || formData.icon}
-                  alt="Preview"
-                  style={{
-                    width: 60,
-                    height: 60,
-                    objectFit: 'cover',
-                    borderRadius: 8,
-                    border: '1px solid #444',
-                  }}
-                />
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setFormData((prev) => ({ ...prev, icon: '' }));
-                    setPreviewIcon('');
-                  }}
-                  sx={{ ml: 1, color: 'error.main' }}
-                >
-                  <IconifyIcon icon="material-symbols:delete" width={20} />
-                </IconButton>
-              </Box>
-            )}
-            <Button
-              component="label"
-              variant="outlined"
-              disabled={uploading}
-              startIcon={
-                uploading ? (
-                  <IconifyIcon icon="eos-icons:loading" />
-                ) : (
-                  <IconifyIcon icon="material-symbols:upload" />
-                )
-              }
-            >
-              {uploading ? 'Upload...' : formData.icon ? 'Changer' : 'Choisir une photo'}
-              <input type="file" hidden accept="image/*" onChange={handleFileUpload} />
-            </Button>
-          </Grid>
-
-          <Grid item xs={12}>
             <Stack direction="row" spacing={2} justifyContent="flex-end">
               <Button variant="outlined" onClick={() => navigate(backPath)} sx={{ minWidth: 120 }}>
                 Annuler
@@ -356,7 +246,7 @@ const SubcategoryEdit = (): ReactElement => {
               <Button
                 variant="contained"
                 onClick={handleSubmit}
-                disabled={loading || uploading}
+                disabled={loading}
                 sx={{
                   bgcolor: 'primary.main',
                   color: 'common.black',
