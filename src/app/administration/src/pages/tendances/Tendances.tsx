@@ -10,7 +10,6 @@ import {
   Checkbox,
   FormControlLabel,
 } from '@mui/material';
-import PageTitle from '../../components/common/PageTitle';
 
 interface Product {
   id: string;
@@ -22,7 +21,6 @@ interface Product {
 
 const Tendances = (): ReactElement => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [settings, setSettings] = useState<{ featuredTrendingIds?: string }>({});
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -36,17 +34,18 @@ const Tendances = (): ReactElement => {
     ])
       .then(([prods, sett]) => {
         setProducts(Array.isArray(prods) ? prods : []);
-        setSettings(sett || {});
         // Parse existing trending IDs
         if (sett?.featuredTrendingIds) {
           try {
             const ids = JSON.parse(sett.featuredTrendingIds);
             setSelectedIds(Array.isArray(ids) ? ids : []);
-          } catch {}
+          } catch {
+            // ignore
+          }
         }
         setLoading(false);
       })
-      .catch((err) => {
+      .catch(() => {
         setError('Erreur lors du chargement');
         setLoading(false);
       });
@@ -99,7 +98,9 @@ const Tendances = (): ReactElement => {
 
   return (
     <Stack gap={3}>
-      <PageTitle title="Gérer les tendances" />
+      <Typography variant="h4" fontWeight={700}>
+        Gérer les tendances
+      </Typography>
       <Typography variant="body2" color="text.secondary">
         Sélectionnez les produits à afficher dans la section "Tendances" sur la page d'accueil.
       </Typography>

@@ -58,35 +58,6 @@ const TelegramAdmins = (): ReactElement => {
     }
   };
 
-  const handleDelete = async (admin: TelegramAdmin) => {
-    const isSelf = admin.id === 'current-user';
-    const msg = isSelf
-      ? 'Vous allez perdre vos droits administrateur. Vous serez redirigé. Continuer ?'
-      : 'Êtes-vous sûr de vouloir supprimer cet administrateur ?';
-    if (!confirm(msg)) return;
-    try {
-      const base = typeof window !== 'undefined' ? window.location.origin : '';
-      const response = await fetchWithCSRF(`${base}/api/telegram/admins/${encodeURIComponent(admin.id)}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      const result = await response.json().catch(() => ({}));
-      if (response.ok) {
-        setSuccess(result.message || 'Administrateur supprimé avec succès');
-        if (result.redirect) {
-          window.location.href = '/';
-          return;
-        }
-        fetchAdmins();
-      } else {
-        setError(result.error || `Erreur lors de la suppression (${response.status})`);
-      }
-    } catch (err) {
-      console.error('Delete error:', err);
-      setError('Erreur lors de la suppression');
-    }
-  };
-
   const handleToggleActive = async (admin: TelegramAdmin) => {
     try {
       const base = typeof window !== 'undefined' ? window.location.origin : '';
@@ -239,21 +210,6 @@ const TelegramAdmins = (): ReactElement => {
                 </Box>
               </Box>
 
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 'fit-content' }}>
-                <IconButton
-                  size="small"
-                  onClick={() => handleDelete(admin)}
-                  sx={{
-                    color: 'error.main',
-                    bgcolor: 'error.lighter',
-                    width: 32,
-                    height: 32,
-                    '&:hover': { bgcolor: 'error.light', color: 'white' },
-                  }}
-                >
-                  <IconifyIcon icon="material-symbols:delete-outline" width={18} />
-                </IconButton>
-              </Stack>
             </Card>
           ))
         )}

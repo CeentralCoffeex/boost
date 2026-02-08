@@ -141,7 +141,8 @@ const ProductEdit = (): ReactElement => {
     setUploadProgress(0);
 
     try {
-      const result = await uploadWithProgress(file, 'image', (progress) => setUploadProgress(progress));
+      const response = await uploadWithProgress(file, 'image', (progress: number) => setUploadProgress(progress));
+      const result = await response.json();
       if (result.success && result.url) {
         setFormData({ ...formData, image: result.url });
         setPreviewImage(result.url);
@@ -167,7 +168,8 @@ const ProductEdit = (): ReactElement => {
     setUploadProgress(0);
 
     try {
-      const result = await uploadWithProgress(file, 'video', (progress) => setUploadProgress(progress));
+      const response = await uploadWithProgress(file, 'video', (progress: number) => setUploadProgress(progress));
+      const result = await response.json();
       if (result.success && result.url) {
         setFormData({ ...formData, videoUrl: result.url });
         setPreviewVideo(result.url);
@@ -189,7 +191,7 @@ const ProductEdit = (): ReactElement => {
 
   const updateVariant = (index: number, field: keyof ProductVariant, value: unknown) => {
     const updated = [...variants];
-    (updated[index] as Record<string, unknown>)[field] = value;
+    (updated[index] as any)[field] = value;
     setVariants(updated);
   };
 
