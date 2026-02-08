@@ -75,11 +75,11 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
           console.log('[admin-layout] AUTH SUCCESS');
           setIsAuthenticated(true);
         } else {
-          console.log('[admin-layout] AUTH FAILED: data.allowed = false');
+          console.log('[admin-layout] AUTH FAILED: redirecting to home');
           window.location.href = '/';
         }
       } catch (error) {
-        console.error('[admin-layout] Auth check failed', error);
+        console.error('[admin-layout] Auth check failed, redirecting to home');
         window.location.href = '/';
       } finally {
         setIsLoading(false);

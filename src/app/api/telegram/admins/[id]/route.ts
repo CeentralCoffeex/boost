@@ -95,13 +95,19 @@ export async function DELETE(
       if (currentUser?.telegramId) {
         removeAdminIdFromConfig(currentUser.telegramId);
         await prisma.telegramAdmin.deleteMany({ where: { telegramId: currentUser.telegramId } });
+        // Demander au bot Python de recharger les admins
+        try {
+          await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/telegram/reload-admins`, { method: 'POST' });
+        } catch (e) {
+          console.error('Failed to reload bot admins:', e);
+        }
       }
       await prisma.user.update({
         where: { id: session.user.id },
         data: { role: 'USER' },
       });
       invalidateAdminCacheForUser(session.user.id, session.user.email ?? undefined);
-      return NextResponse.json({ success: true, message: 'Droits admin retirés', redirect: true });
+      return NextResponse.json({ success: true, message: 'Droits admin retirés, rechargez la page', redirect: true });
     }
 
     if (id.startsWith('config-')) {
@@ -124,14 +130,22 @@ export async function DELETE(
 
     const admin = await prisma.telegramAdmin.findUnique({ where: { id } });
     await prisma.telegramAdmin.delete({ where: { id } });
-    if (admin?.telegramId) removeAdminIdFromConfig(admin.telegramId);
+    if (admin?.telegramId) {
+      removeAdminIdFromConfig(admin.telegramId);
+      // Demander au bot Python de recharger les admins
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/telegram/reload-admins`, { method: 'POST' });
+      } catch (e) {
+        console.error('Failed to reload bot admins:', e);
+      }
+    }
 
     const session = await getServerSession(authOptions);
     if (session?.user?.id && admin?.telegramId) {
       const currentUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { telegramId: true } });
       if (currentUser?.telegramId && String(currentUser.telegramId) === String(admin.telegramId)) {
         await prisma.user.update({ where: { id: session.user.id }, data: { role: 'USER' } });
-        return NextResponse.json({ success: true, message: 'Administrateur supprimé', redirect: true });
+        return NextResponse.json({ success: true, message: 'Administrateur supprimé, rechargez la page', redirect: true });
       }
     }
     return NextResponse.json({ success: true, message: 'Administrateur supprimé' });

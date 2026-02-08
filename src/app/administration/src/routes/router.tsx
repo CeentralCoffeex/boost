@@ -19,6 +19,7 @@ const TelegramAdmins = lazy<() => ReactElement>(() => import('../pages/telegram/
 const Categories = lazy<() => ReactElement>(() => import('../pages/categories/Categories'));
 const CategoryEdit = lazy<() => ReactElement>(() => import('../pages/categories/CategoryEdit'));
 const SubcategoryEdit = lazy<() => ReactElement>(() => import('../pages/categories/subcategory/SubcategoryEdit'));
+const Tendances = lazy<() => ReactElement>(() => import('../pages/tendances/Tendances'));
 const Slider = lazy<() => ReactElement>(() => import('../pages/slider/Slider'));
 const ProfilBlocks = lazy<() => ReactElement>(() => import('../pages/profil-blocks/ProfilBlocks'));
 const Panier = lazy<() => ReactElement>(() => import('../pages/panier/Panier'));
@@ -85,6 +86,10 @@ const routes: RouteObject[] = [
           {
             path: 'categories/subcategory/edit/:id',
             element: <SubcategoryEdit />,
+          },
+          {
+            path: 'tendances',
+            element: <Tendances />,
           },
           {
             path: 'slider',

@@ -21,6 +21,7 @@ export default {
   categoryEdit: '/categories/edit/:id',
   subcategoryNew: '/categories/subcategory/new',
   subcategoryEdit: '/categories/subcategory/edit/:id',
+  tendances: '/tendances',
   telegram: '/telegram',
   services: `/${rootPaths.servicesRoot}`,
   servicesNew: `/services/new`,

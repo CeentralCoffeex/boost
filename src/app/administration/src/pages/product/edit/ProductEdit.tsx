@@ -11,10 +11,8 @@ import {
   Alert,
   Grid,
   MenuItem,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   LinearProgress,
+  Divider,
 } from '@mui/material';
 import IconifyIcon from '../../../components/base/IconifyIcon';
 import RichTextBlock from '../../../components/base/RichTextBlock';
@@ -71,10 +69,8 @@ const ProductEdit = (): ReactElement => {
     categoryId: '',
   });
 
-  // États séparés pour la prévisualisation pour éviter les clignotements/erreurs
   const [previewImage, setPreviewImage] = useState<string>('');
   const [previewVideo, setPreviewVideo] = useState<string>('');
-
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
@@ -85,13 +81,10 @@ const ProductEdit = (): ReactElement => {
 
   useEffect(() => {
     fetchCategories();
-    if (isEditing) {
-      fetchProduct();
-    }
+    if (isEditing) fetchProduct();
   }, [id]);
 
   useEffect(() => {
-    // Initialiser les prévisualisations avec les données du formulaire si elles ne sont pas déjà définies localement
     if (!previewImage && formData.image) setPreviewImage(formData.image);
     if (!previewVideo && formData.videoUrl) setPreviewVideo(formData.videoUrl);
   }, [formData.image, formData.videoUrl]);
@@ -100,9 +93,7 @@ const ProductEdit = (): ReactElement => {
     try {
       const response = await fetch('/api/categories?all=1', { credentials: 'include' });
       const data = await response.json();
-      if (Array.isArray(data)) {
-        setCategories(data);
-      }
+      if (Array.isArray(data)) setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
@@ -132,7 +123,6 @@ const ProductEdit = (): ReactElement => {
           videoUrl: product.videoUrl || '',
           categoryId: product.categoryId || '',
         });
-        
         setVariants(product.variants || []);
       }
     } catch (error) {
@@ -145,59 +135,25 @@ const ProductEdit = (): ReactElement => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Prévisualisation immédiate
     const objectUrl = URL.createObjectURL(file);
     setPreviewImage(objectUrl);
-    // On ne met PAS à jour formData.image tout de suite pour éviter d'afficher une URL vide ou invalide pendant l'upload
-
     setUploading(true);
-    
+    setUploadProgress(0);
+
     try {
-      let response;
-      // Utiliser le mode stream pour tout ce qui n'est pas une petite image
-      const isSmallImage = file.type.startsWith('image/') && file.size < 1024 * 1024;
-      const useRawMode = !isSmallImage;
-
-      if (useRawMode) {
-        // Mode RAW pour les gros fichiers et vidéos
-        // On passe aussi le nom dans l'URL pour éviter les problèmes de headers strippés par IIS/Proxies
-        const uploadUrl = `/api/upload?filename=${encodeURIComponent(file.name)}`;
-        
-        response = await fetchWithCSRF(uploadUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/octet-stream', // Force binary stream type
-            'x-file-name': encodeURIComponent(file.name),
-          },
-          body: file,
-        });
+      const result = await uploadWithProgress(file, 'image', (progress) => setUploadProgress(progress));
+      if (result.success && result.url) {
+        setFormData({ ...formData, image: result.url });
+        setPreviewImage(result.url);
       } else {
-        // Mode FormData standard
-        const formDataUpload = new FormData();
-        formDataUpload.append('file', file);
-        response = await fetchWithCSRF('/api/upload', {
-          method: 'POST',
-          body: formDataUpload,
-        });
-      }
-
-      const data = await response.json();
-
-      if (data.success && data.url) {
-        // On garde l'URL retournée par le serveur pour la sauvegarde
-        setFormData(prev => ({ ...prev, image: data.url }));
-        setSuccess('Fichier uploadé avec succès');
-        // On ne change PAS previewImage, on garde la version locale qui est instantanée et fiable
-      } else {
-        if (!data.success) {
-             setError(data.message || 'Erreur lors de l\'upload');
-        }
+        setError(result.message || 'Erreur lors de l\'upload');
       }
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Error uploading file:', error);
       setError('Erreur lors de l\'upload du fichier');
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -211,39 +167,15 @@ const ProductEdit = (): ReactElement => {
     setUploadProgress(0);
 
     try {
-      let response;
-      const isLargeFile = file.size > 1024 * 1024 || file.type.startsWith('video/');
-
-      if (isLargeFile) {
-        const base = typeof window !== 'undefined' ? window.location.origin : '';
-        const uploadUrl = `${base}/api/upload?filename=${encodeURIComponent(file.name)}`;
-        response = await uploadWithProgress(uploadUrl, file, {
-          onProgress: (p) => setUploadProgress(p),
-        });
+      const result = await uploadWithProgress(file, 'video', (progress) => setUploadProgress(progress));
+      if (result.success && result.url) {
+        setFormData({ ...formData, videoUrl: result.url });
+        setPreviewVideo(result.url);
       } else {
-        const formDataUpload = new FormData();
-        formDataUpload.append('file', file);
-        response = await fetchWithCSRF('/api/upload', {
-          method: 'POST',
-          body: formDataUpload,
-        });
-      }
-
-      const data = await response.json();
-      if (data.success && data.url) {
-        try { URL.revokeObjectURL(objectUrl); } catch { /* ignore */ }
-        const videoUrl = data.url.startsWith('http') ? data.url : (typeof window !== 'undefined' ? window.location.origin : '') + data.url;
-        setFormData(prev => ({ ...prev, videoUrl: data.url }));
-        setPreviewVideo(videoUrl);
-        setSuccess('Vidéo uploadée avec succès');
-      } else {
-        if (!data.success) {
-            setError(data.message || 'Erreur lors de l\'upload');
-        }
+        setError(result.message || 'Erreur lors de l\'upload');
       }
     } catch (error) {
-      console.error('Upload error:', error);
-      try { URL.revokeObjectURL(objectUrl); } catch { /* ignore */ }
+      console.error('Error uploading video:', error);
       setError('Erreur lors de l\'upload de la vidéo');
     } finally {
       setUploading(false);
@@ -251,18 +183,23 @@ const ProductEdit = (): ReactElement => {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!formData.title || !formData.description) {
-      setError('Veuillez remplir tous les champs obligatoires (Titre, Description)');
-      return;
-    }
-    if (previewVideo && !formData.videoUrl) {
-      setError('La vidéo n’a pas été enregistrée. Attendez la fin de l’upload ou réessayez.');
-      return;
-    }
+  const addVariant = () => {
+    setVariants([...variants, { name: '', type: 'weight', unit: 'gramme', price: '', power: null, capacity: null, resistance: null }]);
+  };
 
-    if (variants.length === 0) {
-      setError('Veuillez ajouter au moins un tarif (Grammage + Prix)');
+  const updateVariant = (index: number, field: keyof ProductVariant, value: unknown) => {
+    const updated = [...variants];
+    (updated[index] as Record<string, unknown>)[field] = value;
+    setVariants(updated);
+  };
+
+  const removeVariant = (index: number) => {
+    setVariants(variants.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async () => {
+    if (!formData.title.trim()) {
+      setError('Le titre est obligatoire');
       return;
     }
 
@@ -271,497 +208,460 @@ const ProductEdit = (): ReactElement => {
     setSuccess('');
 
     try {
-      const url = isEditing ? `/api/products/${id}` : '/api/products';
-      const method = isEditing ? 'PUT' : 'POST';
-
-      const productData = {
+      const payload = {
         ...formData,
-        basePrice: variants[0]?.price || '0',
-        variants: variants
+        variants: variants.map(v => ({
+          ...v,
+          name: v.name.trim(),
+          price: v.price ? parseFloat(v.price) : 0,
+          unit: v.unit || null,
+          power: v.power?.trim() || null,
+          capacity: v.capacity?.trim() || null,
+          resistance: v.resistance?.trim() || null,
+        })),
       };
 
-      const response = await fetchWithCSRF(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(productData),
-        credentials: 'include',
-      });
+      const method = isEditing ? 'PUT' : 'POST';
+      const url = isEditing ? `/api/products/${id}` : '/api/products';
 
-      if (response.ok) {
-        setSuccess(isEditing ? 'Produit modifié avec succès' : 'Produit créé avec succès');
-        setTimeout(() => navigate('/product'), 1500);
+      const result = await fetchWithCSRF(url, { method, body: JSON.stringify(payload) });
+      if (result.ok) {
+        setSuccess('Produit enregistré avec succès');
+        setTimeout(() => navigate(-1), 1500);
       } else {
-        const result = await response.json();
-        setError(result.error || 'Erreur lors de la sauvegarde');
+        const data = await result.json();
+        setError(data.error || 'Erreur lors de la sauvegarde');
       }
     } catch (error) {
-      console.error('Submit error:', error);
+      console.error('Error saving product:', error);
       setError('Erreur lors de la sauvegarde du produit');
     } finally {
       setLoading(false);
     }
   };
 
-  const addVariant = () => {
-    setVariants([
-      ...variants,
-      {
-        name: '',
-        type: 'weight',
-        price: '',
-        unit: null,
-      }
-    ]);
-  };
-
-  const updateVariant = (index: number, field: keyof ProductVariant, value: string | number | boolean | null) => {
-    const updatedVariants = [...variants];
-    updatedVariants[index] = {
-      ...updatedVariants[index],
-      [field]: value
-    } as ProductVariant;
-    setVariants(updatedVariants);
-  };
-
-  const removeVariant = (index: number) => {
-    setVariants(variants.filter((_, i) => i !== index));
-  };
-
   return (
-    <Box>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
-          <IconButton
-            onClick={() => navigate('/product')}
-            sx={{
-              color: 'text.primary',
-            bgcolor: 'background.paper',
-            boxShadow: 1,
-            '&:hover': {
-              bgcolor: 'action.hover',
-            }
-          }}
-        >
-          <IconifyIcon icon="mdi:arrow-left" width={24} height={24} />
-        </IconButton>
-        <Typography variant="h4">
-          {isEditing ? 'Modifier le produit' : 'Nouveau produit'}
-        </Typography>
-        <Box sx={{ width: 40 }} /> {/* Spacer to balance the header */}
-      </Stack>
+    <Box sx={{ pb: 4, maxWidth: 1400, mx: 'auto' }}>
+      {/* En-tête fixe */}
+      <Box sx={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+        bgcolor: 'background.default',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+        py: 2.5,
+        mb: 4,
+        px: { xs: 2, md: 3 }
+      }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={2}>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <IconButton onClick={() => navigate(-1)} size="medium">
+              <IconifyIcon icon="material-symbols:arrow-back" width={24} />
+            </IconButton>
+            <Typography variant="h4" fontWeight={700} sx={{ fontSize: { xs: '1.5rem', md: '2rem' } }}>
+              {isEditing ? 'Modifier le produit' : 'Nouveau produit'}
+            </Typography>
+          </Stack>
+          <Stack direction="row" spacing={2}>
+            <Button variant="outlined" onClick={() => navigate(-1)} size="large">
+              Annuler
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleSubmit}
+              disabled={loading}
+              startIcon={loading ? <IconifyIcon icon="eos-icons:loading" /> : null}
+              size="large"
+            >
+              {loading ? 'Enregistrement...' : 'Enregistrer'}
+            </Button>
+          </Stack>
+        </Stack>
+      </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-          {error}
+        <Alert severity="error" sx={{ mb: 3, mx: { xs: 2, md: 3 } }} onClose={() => setError('')}>
+          <Typography fontWeight={500}>{error}</Typography>
         </Alert>
       )}
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
-          {success}
+        <Alert severity="success" sx={{ mb: 3, mx: { xs: 2, md: 3 } }} onClose={() => setSuccess('')}>
+          <Typography fontWeight={500}>{success}</Typography>
         </Alert>
       )}
 
-      <Paper sx={{ p: { xs: 3, sm: 4 } }}>
+      <Box sx={{ px: { xs: 2, md: 3 } }}>
         <Grid container spacing={3}>
-          {/* Médias (Image & Vidéo) côte à côte */}
-          <Grid item xs={12}>
-            <Typography variant="subtitle2" color="text.secondary" mb={1}>
-              Médias (Image & Vidéo)
-            </Typography>
-            <Stack direction="row" spacing={2}>
-              {/* IMAGE */}
-              <Box
-                sx={{
-                  width: 150,
-                  height: 150,
-                  border: '1px dashed',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  overflow: 'hidden',
-                  position: 'relative',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  bgcolor: 'background.default',
-                  '&:hover': { borderColor: 'primary.main', bgcolor: 'action.hover' }
-                }}
-                onClick={() => document.getElementById('image-upload')?.click()}
-              >
-                <input
-                  id="image-upload"
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                />
-                {previewImage ? (
-                  <>
-                    <img
-                      src={previewImage}
-                      alt="Preview"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setFormData({ ...formData, image: '' });
-                        setPreviewImage('');
-                      }}
-                      sx={{
-                        position: 'absolute',
-                        top: 4,
-                        right: 4,
-                        bgcolor: 'rgba(255,255,255,0.8)',
-                        '&:hover': { bgcolor: 'error.main', color: 'white' },
-                        zIndex: 2
-                      }}
-                    >
-                      <IconifyIcon icon="material-symbols:close" width={16} />
-                    </IconButton>
-                  </>
-                ) : (
-                  <Stack alignItems="center" spacing={1} sx={{ color: 'text.secondary' }}>
-                    <IconifyIcon icon={uploading ? "eos-icons:loading" : "material-symbols:add-photo-alternate"} width={32} />
-                    <Typography variant="caption">Image</Typography>
-                  </Stack>
-                )}
-              </Box>
+          {/* COLONNE GAUCHE - Informations principales */}
+          <Grid item xs={12} lg={8}>
+            <Stack spacing={3}>
+              {/* Section: Informations de base */}
+              <Paper sx={{ p: 3 }}>
+                <Typography variant="h6" fontWeight={700} sx={{ mb: 3, fontSize: '1.25rem' }}>
+                  📝 Informations de base
+                </Typography>
+                <Stack spacing={3}>
+                  <TextField
+                    label="Titre du produit"
+                    fullWidth
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    variant="outlined"
+                    sx={{ '& .MuiInputBase-input': { fontSize: '1.1rem' } }}
+                  />
 
-              {/* VIDEO */}
-              <Box
-                sx={{
-                  width: 150,
-                  height: 150,
-                  border: '1px dashed',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  overflow: 'hidden',
-                  position: 'relative',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  bgcolor: 'background.default',
-                  '&:hover': { borderColor: 'primary.main', bgcolor: 'action.hover' }
-                }}
-                onClick={() => document.getElementById('video-upload')?.click()}
-              >
-                <input
-                  id="video-upload"
-                  type="file"
-                  hidden
-                  accept="video/*"
-                  onChange={handleVideoUpload}
-                />
-                {previewVideo ? (
-                  <>
-                    <video
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      muted
-                      playsInline
-                      controls
-                      preload="auto"
-                      onError={(e) => {
-                        const videoElement = e.target as HTMLVideoElement;
-                        const error = videoElement.error;
-                        let errorMsg = 'Erreur inconnue';
-                        let errorCode = 'N/A';
-                        
-                        if (error) {
-                          errorCode = error.code.toString();
-                          if (error.code === 1) errorMsg = 'Lecture annulée (MEDIA_ERR_ABORTED)';
-                          else if (error.code === 2) errorMsg = 'Problème réseau (MEDIA_ERR_NETWORK)';
-                          else if (error.code === 3) errorMsg = 'Erreur décodage (MEDIA_ERR_DECODE)';
-                          else if (error.code === 4) errorMsg = 'Format non supporté (MEDIA_ERR_SRC_NOT_SUPPORTED)';
-                          
-                          console.error('Video playback error:', {
-                            code: error.code,
-                            message: error.message,
-                            src: videoElement.src,
-                            currentSrc: videoElement.currentSrc,
-                            networkState: videoElement.networkState,
-                            readyState: videoElement.readyState
-                          });
-                        }
-                        
-                        // Afficher une alerte visible à l'utilisateur
-                        alert(`Impossible de lire la vidéo : ${errorMsg} (Code: ${errorCode})\n\nURL: ${videoElement.src}\n\nEssayez de l'ouvrir dans un nouvel onglet pour tester.`);
-                      }}
-                    >
-                      <source 
-                        src={previewVideo} 
-                        type={getVideoMimeType(previewVideo)}
+                  <RichTextBlock
+                    label="Description"
+                    value={formData.description}
+                    onChange={(v) => setFormData({ ...formData, description: v })}
+                    minRows={5}
+                    placeholder="**gras**, [c=#dc2626]couleur[/c], retours à la ligne..."
+                  />
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        label="Prix de base (€)"
+                        fullWidth
+                        value={formData.basePrice}
+                        onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
+                        placeholder="20"
+                        helperText="Prix si pas de variantes"
+                        sx={{ '& .MuiInputBase-input': { fontSize: '1.1rem' } }}
                       />
-                      Votre navigateur ne supporte pas la lecture de vidéos.
-                    </video>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setFormData({ ...formData, videoUrl: '' });
-                        setPreviewVideo('');
-                      }}
-                      sx={{
-                        position: 'absolute',
-                        top: 4,
-                        right: 4,
-                        bgcolor: 'rgba(255,255,255,0.8)',
-                        '&:hover': { bgcolor: 'error.main', color: 'white' },
-                        zIndex: 2
-                      }}
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        label="Tag / Badge"
+                        fullWidth
+                        value={formData.tag}
+                        onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                        placeholder="Nouveau, Promo..."
+                        sx={{ '& .MuiInputBase-input': { fontSize: '1.1rem' } }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Stack>
+              </Paper>
+
+              {/* Section: Catégorie */}
+              <Paper sx={{ p: 3 }}>
+                <Typography variant="h6" fontWeight={700} sx={{ mb: 3, fontSize: '1.25rem' }}>
+                  🏷️ Catégorie
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      select
+                      label="Catégorie principale"
+                      fullWidth
+                      value={selectedParent?.id ?? ''}
+                      onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                      sx={{ '& .MuiInputBase-input': { fontSize: '1rem' } }}
                     >
-                      <IconifyIcon icon="material-symbols:close" width={16} />
-                    </IconButton>
-                  </>
+                      <MenuItem value="">Aucune</MenuItem>
+                      {parentCategories.map((cat) => (
+                        <MenuItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  {subcategories.length > 0 && (
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        select
+                        label="Sous-catégorie"
+                        fullWidth
+                        value={selectedSubcategoryId || selectedParent?.id || ''}
+                        onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                        sx={{ '& .MuiInputBase-input': { fontSize: '1rem' } }}
+                      >
+                        <MenuItem value={selectedParent?.id ?? ''}>
+                          {selectedParent?.name ?? '— Catégorie principale'}
+                        </MenuItem>
+                        {subcategories.map((sub) => (
+                          <MenuItem key={sub.id} value={sub.id}>
+                            {sub.name}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </Grid>
+                  )}
+                </Grid>
+              </Paper>
+
+              {/* Section: Variantes/Tarifs */}
+              <Paper sx={{ p: 3 }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+                  <Typography variant="h6" fontWeight={700} sx={{ fontSize: '1.25rem' }}>
+                    💰 Tarifs et variantes ({variants.length})
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={addVariant}
+                    startIcon={<IconifyIcon icon="material-symbols:add" />}
+                  >
+                    Ajouter
+                  </Button>
+                </Stack>
+
+                {variants.length === 0 ? (
+                  <Box sx={{ py: 4, textAlign: 'center', color: 'text.secondary' }}>
+                    <Typography>Aucune variante. Le prix de base sera utilisé.</Typography>
+                  </Box>
                 ) : (
-                  <Stack alignItems="center" spacing={1} sx={{ color: 'text.secondary' }}>
-                    <IconifyIcon icon={uploading ? "eos-icons:loading" : "material-symbols:video-library"} width={32} />
-                    <Typography variant="caption">Vidéo</Typography>
+                  <Stack spacing={2}>
+                    {variants.map((variant, index) => (
+                      <Box key={index} sx={{ 
+                        p: 2, 
+                        border: '1px solid', 
+                        borderColor: 'divider', 
+                        borderRadius: 2,
+                        bgcolor: 'background.default'
+                      }}>
+                        <Grid container spacing={2} alignItems="center">
+                          <Grid item xs={12} sm={3}>
+                            <TextField
+                              label="Valeur"
+                              size="small"
+                              fullWidth
+                              value={variant.name}
+                              onChange={(e) => updateVariant(index, 'name', e.target.value)}
+                              placeholder="5, 2.5, 2ml"
+                            />
+                          </Grid>
+                          <Grid item xs={6} sm={2}>
+                            <TextField
+                              select
+                              label="Unité"
+                              size="small"
+                              fullWidth
+                              value={variant.unit || ''}
+                              onChange={(e) => updateVariant(index, 'unit', e.target.value || null)}
+                              SelectProps={{ native: true }}
+                            >
+                              <option value="">—</option>
+                              <option value="gramme">g</option>
+                              <option value="ml">ml</option>
+                            </TextField>
+                          </Grid>
+                          <Grid item xs={6} sm={2}>
+                            <TextField
+                              label="Prix €"
+                              size="small"
+                              fullWidth
+                              value={variant.price}
+                              type="number"
+                              inputProps={{ inputMode: 'decimal', step: '0.01' }}
+                              onChange={(e) => updateVariant(index, 'price', e.target.value)}
+                              placeholder="10.00"
+                            />
+                          </Grid>
+                          <Grid item xs={4} sm={1.5}>
+                            <TextField
+                              label="Puissance"
+                              size="small"
+                              fullWidth
+                              value={variant.power || ''}
+                              onChange={(e) => updateVariant(index, 'power', e.target.value || null)}
+                              placeholder="40W"
+                            />
+                          </Grid>
+                          <Grid item xs={4} sm={1.5}>
+                            <TextField
+                              label="Capacité"
+                              size="small"
+                              fullWidth
+                              value={variant.capacity || ''}
+                              onChange={(e) => updateVariant(index, 'capacity', e.target.value || null)}
+                              placeholder="2ml"
+                            />
+                          </Grid>
+                          <Grid item xs={4} sm={1.5}>
+                            <TextField
+                              label="Résistance"
+                              size="small"
+                              fullWidth
+                              value={variant.resistance || ''}
+                              onChange={(e) => updateVariant(index, 'resistance', e.target.value || null)}
+                              placeholder="0.2Ω"
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm="auto" sx={{ textAlign: 'center' }}>
+                            <IconButton
+                              onClick={() => removeVariant(index)}
+                              color="error"
+                              size="small"
+                            >
+                              <IconifyIcon icon="material-symbols:delete" />
+                            </IconButton>
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    ))}
                   </Stack>
                 )}
-              </Box>
-              {uploading && uploadProgress > 0 && (
-                <Box sx={{ mt: 0.5 }}>
-                  <LinearProgress variant="determinate" value={uploadProgress} color="primary" sx={{ height: 6, borderRadius: 1 }} />
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>{uploadProgress}%</Typography>
-                </Box>
-              )}
+              </Paper>
             </Stack>
           </Grid>
 
-          {/* Champs principaux - 2 par ligne */}
-          <Grid item xs={12}>
-            <TextField
-              label="Titre"
-              fullWidth
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <RichTextBlock
-              label="Description"
-              value={formData.description}
-              onChange={(v) => setFormData({ ...formData, description: v })}
-              minRows={4}
-              placeholder="**gras**, [c=#dc2626]couleur[/c], retours à la ligne..."
-            />
-          </Grid>
-
-          <Grid item xs={6}>
-            <TextField
-              label="FARM / (70u, 120u...)"
-              fullWidth
-              value={formData.tag}
-              onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
-              placeholder="ex: FARM / 120u"
-            />
-          </Grid>
-
-          {/* Catégorie et Sous-catégorie regroupés proprement */}
-          <Grid item xs={12}>
-            <Box
-              sx={{
-                p: 2,
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 2,
-                bgcolor: 'background.default',
-              }}
-            >
-              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
-                Catégorie du produit
+          {/* COLONNE DROITE - Médias */}
+          <Grid item xs={12} lg={4}>
+            <Paper sx={{ p: 3, position: 'sticky', top: 100 }}>
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 3, fontSize: '1.25rem' }}>
+                📸 Médias
               </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="stretch">
-                <TextField
-                  select
-                  label="Catégorie"
-                  fullWidth
-                  size="small"
-                  value={selectedParent?.id ?? ''}
-                  onChange={(e) => {
-                    const parentId = e.target.value;
-                    setFormData({ ...formData, categoryId: parentId });
-                  }}
-                  sx={{ minWidth: { sm: 200 } }}
-                >
-                  <MenuItem value="">Aucune</MenuItem>
-                  {parentCategories.map((cat) => (
-                    <MenuItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                {subcategories.length > 0 && (
-                  <TextField
-                    select
-                    label="Sous-catégorie"
-                    fullWidth
-                    size="small"
-                    value={selectedSubcategoryId || selectedParent?.id || ''}
-                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                    sx={{ minWidth: { sm: 200 } }}
+              
+              <Stack spacing={3}>
+                {/* Image */}
+                <Box>
+                  <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Image</Typography>
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: 240,
+                      border: '2px dashed',
+                      borderColor: 'divider',
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                      position: 'relative',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      bgcolor: 'background.default',
+                      transition: 'all 0.2s',
+                      '&:hover': { borderColor: 'primary.main', bgcolor: 'action.hover' }
+                    }}
+                    onClick={() => document.getElementById('image-upload')?.click()}
                   >
-                    <MenuItem value={selectedParent?.id ?? ''}>
-                      {selectedParent?.name ?? '— Catégorie principale'}
-                    </MenuItem>
-                    {subcategories.map((sub) => (
-                      <MenuItem key={sub.id} value={sub.id}>
-                        {sub.name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                    <input
+                      id="image-upload"
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                    />
+                    {previewImage ? (
+                      <>
+                        <img
+                          src={previewImage}
+                          alt="Preview"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFormData({ ...formData, image: '' });
+                            setPreviewImage('');
+                          }}
+                          sx={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            bgcolor: 'rgba(255,255,255,0.95)',
+                            '&:hover': { bgcolor: 'error.main', color: 'white' },
+                          }}
+                        >
+                          <IconifyIcon icon="material-symbols:close" width={20} />
+                        </IconButton>
+                      </>
+                    ) : (
+                      <Stack alignItems="center" spacing={1.5} sx={{ color: 'text.secondary' }}>
+                        <IconifyIcon icon={uploading ? "eos-icons:loading" : "material-symbols:add-photo-alternate"} width={48} />
+                        <Typography variant="body2" fontWeight={500}>Cliquer pour ajouter</Typography>
+                      </Stack>
+                    )}
+                  </Box>
+                </Box>
+
+                <Divider />
+
+                {/* Vidéo */}
+                <Box>
+                  <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Vidéo</Typography>
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: 240,
+                      border: '2px dashed',
+                      borderColor: 'divider',
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                      position: 'relative',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      bgcolor: 'background.default',
+                      transition: 'all 0.2s',
+                      '&:hover': { borderColor: 'primary.main', bgcolor: 'action.hover' }
+                    }}
+                    onClick={() => document.getElementById('video-upload')?.click()}
+                  >
+                    <input
+                      id="video-upload"
+                      type="file"
+                      hidden
+                      accept="video/*"
+                      onChange={handleVideoUpload}
+                    />
+                    {previewVideo ? (
+                      <>
+                        <video
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          muted
+                          playsInline
+                          controls
+                          preload="auto"
+                        >
+                          <source src={previewVideo} type={getVideoMimeType(previewVideo)} />
+                          Votre navigateur ne supporte pas la lecture de vidéos.
+                        </video>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFormData({ ...formData, videoUrl: '' });
+                            setPreviewVideo('');
+                          }}
+                          sx={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            bgcolor: 'rgba(255,255,255,0.95)',
+                            '&:hover': { bgcolor: 'error.main', color: 'white' },
+                          }}
+                        >
+                          <IconifyIcon icon="material-symbols:close" width={20} />
+                        </IconButton>
+                      </>
+                    ) : (
+                      <Stack alignItems="center" spacing={1.5} sx={{ color: 'text.secondary' }}>
+                        <IconifyIcon icon={uploading ? "eos-icons:loading" : "material-symbols:video-library"} width={48} />
+                        <Typography variant="body2" fontWeight={500}>Cliquer pour ajouter</Typography>
+                      </Stack>
+                    )}
+                  </Box>
+                </Box>
+
+                {uploading && uploadProgress > 0 && (
+                  <Box>
+                    <LinearProgress variant="determinate" value={uploadProgress} sx={{ height: 8, borderRadius: 1, mb: 1 }} />
+                    <Typography variant="caption" color="text.secondary" textAlign="center" display="block">
+                      Upload en cours... {uploadProgress}%
+                    </Typography>
+                  </Box>
                 )}
               </Stack>
-            </Box>
-          </Grid>
-
-          {/* Gestion des variantes */}
-          <Grid item xs={12}>
-            <Accordion defaultExpanded sx={{ border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
-              <AccordionSummary expandIcon={<IconifyIcon icon="material-symbols:expand-more" />}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                  Tarifs et Variantes ({variants.length})
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={addVariant}
-                  startIcon={<IconifyIcon icon="material-symbols:add" />}
-                  sx={{ mb: 2 }}
-                >
-                  Ajouter un tarif
-                </Button>
-                
-                {variants.map((variant, index) => (
-                  <Box key={index} sx={{ 
-                    p: 1.5, 
-                    mb: 1.5, 
-                    border: '1px solid', 
-                    borderColor: 'divider', 
-                    borderRadius: 1,
-                    bgcolor: 'background.paper'
-                  }}>
-                    <Grid container spacing={2} alignItems="center">
-                      <Grid item xs={12} sm={3}>
-                        <TextField
-                          label="Valeur (gramme/ml)"
-                          size="small"
-                          fullWidth
-                          value={variant.name}
-                          type="text"
-                          onChange={(e) => updateVariant(index, 'name', e.target.value)}
-                          placeholder="ex: 5, 2.5, 2ml"
-                        />
-                      </Grid>
-                      <Grid item xs={6} sm={2}>
-                        <TextField
-                          select
-                          label="Unité"
-                          size="small"
-                          fullWidth
-                          value={variant.unit || ''}
-                          onChange={(e) => updateVariant(index, 'unit', e.target.value || null)}
-                          SelectProps={{ native: true }}
-                        >
-                          <option value="">—</option>
-                          <option value="gramme">Gramme</option>
-                          <option value="ml">ml</option>
-                        </TextField>
-                      </Grid>
-                      <Grid item xs={6} sm={2}>
-                        <TextField
-                          label="Prix €"
-                          size="small"
-                          fullWidth
-                          value={variant.price}
-                          type="number"
-                          inputProps={{ inputMode: 'decimal', step: '0.01' }}
-                          onChange={(e) => {
-                            const v = e.target.value.replace(/,/g, '.').replace(/[^0-9.]/g, '');
-                            updateVariant(index, 'price', v);
-                          }}
-                          placeholder="10.00"
-                        />
-                      </Grid>
-                      <Grid item xs={4} sm={1.5}>
-                        <TextField
-                          label="Puissance"
-                          size="small"
-                          fullWidth
-                          value={variant.power || ''}
-                          onChange={(e) => updateVariant(index, 'power', e.target.value || null)}
-                          placeholder="40W"
-                        />
-                      </Grid>
-                      <Grid item xs={4} sm={1.5}>
-                        <TextField
-                          label="Capacité"
-                          size="small"
-                          fullWidth
-                          value={variant.capacity || ''}
-                          onChange={(e) => updateVariant(index, 'capacity', e.target.value || null)}
-                          placeholder="2ml"
-                        />
-                      </Grid>
-                      <Grid item xs={4} sm={1.5}>
-                        <TextField
-                          label="Résistance"
-                          size="small"
-                          fullWidth
-                          value={variant.resistance || ''}
-                          onChange={(e) => updateVariant(index, 'resistance', e.target.value || null)}
-                          placeholder="0.2Ω"
-                        />
-                      </Grid>
-                      <Grid item xs={2} sm={1} sx={{ textAlign: 'center' }}>
-                        <IconButton
-                          onClick={() => removeVariant(index)}
-                          color="error"
-                          size="small"
-                        >
-                          <IconifyIcon icon="material-symbols:delete" fontSize="small" />
-                        </IconButton>
-                      </Grid>
-                    </Grid>
-                  </Box>
-                ))}
-              </AccordionDetails>
-            </Accordion>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Stack direction="row" spacing={2} justifyContent="flex-end">
-              <Button
-                variant="outlined"
-                onClick={() => navigate('/product')}
-                sx={{ minWidth: 120 }}
-              >
-                Annuler
-              </Button>
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-                disabled={loading || uploading}
-                sx={{
-                  bgcolor: 'primary.main',
-                  color: 'common.black',
-                  minWidth: 120,
-                  '&:hover': {
-                    bgcolor: 'primary.dark',
-                  },
-                }}
-              >
-                {loading ? 'Sauvegarde...' : uploading ? 'Upload vidéo...' : 'Enregistrer'}
-              </Button>
-            </Stack>
+            </Paper>
           </Grid>
         </Grid>
-      </Paper>
+      </Box>
     </Box>
   );
 };

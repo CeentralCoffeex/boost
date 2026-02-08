@@ -15,6 +15,7 @@ interface SidebarNavItem {
 
 const SIDEBAR_MENU_ITEMS: SidebarNavItem[] = [
   { id: 4, path: '/product', title: 'Produits', icon: 'lets-icons:bag-alt-light', active: true },
+  { id: 13, path: '/tendances', title: 'Tendances', icon: 'mdi:trending-up', active: true },
   { id: 12, path: '/panier', title: 'Panier', icon: 'mdi:cart-outline', active: true },
   { id: 7, path: '/categories', title: 'Catégories', icon: 'material-symbols:category', active: true },
   { id: 8, path: '/slider', title: 'Bannières', icon: 'material-symbols:view-carousel', active: true },
