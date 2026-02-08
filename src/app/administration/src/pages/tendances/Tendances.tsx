@@ -19,7 +19,6 @@ const Tendances = (): ReactElement => {
   const [categoriesWithProducts, setCategoriesWithProducts] = useState<Category[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
@@ -278,9 +277,6 @@ const Tendances = (): ReactElement => {
           <Typography variant="body2" color={selectedIds.size > 0 ? 'white' : '#999'} fontWeight={600}>
             {selectedIds.size > 0 ? `✓ ${selectedIds.size} produit(s) sélectionné(s)` : 'Aucun produit sélectionné'}
           </Typography>
-          {saving && (
-            <CircularProgress size={16} sx={{ color: 'white' }} />
-          )}
         </Stack>
       </Box>
     </Box>
