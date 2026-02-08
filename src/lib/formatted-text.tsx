@@ -62,9 +62,14 @@ export function stripFormattedText(text: string): string {
  * Décode les entités HTML
  */
 function decodeHtmlEntities(text: string): string {
-  const textarea = document.createElement('textarea');
-  textarea.innerHTML = text;
-  return textarea.value;
+  if (typeof window === 'undefined') return text;
+  try {
+    const txt = document.createElement('textarea');
+    txt.innerHTML = text;
+    return txt.value;
+  } catch {
+    return text;
+  }
 }
 
 /**

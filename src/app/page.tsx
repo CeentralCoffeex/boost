@@ -11,10 +11,14 @@ import '@/styles/index-mobile.css'
 
 // Décode les entités HTML
 const decodeHtmlEntities = (text: string): string => {
-  if (typeof document === 'undefined') return text;
-  const textarea = document.createElement('textarea');
-  textarea.innerHTML = text;
-  return textarea.value;
+  if (typeof window === 'undefined') return text;
+  try {
+    const txt = document.createElement('textarea');
+    txt.innerHTML = text;
+    return txt.value;
+  } catch {
+    return text;
+  }
 };
 
 // Composant Carte Produit - étiquette sur image, bouton Détails redesigné, like
@@ -313,7 +317,7 @@ export default function HomePage() {
                         )}
                       </div>
                       <h3>{category.name}</h3>
-                      <p>{category.subtitle}</p>
+                      <p dangerouslySetInnerHTML={{ __html: category.subtitle || '' }} />
                     </div>
                   ))}
                 </div>

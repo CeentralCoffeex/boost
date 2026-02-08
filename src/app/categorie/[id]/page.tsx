@@ -5,7 +5,6 @@ import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronDown, ShoppingCart, Cannabis, Check } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import ProductThumbnail from '@/components/product/ProductThumbnail';
-import { stripFormattedText } from '@/lib/formatted-text';
 
 interface Product {
   id: string;
@@ -334,9 +333,9 @@ export default function CategoryPage() {
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden'
-                }}>
-                  {stripFormattedText(product.description || '')}
-                </p>
+                }}
+                dangerouslySetInnerHTML={{ __html: product.description || '' }}
+                />
                 <p style={{
                   fontFamily: "'Orbitron', sans-serif",
                   fontSize: '18px',

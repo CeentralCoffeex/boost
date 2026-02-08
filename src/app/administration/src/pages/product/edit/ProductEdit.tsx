@@ -249,14 +249,11 @@ const ProductEdit = (): ReactElement => {
     <Box sx={{ minHeight: '100vh', width: '100%', m: 0, p: 0, overflowX: 'hidden' }}>
       {/* Header */}
       <Box sx={{ 
-        bgcolor: '#000', 
-        borderBottom: '2px solid #333', 
         py: 2, 
         px: 2, 
         width: '100%', 
         m: 0, 
         boxSizing: 'border-box',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
         position: 'sticky',
         top: 0,
         zIndex: 100
@@ -278,7 +275,7 @@ const ProductEdit = (): ReactElement => {
                 color: 'white', 
                 borderColor: '#444', 
                 fontSize: '0.875rem',
-                px: 2,
+                px: 2.5,
                 py: 1,
                 minWidth: '90px',
                 '&:hover': { borderColor: '#666', bgcolor: 'rgba(255,255,255,0.05)' }
@@ -294,7 +291,7 @@ const ProductEdit = (): ReactElement => {
                 bgcolor: 'white', 
                 color: 'black', 
                 fontSize: '0.875rem',
-                px: 2,
+                px: 2.5,
                 py: 1,
                 minWidth: '110px',
                 fontWeight: 600,
@@ -307,14 +304,14 @@ const ProductEdit = (): ReactElement => {
         </Stack>
       </Box>
 
-      {error && <Alert severity="error" sx={{ m: 0, borderRadius: 0 }} onClose={() => setError('')}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ m: 0, borderRadius: 0 }} onClose={() => setSuccess('')}>{success}</Alert>}
+      {/* Espace de séparation */}
+      <Box sx={{ height: '60px' }} />
 
-      {/* ESPACE DE SÉPARATION */}
-      <Box sx={{ height: '20px', bgcolor: '#000' }} />
+      {error && <Alert severity="error" sx={{ m: 0, mx: 2, mb: 2, borderRadius: 1 }} onClose={() => setError('')}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ m: 0, mx: 2, mb: 2, borderRadius: 1 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
       {/* CONTENU */}
-      <Box sx={{ width: '100%', boxSizing: 'border-box', overflowX: 'hidden', p: 0, m: 0, minHeight: 'calc(100vh - 100px)', bgcolor: '#0a0a0a', pt: 3 }}>
+      <Box sx={{ width: '100%', boxSizing: 'border-box', overflowX: 'hidden', p: 0, m: 0, minHeight: 'calc(100vh - 140px)', pb: 4 }}>
         <Grid container spacing={2} sx={{ width: '100%', m: 0, p: 0, px: 2 }}>
           {/* MÉDIAS */}
           <Grid item xs={12} sx={{ pl: '0 !important', pr: '0 !important' }}>
@@ -403,7 +400,7 @@ const ProductEdit = (): ReactElement => {
                 placeholder="Titre du produit"
                 sx={{ 
                   flex: 2,
-                  '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, 
+                  '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '16px' }, 
                   '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
                   '& input::placeholder': { color: '#555', opacity: 1 }
                 }} 
@@ -415,7 +412,7 @@ const ProductEdit = (): ReactElement => {
                 placeholder="Farmz"
                 sx={{ 
                   flex: 1,
-                  '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, 
+                  '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '16px' }, 
                   '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
                   '& input::placeholder': { color: '#555', opacity: 1 }
                 }} 
@@ -434,7 +431,7 @@ const ProductEdit = (): ReactElement => {
                 placeholder="Catégorie"
                 SelectProps={{ displayEmpty: true }}
                 sx={{ 
-                  '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white' }, 
+                  '& .MuiInputBase-root': { bgcolor: '#0a0a0a', color: 'white', fontSize: '16px' }, 
                   '& .MuiOutlinedInput-notchedOutline': { borderColor: '#222' },
                   '& .MuiSelect-select': { color: selectedParent?.id ? 'white' : '#555' }
                 }}

@@ -13,10 +13,11 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  IconButton,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import IconifyIcon from '../../components/base/IconifyIcon';
-import { fetchWithCSRF } from '../../utils/csrf';
+import { fetchWithCSRF, uploadWithProgress } from '../../utils/csrf';
 
 type ThemeId = 'blanc' | 'blue-white' | 'noir' | 'orange' | 'violet' | 'rouge' | 'jaune';
 
@@ -47,6 +48,7 @@ const Settings = (): ReactElement => {
     theme: 'blanc',
   });
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -72,6 +74,26 @@ const Settings = (): ReactElement => {
       });
     } catch {
       setError('Erreur lors du chargement des paramètres');
+    }
+  };
+
+  const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const response = await uploadWithProgress('/api/upload', file);
+      const data = await response.json();
+      if (data.success && data.url) {
+        setFormData({ ...formData, heroImage: data.url });
+      } else {
+        setError(data.message || 'Erreur lors de l\'upload');
+      }
+    } catch (error) {
+      setError('Erreur lors de l\'upload');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -180,6 +202,31 @@ const Settings = (): ReactElement => {
                 />
               )}
 
+              {/* Bouton photo en haut à droite */}
+              <input 
+                id="hero-image-upload" 
+                type="file" 
+                hidden 
+                accept="image/*" 
+                onChange={handleHeroImageUpload} 
+              />
+              <IconButton
+                onClick={() => document.getElementById('hero-image-upload')?.click()}
+                disabled={uploading}
+                sx={{
+                  position: 'absolute',
+                  top: 16,
+                  right: 16,
+                  bgcolor: 'rgba(0,0,0,0.7)',
+                  color: 'white',
+                  backdropFilter: 'blur(8px)',
+                  '&:hover': { bgcolor: 'rgba(0,0,0,0.85)' },
+                  zIndex: 10
+                }}
+              >
+                <IconifyIcon icon="material-symbols:add-photo-alternate" width={24} />
+              </IconButton>
+
               {/* Contenu éditable */}
               <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, p: 2 }}>
                 <Box
@@ -269,23 +316,6 @@ const Settings = (): ReactElement => {
                 >
                   {formData.heroTitle}
                 </Box>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={formData.heroImage}
-                  onChange={(e) => setFormData({ ...formData, heroImage: e.target.value })}
-                  placeholder="URL de l'image (/hero.png)"
-                  sx={{
-                    '& .MuiInputBase-root': { 
-                      bgcolor: 'rgba(0,0,0,0.7)', 
-                      color: 'white',
-                      fontSize: '0.8rem',
-                      backdropFilter: 'blur(8px)'
-                    },
-                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' },
-                    '& input::placeholder': { color: 'rgba(255,255,255,0.5)', opacity: 1 }
-                  }}
-                />
               </Box>
             </Box>
           </Grid>
