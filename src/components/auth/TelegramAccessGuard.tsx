@@ -22,12 +22,24 @@ export default function TelegramAccessGuard({
       setIsViaTelegram(true);
       return;
     }
-    try {
-      const initData = getInitData();
-      setIsViaTelegram(!!initData);
-    } catch {
-      setIsViaTelegram(false);
-    }
+    const check = () => {
+      try {
+        const initData = getInitData();
+        if (initData) {
+          setIsViaTelegram(true);
+          return;
+        }
+        // Un seul délai si script Telegram pas encore chargé
+        const t = setTimeout(() => {
+          setIsViaTelegram(!!getInitData());
+        }, 300);
+        return () => clearTimeout(t);
+      } catch {
+        setIsViaTelegram(false);
+      }
+    };
+    const done = check();
+    return typeof done === 'function' ? done : undefined;
   }, []);
 
   useEffect(() => {

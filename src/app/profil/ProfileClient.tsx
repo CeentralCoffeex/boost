@@ -2,19 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { ChevronLeft, Share2, Send, Shield } from 'lucide-react';
-import { getInitData } from '@/lib/telegram-client';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-
-interface TelegramInfo {
-  linked: boolean;
-  telegramId: string | null;
-  telegramUsername: string | null;
-  telegramFirstName?: string | null;
-  telegramPhoto?: string | null;
-  linkedAt?: string | null;
-  isAdmin?: boolean;
-}
+import { useTelegramProfile, type TelegramInfo } from '@/contexts/TelegramProfileContext';
 
 interface ProfileClientProps {
   initialTelegramInfo: TelegramInfo | null;
@@ -114,7 +104,10 @@ function renderBlockContent(content: string) {
 
 export default function ProfileClient({ initialTelegramInfo }: ProfileClientProps) {
   const router = useRouter();
-  const [telegramInfo, setTelegramInfo] = useState<TelegramInfo | null>(initialTelegramInfo);
+  const { telegramInfo: contextInfo, loading: contextLoading } = useTelegramProfile();
+  // Données préchargées à l'ouverture de l'app (contexte) ou serveur (session)
+  const telegramInfo = contextInfo ?? initialTelegramInfo;
+  const profileLoading = contextLoading && !initialTelegramInfo;
   const [photoKey, setPhotoKey] = useState(0);
   const [profileBlocks, setProfileBlocks] = useState<{
     block1: { title: string | null; content: string | null };
@@ -128,32 +121,10 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
       .catch(() => {});
   }, []);
 
-  // Doc Telegram : initData disponible dès le chargement (script beforeInteractive)
-  const [profileLoading, setProfileLoading] = useState(!initialTelegramInfo);
+  // Rafraîchir photo si le contexte met à jour
   useEffect(() => {
-    let cancelled = false;
-    const initData = getInitData();
-    if (!initData) {
-      setProfileLoading(false);
-      return;
-    }
-    fetch('/api/telegram/me', {
-      headers: { Authorization: `tma ${initData}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (cancelled) return;
-        if (data?.success && data?.telegramInfo) {
-          setTelegramInfo((prev) =>
-            prev ? { ...prev, ...data.telegramInfo } : data.telegramInfo
-          );
-          if (data.telegramInfo?.telegramPhoto) setPhotoKey((k) => k + 1);
-        }
-        setProfileLoading(false);
-      })
-      .catch(() => setProfileLoading(false));
-    return () => { cancelled = true; };
-  }, []);
+    if (contextInfo?.telegramPhoto) setPhotoKey((k) => k + 1);
+  }, [contextInfo?.telegramPhoto]);
 
   const handleBack = () => {
     router.back();

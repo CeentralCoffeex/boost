@@ -10,6 +10,7 @@ import "../styles/theme.css";
 import AuthSessionProvider from '../components/auth/SessionProvider';
 import ClientLayout from '../components/layout/ClientLayout';
 import TelegramAccessGuard from '../components/auth/TelegramAccessGuard';
+import { TelegramProfileProvider } from '../contexts/TelegramProfileContext';
 import ErrorBoundary from '../components/ErrorBoundary';
 
 
@@ -80,9 +81,11 @@ export default async function RootLayout({
         <AuthSessionProvider>
           <ErrorBoundary>
             <TelegramAccessGuard>
-              <ClientLayout modal={modal ?? null}>
-                {children}
-              </ClientLayout>
+              <TelegramProfileProvider>
+                <ClientLayout modal={modal ?? null}>
+                  {children}
+                </ClientLayout>
+              </TelegramProfileProvider>
             </TelegramAccessGuard>
           </ErrorBoundary>
         </AuthSessionProvider>
