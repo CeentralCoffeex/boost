@@ -28,14 +28,12 @@ const Tendances = (): ReactElement => {
 
   const fetchData = async () => {
     try {
-      const [productsRes, settingsRes, categoriesRes] = await Promise.all([
-        fetch('/api/products?all=1', { credentials: 'include' }),
-        fetch('/api/settings', { credentials: 'include' }),
+      const [productsRes, categoriesRes] = await Promise.all([
+        fetch('/api/products', { credentials: 'include' }),
         fetch('/api/categories?all=1', { credentials: 'include' })
       ]);
 
       const products: Product[] = await productsRes.json();
-      const settings = await settingsRes.json();
       const categories = await categoriesRes.json();
 
       const categoryMap = new Map<string, Category>();
@@ -62,9 +60,13 @@ const Tendances = (): ReactElement => {
 
       setCategoriesWithProducts(categoriesArray);
 
-      if (settings?.featuredTrendingIds) {
-        setSelectedIds(new Set(settings.featuredTrendingIds));
-      }
+      // Charger les sélections depuis localStorage
+      try {
+        const saved = localStorage.getItem('admin_featured_trending');
+        if (saved) {
+          setSelectedIds(new Set(JSON.parse(saved)));
+        }
+      } catch {}
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -81,25 +83,13 @@ const Tendances = (): ReactElement => {
     }
     setSelectedIds(newSelected);
 
-    setSaving(true);
+    // Sauvegarder dans localStorage
     try {
-      const response = await fetch('/api/settings', {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          featuredTrendingIds: Array.from(newSelected)
-        })
-      });
-
-      if (response.ok) {
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 1500);
-      }
+      localStorage.setItem('admin_featured_trending', JSON.stringify(Array.from(newSelected)));
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 1500);
     } catch (error) {
       console.error('Error saving:', error);
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -119,7 +109,7 @@ const Tendances = (): ReactElement => {
             Gérer les tendances
           </Typography>
           <Typography variant="body2" color="#999" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
-            Sélectionnez les produits à afficher dans "Tendances"
+            Sélectionnez les produits à afficher en priorité dans "Tendances" (en vert = sélectionné)
           </Typography>
         </Box>
       </Stack>

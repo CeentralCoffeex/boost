@@ -177,19 +177,61 @@ export default function HomePage() {
 
   useEffect(() => {
     let cancelled = false;
+    
+    // Charger depuis le cache d'abord
+    const loadFromCache = () => {
+      try {
+        const cachedProducts = sessionStorage.getItem('home_products');
+        const cachedCategories = sessionStorage.getItem('home_categories');
+        const cachedTime = sessionStorage.getItem('home_cache_time');
+        
+        // Cache valide pendant 5 minutes
+        const isCacheValid = cachedTime && (Date.now() - parseInt(cachedTime)) < 5 * 60 * 1000;
+        
+        if (isCacheValid) {
+          if (cachedProducts) setProducts(JSON.parse(cachedProducts));
+          if (cachedCategories) setCategories(JSON.parse(cachedCategories));
+          return true;
+        }
+      } catch {}
+      return false;
+    };
+    
+    const hasCache = loadFromCache();
+    
+    // Charger depuis l'API (toujours, mais en arrière-plan si cache valide)
     Promise.all([
-      fetch('/api/products').then(res => res.json()).then(data => {
-        if (!cancelled && Array.isArray(data)) setProducts(data);
+      fetch('/api/products', { 
+        cache: 'force-cache',
+        next: { revalidate: 30 }
+      } as any).then(res => res.json()).then(data => {
+        if (!cancelled && Array.isArray(data)) {
+          setProducts(data);
+          try {
+            sessionStorage.setItem('home_products', JSON.stringify(data));
+            sessionStorage.setItem('home_cache_time', Date.now().toString());
+          } catch {}
+        }
       }).catch(() => {}),
-      fetch('/api/categories').then(res => res.json()).then(data => {
-        if (!cancelled && Array.isArray(data)) setCategories(data);
+      fetch('/api/categories', {
+        cache: 'force-cache',
+        next: { revalidate: 60 }
+      } as any).then(res => res.json()).then(data => {
+        if (!cancelled && Array.isArray(data)) {
+          setCategories(data);
+          try {
+            sessionStorage.setItem('home_categories', JSON.stringify(data));
+          } catch {}
+        }
       }).catch(() => {}),
     ]);
     return () => { cancelled = true; };
   }, []);
 
   const handleProjectCardClick = (url: string) => {
-    router.push(url)
+    // Précharger la page avant la navigation
+    router.prefetch(url);
+    router.push(url);
   }
 
   const getRecentProducts = (limit: number = 6) => {
@@ -206,10 +248,29 @@ export default function HomePage() {
 
   const getTrendingProducts = (limit: number = 6) => {
     const list = Array.isArray(products) ? products : [];
+    
+    // Charger les IDs sélectionnés depuis localStorage
+    let featuredIds: string[] = [];
+    try {
+      const saved = localStorage.getItem('admin_featured_trending');
+      if (saved) {
+        featuredIds = JSON.parse(saved);
+      }
+    } catch {}
+    
+    // Si des produits sont sélectionnés, les afficher en priorité
+    if (featuredIds.length > 0) {
+      const byId = new Map(list.map(p => [p.id, p]));
+      return featuredIds
+        .map(id => byId.get(id))
+        .filter(Boolean)
+        .slice(0, limit);
+    }
+    
+    // Sinon, afficher tous les produits de la section DECOUVRIR triés par prix
     return list
       .filter(p => p.section === 'DECOUVRIR')
       .sort((a, b) => {
-        // Trier par prix (du moins cher au plus cher)
         const priceA = parseFloat(String(a.basePrice || a.price || 0).replace(',', '.')) || 0;
         const priceB = parseFloat(String(b.basePrice || b.price || 0).replace(',', '.')) || 0;
         return priceA - priceB;
@@ -277,7 +338,7 @@ export default function HomePage() {
                     >
                       <div className={`project-icon ${category.icon ? 'project-icon--image' : ''}`}>
                         {category.icon ? (
-                          <img src={category.icon} alt={category.name} className="project-card-category-img" />
+                          <img src={category.icon} alt={category.name} className="project-card-category-img" loading="lazy" />
                         ) : (
                           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>

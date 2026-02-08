@@ -7,6 +7,20 @@ const nextConfig = {
   // Ajout pour résoudre les problèmes de détection de racine dans les monorepos ou structures complexes
   outputFileTracingRoot: __dirname,
 
+  // Optimisations de performance
+  compress: true,
+  poweredByHeader: false,
+  generateEtags: true,
+  swcMinify: true,
+  productionBrowserSourceMaps: false,
+  
+  // Optimisation du build
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+  
   // Augmentation des limites pour les actions serveur et le proxy (uploads vidéo)
   experimental: {
     serverActions: {
@@ -14,6 +28,8 @@ const nextConfig = {
     },
     // Limite du corps des requêtes quand le proxy est utilisé (ex: /api/upload)
     proxyClientMaxBodySize: '500mb',
+    optimizeCss: true,
+    optimizePackageImports: ['lucide-react', '@mui/material'],
   },
 
   typescript: {
@@ -112,7 +128,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self' http: https: data: blob:; script-src 'self' 'unsafe-inline' http: https: data:; style-src 'self' 'unsafe-inline' http: https: data: https://fonts.googleapis.com; img-src 'self' http: https: data: blob:; font-src 'self' http: https: data: https://fonts.gstatic.com; connect-src 'self' http: https: wss: ws:; media-src 'self' http: https: data: blob:; worker-src 'self' blob:; frame-src 'self' http: https: data:; frame-ancestors 'self';"
+            value: "default-src 'self' http: https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: data: https://telegram.org; style-src 'self' 'unsafe-inline' http: https: data: https://fonts.googleapis.com; img-src 'self' http: https: data: blob:; font-src 'self' http: https: data: https://fonts.gstatic.com; connect-src 'self' http: https: wss: ws: https://api.telegram.org; media-src 'self' http: https: data: blob:; worker-src 'self' blob:; frame-src 'self' http: https: data: https://oauth.telegram.org; form-action 'self' http: https:; frame-ancestors 'none';"
           },
         ],
       },
@@ -132,16 +148,30 @@ const nextConfig = {
             value: '1; mode=block',
           },
           {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
-          },
-          {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
           },
           {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+      {
+        source: '/:path*.(jpg|jpeg|png|gif|webp|svg|mp4|webm)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=60, stale-while-revalidate=120',
           },
         ],
       },

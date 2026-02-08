@@ -48,9 +48,22 @@ export default function CategoryPage() {
       setCategory(null);
       return;
     }
+    // Charger depuis le cache d'abord
+    try {
+      const cached = sessionStorage.getItem(`category_${id}`);
+      if (cached) {
+        const data = JSON.parse(cached);
+        setCategory(data);
+        setLoading(false);
+      }
+    } catch {}
+    
     const generation = ++fetchRef.current;
     setLoading(true);
-    fetch(`/api/categories/${encodeURIComponent(id)}`, { cache: 'no-store' })
+    fetch(`/api/categories/${encodeURIComponent(id)}`, {
+      cache: 'force-cache',
+      next: { revalidate: 60 }
+    } as any)
       .then(res => res.json())
       .then(data => {
         if (generation !== fetchRef.current) return;
@@ -59,6 +72,9 @@ export default function CategoryPage() {
         } else {
           setCategory(data);
           setSelectedSubcategoryId(null);
+          try {
+            sessionStorage.setItem(`category_${id}`, JSON.stringify(data));
+          } catch {}
         }
         setLoading(false);
       })
@@ -334,22 +350,13 @@ export default function CategoryPage() {
                   fontFamily: "'Montserrat', sans-serif",
                   fontSize: '14px',
                   color: '#666',
-                  margin: '0 0 4px 0',
+                  margin: '0',
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden'
                 }}>
                   {product.description}
-                </p>
-                <p style={{
-                  fontFamily: "'Orbitron', sans-serif",
-                  fontSize: '18px',
-                  fontWeight: '700',
-                  color: '#1a1a1a',
-                  margin: 0
-                }}>
-                  {product.basePrice}€
                 </p>
               </div>
 

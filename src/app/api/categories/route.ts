@@ -71,7 +71,9 @@ export async function GET(request: NextRequest) {
       include: wantAll ? { subcategories: { orderBy: { order: 'asc' } } } : undefined,
     });
 
-    return NextResponse.json(categories);
+    const response = NextResponse.json(categories);
+    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+    return response;
   } catch (error) {
     console.error('Error fetching categories:', error);
     return NextResponse.json(

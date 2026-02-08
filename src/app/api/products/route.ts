@@ -7,11 +7,36 @@ export async function GET() {
   try {
     const products = await (prisma.product as any).findMany({
       orderBy: { createdAt: 'desc' },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        price: true,
+        basePrice: true,
+        image: true,
+        videoUrl: true,
+        tag: true,
+        section: true,
+        createdAt: true,
+        updatedAt: true,
+        categoryId: true,
+        likesCount: true,
         category: {
-          include: { parent: { select: { id: true, name: true } } }
+          select: {
+            id: true,
+            name: true,
+            parent: { 
+              select: { id: true, name: true } 
+            }
+          }
         },
         variants: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            price: true,
+          },
           orderBy: [
             { type: 'asc' },
             { name: 'asc' }
@@ -20,7 +45,9 @@ export async function GET() {
       }
     });
 
-    return NextResponse.json(products);
+    const response = NextResponse.json(products);
+    response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
+    return response;
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json(

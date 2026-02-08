@@ -21,18 +21,18 @@ function getCSP(nonce: string | null): string {
     : `'self' http: https: data: https://fonts.googleapis.com`;
   const base = `
     default-src 'self' http: https: data: blob:;
-    script-src ${scriptSrc};
+    script-src ${scriptSrc} https://telegram.org 'unsafe-eval';
     style-src ${styleSrc};
     img-src 'self' data: http: https: blob:;
     font-src 'self' http: https: data: https://fonts.gstatic.com;
-    connect-src 'self' http: https: wss: ws:;
+    connect-src 'self' http: https: wss: ws: https://api.telegram.org;
     media-src 'self' http: https: data: blob:;
     worker-src 'self' blob:;
     object-src 'none';
     base-uri 'self';
-    form-action 'self';
-    frame-src 'self' http: https: data:;
-    frame-ancestors 'self';
+    form-action 'self' http: https:;
+    frame-src 'self' http: https: data: https://oauth.telegram.org https://web.telegram.org;
+    frame-ancestors *;
   `.replace(/\s{2,}/g, ' ').trim();
   if (process.env.NODE_ENV !== 'production') {
     return base.replace(
@@ -52,7 +52,8 @@ function applySecurityHeaders(
   const { pathname } = new URL(request.url);
   response.headers.set('X-DNS-Prefetch-Control', 'on');
   response.headers.set('X-XSS-Protection', '1; mode=block');
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  // Autoriser Telegram à charger la mini app dans un iframe
+  response.headers.delete('X-Frame-Options');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');

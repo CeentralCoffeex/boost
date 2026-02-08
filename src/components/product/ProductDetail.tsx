@@ -80,20 +80,28 @@ export default function ProductDetail() {
     if (params.id) {
       const cachedProduct = sessionStorage.getItem(`product_${params.id}`);
       if (cachedProduct) {
-        const data = JSON.parse(cachedProduct);
-        setProduct({ ...data, price: data.price || data.basePrice });
-        if (data.variants && data.variants.length > 0) {
-          const sorted = [...data.variants].sort((a, b) => (parseFloat(String(a.price).replace(',', '.')) || 0) - (parseFloat(String(b.price).replace(',', '.')) || 0));
-          setSelectedVariant(sorted[0]);
-        }
+        try {
+          const data = JSON.parse(cachedProduct);
+          setProduct({ ...data, price: data.price || data.basePrice });
+          if (data.variants && data.variants.length > 0) {
+            const sorted = [...data.variants].sort((a, b) => (parseFloat(String(a.price).replace(',', '.')) || 0) - (parseFloat(String(b.price).replace(',', '.')) || 0));
+            setSelectedVariant(sorted[0]);
+          }
+        } catch {}
       }
-      fetch(`/api/products/${params.id}`).then(res => res.json()).then(data => {
+      
+      fetch(`/api/products/${params.id}`, {
+        cache: 'force-cache',
+        next: { revalidate: 60 }
+      } as any).then(res => res.json()).then(data => {
         setProduct({ ...data, price: data.price || data.basePrice });
         if (data.variants && data.variants.length > 0) {
           const sorted = [...data.variants].sort((a, b) => (parseFloat(String(a.price).replace(',', '.')) || 0) - (parseFloat(String(b.price).replace(',', '.')) || 0));
           setSelectedVariant(sorted[0]);
         }
-        sessionStorage.setItem(`product_${params.id}`, JSON.stringify(data));
+        try {
+          sessionStorage.setItem(`product_${params.id}`, JSON.stringify(data));
+        } catch {}
       }).catch(console.error);
     }
   }, [params.id]);
@@ -108,9 +116,10 @@ export default function ProductDetail() {
     const hidden = document.createElement('video');
     hidden.muted = true;
     hidden.playsInline = true;
-    hidden.preload = 'auto';
+    hidden.preload = 'metadata';
     hidden.crossOrigin = 'anonymous';
     hidden.className = 'page-product-hidden-video';
+    hidden.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none';
     const source = document.createElement('source');
     source.src = videoSrc;
     source.type = getVideoMimeType(product.videoUrl);
@@ -120,28 +129,25 @@ export default function ProductDetail() {
       if (posterCaptured.current || hidden.videoWidth === 0) return;
       try {
         const canvas = document.createElement('canvas');
-        canvas.width = hidden.videoWidth;
-        canvas.height = hidden.videoHeight;
+        canvas.width = Math.min(hidden.videoWidth, 800);
+        canvas.height = Math.min(hidden.videoHeight, 800);
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.drawImage(hidden, 0, 0);
-          setVideoPosterUrl(canvas.toDataURL('image/jpeg', 0.9));
+          ctx.drawImage(hidden, 0, 0, canvas.width, canvas.height);
+          setVideoPosterUrl(canvas.toDataURL('image/jpeg', 0.7));
           posterCaptured.current = true;
         }
       } catch (_) {}
     };
 
-    hidden.addEventListener('loadeddata', () => { if (!posterCaptured.current) hidden.currentTime = 0.1; });
-    hidden.addEventListener('seeked', capture);
-    hidden.addEventListener('timeupdate', () => {
-      if (!posterCaptured.current && hidden.currentTime > 0.03) {
-        capture();
-        hidden.pause();
-        hidden.remove();
-      }
-    });
+    hidden.addEventListener('loadedmetadata', () => { 
+      if (!posterCaptured.current) hidden.currentTime = 0.1; 
+    }, { once: true });
+    hidden.addEventListener('seeked', capture, { once: true });
     document.body.appendChild(hidden);
     hidden.load();
+
+    setTimeout(() => hidden.remove(), 5000);
 
     return () => { hidden.remove(); };
   }, [product?.videoUrl]);
@@ -166,7 +172,7 @@ export default function ProductDetail() {
             key={product.videoUrl}
             controls
             playsInline
-            preload="auto"
+            preload="none"
             onLoadedData={(e) => {
               const v = e.currentTarget;
               if (!posterCaptured.current && v.readyState >= 2) v.currentTime = 0.05;
@@ -241,7 +247,7 @@ export default function ProductDetail() {
         </div>
       ) : product.image && (
         <div className="page-product-media-container page-product-media-container--image">
-          <img src={product.image} alt={product.title} />
+          <img src={product.image} alt={product.title} loading="lazy" />
         </div>
       )}
 
