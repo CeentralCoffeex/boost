@@ -114,7 +114,14 @@ const ProductEdit = (): ReactElement => {
           videoUrl: product.videoUrl || '',
           categoryId: product.categoryId || '',
         });
-        setVariants(product.variants || []);
+        
+        // Trier les variantes par prix avant de les afficher
+        const sortedVariants = (product.variants || []).sort((a, b) => {
+          const priceA = parseFloat(String(a.price || 0).replace(',', '.')) || 0;
+          const priceB = parseFloat(String(b.price || 0).replace(',', '.')) || 0;
+          return priceA - priceB;
+        });
+        setVariants(sortedVariants);
       }
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -210,19 +217,27 @@ const ProductEdit = (): ReactElement => {
     setSuccess('');
 
     try {
+      // Trier les variantes par prix avant envoi
+      const sortedVariants = [...variants]
+        .filter(v => v.name.trim() && v.price)
+        .sort((a, b) => {
+          const priceA = parseFloat(String(a.price || 0).replace(',', '.')) || 0;
+          const priceB = parseFloat(String(b.price || 0).replace(',', '.')) || 0;
+          return priceA - priceB;
+        })
+        .map(v => ({
+          name: v.name.trim(),
+          type: 'weight' as const,
+          price: v.price.toString(),
+          unit: null,
+        }));
+
       const payload = {
         ...formData,
         description: formData.description.trim() || ' ',
-        basePrice: variants.length > 0 ? (variants[0]?.price || '0') : '0',
+        basePrice: sortedVariants.length > 0 ? sortedVariants[0].price : '0',
         section: 'DECOUVRIR',
-        variants: variants
-          .filter(v => v.name.trim() && v.price)
-          .map(v => ({
-            name: v.name.trim(),
-            type: 'weight' as const,
-            price: v.price.toString(),
-            unit: null,
-          })),
+        variants: sortedVariants,
       };
 
       const method = isEditing ? 'PUT' : 'POST';
