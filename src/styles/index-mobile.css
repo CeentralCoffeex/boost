@@ -68,14 +68,16 @@
   gap: 12px;
 }
 .menu-bar-voir-btn {
-  min-width: 58px;
+  min-width: 60px;
+  max-width: 70px;
   flex-shrink: 0;
 }
 @media (max-width: 360px) {
   .menu-bar-voir-btn {
     min-width: 50px;
-    padding: 8px 12px !important;
-    font-size: 11px !important;
+    max-width: 60px;
+    padding: 8px 10px !important;
+    font-size: 10px !important;
   }
 }
 

@@ -48,20 +48,21 @@ export default function MenuBar() {
   return (
     <div className="menu-bar-section w-full px-4 mb-4">
       <div className="menu-bar-wrapper bg-white/95 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 relative">
-        <div className="menu-bar flex items-center justify-between gap-2 min-h-[56px] sm:min-h-[64px] px-4 py-2">
+        <div className="menu-bar flex items-center justify-between gap-3 min-h-[56px] sm:min-h-[64px] px-4 py-2">
           <div
             ref={menuRef}
-            className="cursor-pointer flex items-center flex-1 min-w-0 overflow-hidden"
+            className="cursor-pointer flex items-center flex-1 min-w-0 overflow-visible"
             onClick={() => setIsOpen(!isOpen)}
           >
-            <span className="font-montserrat font-semibold text-gray-800 text-sm sm:text-base truncate">
+            <span className="font-montserrat font-semibold text-gray-800 text-base truncate">
               Menu
             </span>
-            <ChevronDown className={`w-4 h-4 text-gray-800 ml-2 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-5 h-5 text-gray-800 ml-2 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </div>
 
           <button
-            className="menu-bar-voir-btn bg-[#1a1a1a] font-montserrat text-white py-2 px-4 sm:py-3 sm:px-6 border-none rounded-lg font-semibold text-xs sm:text-sm cursor-pointer hover:bg-neutral-800 transition-colors whitespace-nowrap flex-shrink-0"
+            className="menu-bar-voir-btn bg-[#1a1a1a] font-montserrat text-white py-2 px-5 border-none rounded-lg font-semibold text-xs cursor-pointer hover:bg-neutral-800 transition-colors whitespace-nowrap flex-shrink-0"
+            style={{ maxWidth: '70px', minWidth: '60px' }}
             onClick={() => {
               if (selectedUrl) {
                 router.push(selectedUrl);
