@@ -71,10 +71,8 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          // Vérification si l'utilisateur est un admin du bot (= admin par défaut sur le site)
-          const { isBotAdmin } = await import('@/lib/bot-admins');
-          const isBotAdminUser = isBotAdmin(telegramUser.id.toString());
-          const userRole = isBotAdminUser ? 'ADMIN' : 'USER';
+          // NE PAS donner role ADMIN automatiquement - vérification via config.json uniquement
+          const userRole = 'USER';
 
           // Recherche de l'utilisateur par Telegram ID
           const user = await prisma.user.findFirst({
@@ -90,8 +88,6 @@ export const authOptions: NextAuthOptions = {
                 telegramFirstName: telegramUser.first_name,
                 telegramUsername: telegramUser.username || null,
                 telegramPhoto: telegramUser.photo_url || null,
-                // Si l'utilisateur est admin du bot, on met à jour son rôle
-                ...(isBotAdminUser ? { role: 'ADMIN' } : {})
               }
             });
 
@@ -100,7 +96,7 @@ export const authOptions: NextAuthOptions = {
               email: user.email,
               name: user.name,
               image: user.image,
-              role: isBotAdminUser ? 'ADMIN' : (user.role as UserRole)
+              role: user.role as UserRole
             };
           }
 
@@ -122,7 +118,6 @@ export const authOptions: NextAuthOptions = {
                  telegramUsername: telegramUser.username || null,
                  telegramPhoto: telegramUser.photo_url || null,
                  lastLoginAt: new Date(),
-                 ...(isBotAdminUser ? { role: 'ADMIN' } : {})
                }
              });
              return {
@@ -130,7 +125,7 @@ export const authOptions: NextAuthOptions = {
                 email: existingEmailUser.email,
                 name: existingEmailUser.name,
                 image: existingEmailUser.image,
-                role: isBotAdminUser ? 'ADMIN' : (existingEmailUser.role as UserRole)
+                role: existingEmailUser.role as UserRole
              };
           }
 
@@ -146,7 +141,7 @@ export const authOptions: NextAuthOptions = {
               telegramPhoto: telegramUser.photo_url || null,
               telegramLinkedAt: new Date(),
               emailVerified: new Date(), // On considère que Telegram est vérifié
-              role: userRole,
+              role: 'USER',
               status: 'ACTIVE'
             }
           });
@@ -156,7 +151,7 @@ export const authOptions: NextAuthOptions = {
             email: newUser.email,
             name: newUser.name,
             image: newUser.image,
-            role: newUser.role as UserRole
+            role: 'USER' as UserRole
           };
 
         } catch (e) {

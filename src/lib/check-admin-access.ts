@@ -6,9 +6,9 @@ import { isBotAdmin } from '@/lib/bot-admins';
 import { prisma } from '@/lib/prisma';
 import { validateTelegramWebAppData } from '@/lib/telegram-webapp';
 
-/** Cache admin check (évite requêtes DB répétées lors d'uploads multiples) - TTL 60s */
+/** Cache admin check - DÉSACTIVÉ pour forcer vérification en temps réel */
 const adminCache = new Map<string, { ok: boolean; expires: number }>();
-const CACHE_TTL_MS = 60_000;
+const CACHE_TTL_MS = 0; // Pas de cache pour sécurité
 
 /** Invalide le cache admin pour un userId et/ou email (appelé après retrait des droits) */
 export function invalidateAdminCacheForUser(userId?: string, email?: string): void {
@@ -64,9 +64,9 @@ export async function checkAdminAccess(request?: NextRequest | null): Promise<bo
           }
           const isBotAdm = isBotAdmin(telegramIdStr);
           const dbAdmin = await prisma.telegramAdmin.findFirst({ where: { telegramId: telegramIdStr, isActive: true } });
-          const userRole = (await prisma.user.findFirst({ where: { telegramId: telegramIdStr }, select: { role: true } }))?.role;
-          console.log('[checkAdmin] checks: isBotAdmin=', isBotAdm, 'dbAdmin=', !!dbAdmin, 'userRole=', userRole);
-          const ok = isBotAdm || dbAdmin !== null || userRole === 'ADMIN';
+          console.log('[checkAdmin] checks: isBotAdmin=', isBotAdm, 'dbAdmin=', !!dbAdmin);
+          // UNIQUEMENT config.json ou TelegramAdmin actif - PAS de role ADMIN
+          const ok = isBotAdm || dbAdmin !== null;
           setCachedAdmin(cacheKey, ok);
           return ok;
         }
@@ -144,10 +144,8 @@ async function checkUserAdminAccess(userId?: string, email?: string): Promise<bo
       if (dbAdmin) return true;
     }
 
-    // Secours : rôle ADMIN (utilisateur identifié admin à la connexion Telegram)
-    console.log('[checkUserAdminAccess] user.role check:', user.role, '===', 'ADMIN', '?', user.role === 'ADMIN');
-    if (user.role === 'ADMIN') return true;
-
+    // PLUS DE SECOURS par role ADMIN : UNIQUEMENT config.json ou TelegramAdmin actif
+    console.log('[checkUserAdminAccess] FINAL RESULT: false (not in config or TelegramAdmin)');
     return false;
   } catch (error) {
     console.error('[checkUserAdminAccess] ERROR:', error);

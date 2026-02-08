@@ -55,7 +55,8 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       const newUserEmail = `telegram_${telegramUser.id}@miniapp.local`;
-      const userRole = isBotAdminUser ? 'ADMIN' : 'USER';
+      // NE PAS donner role ADMIN ici - seulement via config.json/TelegramAdmin
+      const userRole = 'USER';
       user = await prisma.user.create({
         data: {
           email: newUserEmail,
@@ -81,6 +82,7 @@ export async function GET(request: NextRequest) {
         },
       });
     } else {
+      // Mettre à jour les infos Telegram mais NE PAS changer le role
       await prisma.user.update({
         where: { id: user.id },
         data: {
@@ -88,7 +90,6 @@ export async function GET(request: NextRequest) {
           telegramFirstName: telegramUser.first_name,
           telegramUsername: telegramUser.username || null,
           telegramPhoto: telegramUser.photo_url || null,
-          ...(isBotAdminUser ? { role: 'ADMIN' } : {}),
         },
       });
     }
