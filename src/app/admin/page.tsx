@@ -89,9 +89,13 @@ export default function AdminPage() {
     ? `/administration/index.html${hashPart}${sep}tgWebAppData=${encodeURIComponent(initForIframe)}`
     : `/administration/index.html${hashPart}`;
 
+  console.log('[admin page] rendering iframe, url:', iframeUrl);
+
   const handleIframeLoad = useCallback(() => {
+    console.log('[admin page] iframe loaded');
     const data = initDataToPass || sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')
     if (data) {
+      console.log('[admin page] posting message to iframe');
       const iframe = document.querySelector('iframe[title="Administration Panel"]') as HTMLIFrameElement
       iframe?.contentWindow?.postMessage({ type: 'TG_INIT_DATA', initData: data }, '*')
     }
