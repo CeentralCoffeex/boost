@@ -2022,10 +2022,10 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
     # Nouveaux handlers pour modification par étapes
     if data.startswith("adm_edit_btn_name:"):
         try:
-            parts = data.split(":", 3)
+            parts = data.split(":", 2)
             print(f"[DEBUG] adm_edit_btn_name parts: {parts}")
-            if len(parts) >= 4:
-                _, _, kind, ident = parts
+            if len(parts) >= 3:
+                _, kind, ident = parts[0], parts[1], parts[2]
             else:
                 print(f"[ERROR] Pas assez de parties dans le callback: {parts}")
                 await _admin_edit("❌ Erreur de format. Réessayez.", reply_markup=_with_back(None))
@@ -2045,10 +2045,10 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     if data.startswith("adm_edit_btn_url:"):
         try:
-            parts = data.split(":", 3)
+            parts = data.split(":", 2)
             print(f"[DEBUG] adm_edit_btn_url parts: {parts}")
-            if len(parts) >= 4:
-                _, _, kind, ident = parts
+            if len(parts) >= 3:
+                _, kind, ident = parts[0], parts[1], parts[2]
             else:
                 print(f"[ERROR] Pas assez de parties dans le callback: {parts}")
                 await _admin_edit("❌ Erreur de format. Réessayez.", reply_markup=_with_back(None))
