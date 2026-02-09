@@ -48,22 +48,9 @@ export default function CategoryPage() {
       setCategory(null);
       return;
     }
-    // Charger depuis le cache d'abord
-    try {
-      const cached = sessionStorage.getItem(`category_${id}`);
-      if (cached) {
-        const data = JSON.parse(cached);
-        setCategory(data);
-        setLoading(false);
-      }
-    } catch {}
-    
     const generation = ++fetchRef.current;
     setLoading(true);
-    fetch(`/api/categories/${encodeURIComponent(id)}`, {
-      cache: 'force-cache',
-      next: { revalidate: 60 }
-    } as any)
+    fetch(`/api/categories/${encodeURIComponent(id)}`, { cache: 'no-store', credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         if (generation !== fetchRef.current) return;
@@ -72,9 +59,6 @@ export default function CategoryPage() {
         } else {
           setCategory(data);
           setSelectedSubcategoryId(null);
-          try {
-            sessionStorage.setItem(`category_${id}`, JSON.stringify(data));
-          } catch {}
         }
         setLoading(false);
       })
@@ -287,7 +271,14 @@ export default function CategoryPage() {
           </div>
         </div>
       ) : (
-        <>
+        <div className="page-categorie-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
+          gap: '16px',
+          width: '100%',
+          maxWidth: '1200px',
+          margin: '0 auto',
+        }}>
           {displayedProducts.map((product) => (
             <div 
               key={product.id} 
@@ -297,13 +288,13 @@ export default function CategoryPage() {
                 background: 'white',
                 borderRadius: '16px',
                 padding: '20px',
-                marginBottom: '15px',
                 boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
                 display: 'flex',
                 gap: '15px',
                 alignItems: 'center',
                 cursor: 'pointer',
                 transition: 'transform 0.2s',
+                minWidth: 0,
               }}
               onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
               onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
@@ -374,7 +365,7 @@ export default function CategoryPage() {
               </div>
             </div>
           ))}
-        </>
+        </div>
       )}
     </div>
   );

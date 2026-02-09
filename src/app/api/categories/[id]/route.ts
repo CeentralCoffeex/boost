@@ -34,10 +34,7 @@ export async function GET(
       },
       include: {
         parent: { select: { id: true, name: true } },
-        subcategories: {
-          where: { isActive: true },
-          orderBy: { order: 'asc' }
-        },
+        subcategories: { orderBy: { order: 'asc' } },
         products: {
           orderBy: { createdAt: 'desc' },
           include: {
@@ -56,7 +53,7 @@ export async function GET(
       const all = await prisma.category.findMany({
         where: { isActive: true, parentId: null },
         include: {
-          subcategories: { where: { isActive: true }, orderBy: { order: 'asc' } },
+          subcategories: { orderBy: { order: 'asc' } },
           products: {
             orderBy: { createdAt: 'desc' },
             include: { variants: { orderBy: [{ type: 'asc' }, { name: 'asc' }] } }
