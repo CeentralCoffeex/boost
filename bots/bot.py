@@ -389,6 +389,8 @@ def _load_config():
         "ig_backup_label": "Instagram Backup",
         "linktree_label": "Linktree",
         "bots_label": "Bots 🤖",
+        "whatsapp_url": "",
+        "whatsapp_label": "WhatsApp 💚",
     }
     try:
         with open(_CONFIG_PATH, "r", encoding="utf-8") as f:
@@ -506,6 +508,7 @@ def _get_default_button_label(cfg, key):
         "infos": "Informations ℹ️", "contact": "Contact 📱", "miniapp": "GhostLine13 MiniApp",
         "potato": "Potato 🥔", "tg": "Telegram 📸", "instagram": "Instagram",
         "ig_backup": "Instagram Backup", "linktree": "Linktree", "bots": "Bots 🤖",
+        "whatsapp": "WhatsApp 💚",
     }
     cfg_key = f"{key}_label" if key != "miniapp" else "miniapp_label"
     return cfg.get(cfg_key) or defaults.get(key, "Bouton")
@@ -513,45 +516,83 @@ def _get_default_button_label(cfg, key):
 
 def _build_welcome_keyboard_layout(cfg, hidden=None, bot_username=None):
     """
-    Clavier d'accueil : boutons par défaut (non masqués) + boutons personnalisés (2 par ligne)
+    Clavier d'accueil : disposition comme sur la photo
+    - Ligne 1: Potato | Contact (2 boutons)
+    - Ligne 2: MiniApp (bouton large pleine largeur)
+    - Lignes suivantes: reste en grille 2 colonnes
     """
     try:
         rows = []
         hidden = list(cfg.get("hidden_buttons", [])) if isinstance(cfg.get("hidden_buttons"), list) else []
 
-        # Boutons par défaut (infos, contact, miniapp, potato, etc.)
+        # Définition des boutons: (key, type, get_value, ordre)
+        # ordre: "top" = ligne 1 avec 2 boutons, "long" = miniapp pleine largeur, "grid" = grille 2 colonnes
         default_buttons = [
-            ("infos", "message", lambda c: c.get("infos_text", "")),
-            ("contact", "message", lambda c: c.get("contact_text", "")),
-            ("miniapp", "url", lambda c: c.get("miniapp_url", "")),
-            ("potato", "url", lambda c: c.get("potato_url", "")),
-            ("tg", "url", lambda c: c.get("telegram_channel_url", "")),
-            ("instagram", "url", lambda c: c.get("instagram_url", "")),
-            ("ig_backup", "url", lambda c: c.get("instagram_backup_url", "")),
-            ("linktree", "url", lambda c: c.get("linktree_url", "")),
-            ("bots", "url", lambda c: c.get("bots_url", "")),
+            ("potato", "url", lambda c: c.get("potato_url", ""), "top"),
+            ("contact", "message", lambda c: c.get("contact_text", ""), "top"),
+            ("miniapp", "url", lambda c: c.get("miniapp_url", ""), "long"),
+            ("tg", "url", lambda c: c.get("telegram_channel_url", ""), "grid"),
+            ("whatsapp", "url", lambda c: c.get("whatsapp_url", ""), "grid"),
+            ("instagram", "url", lambda c: c.get("instagram_url", ""), "grid"),
+            ("bots", "url", lambda c: c.get("bots_url", ""), "grid"),
+            ("ig_backup", "url", lambda c: c.get("instagram_backup_url", ""), "grid"),
+            ("linktree", "url", lambda c: c.get("linktree_url", ""), "grid"),
+            ("infos", "message", lambda c: c.get("infos_text", ""), "grid"),
         ]
-        for key, btype, get_val in default_buttons:
-            if key in hidden:
-                continue
-            value = get_val(cfg) if callable(get_val) else get_val
-            label = _get_default_button_label(cfg, key)
+
+        def make_btn(key, btype, value, label):
             if btype == "url" and value and str(value).strip():
                 if key == "miniapp":
                     try:
                         mode = os.getenv("MINIAPP_OPEN_MODE", "webapp").lower()
                         if mode == "webapp":
-                            rows.append([InlineKeyboardButton(label, web_app=WebAppInfo(url=str(value).strip()))])
-                        else:
-                            rows.append([InlineKeyboardButton(label, url=str(value).strip())])
+                            return InlineKeyboardButton(label, web_app=WebAppInfo(url=str(value).strip()))
                     except Exception:
-                        rows.append([InlineKeyboardButton(label, url=str(value).strip())])
-                else:
-                    rows.append([InlineKeyboardButton(label, url=str(value).strip())])
+                        pass
+                    return InlineKeyboardButton(label, url=str(value).strip())
+                return InlineKeyboardButton(label, url=str(value).strip())
             elif btype == "message":
-                rows.append([InlineKeyboardButton(label, callback_data=key)])
-            elif btype == "url" and (not value or not str(value).strip()):
-                rows.append([InlineKeyboardButton(label, callback_data=f"nolink_{key}")])
+                return InlineKeyboardButton(label, callback_data=key)
+            else:
+                return InlineKeyboardButton(label, callback_data=f"nolink_{key}")
+
+        top_btns, long_btn, grid_btns = [], None, []
+        for key, btype, get_val, order in default_buttons:
+            if key in hidden:
+                continue
+            value = get_val(cfg) if callable(get_val) else get_val
+            label = _get_default_button_label(cfg, key)
+            # Ne pas afficher les boutons URL sans URL configurée (sauf nolink)
+            if btype == "url" and (not value or not str(value).strip()):
+                btn = make_btn(key, btype, value, label)
+            elif btype == "message" or (btype == "url" and value and str(value).strip()):
+                btn = make_btn(key, btype, value, label)
+            else:
+                continue
+            if order == "top":
+                top_btns.append(btn)
+            elif order == "long":
+                long_btn = btn
+            else:
+                grid_btns.append(btn)
+
+        # Ligne 1: 2 boutons (Potato | Contact)
+        if len(top_btns) >= 2:
+            rows.append(top_btns[:2])
+        elif top_btns:
+            rows.append(top_btns)
+        # Ligne 2: MiniApp pleine largeur
+        if long_btn:
+            rows.append([long_btn])
+        # Lignes suivantes: grille 2 colonnes
+        temp_row = []
+        for btn in grid_btns:
+            temp_row.append(btn)
+            if len(temp_row) == 2:
+                rows.append(temp_row)
+                temp_row = []
+        if temp_row:
+            rows.append(temp_row)
 
         # Boutons personnalisés : 2 par ligne
         customs = cfg.get("custom_buttons", []) if isinstance(cfg.get("custom_buttons"), list) else []
@@ -2013,6 +2054,8 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
             kb_rows.append([InlineKeyboardButton("Linktree", callback_data="adm_pick_edit:def:linktree")])
         if "tg" not in hidden:
             kb_rows.append([InlineKeyboardButton("Canal Telegram", callback_data="adm_pick_edit:def:tg")])
+        if "whatsapp" not in hidden:
+            kb_rows.append([InlineKeyboardButton("WhatsApp 💚", callback_data="adm_pick_edit:def:whatsapp")])
         if "ig_backup" not in hidden:
             kb_rows.append([InlineKeyboardButton("Instagram Backup", callback_data="adm_pick_edit:def:ig_backup")])
         if "bots" not in hidden:
@@ -2054,6 +2097,7 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
                 "potato": (_get_default_button_label(cfgv, "potato"), "url", cfgv.get("potato_url", "")),
                 "linktree": (_get_default_button_label(cfgv, "linktree"), "url", cfgv.get("linktree_url", "")),
                 "tg": (_get_default_button_label(cfgv, "tg"), "url", cfgv.get("telegram_channel_url", "")),
+                "whatsapp": (_get_default_button_label(cfgv, "whatsapp"), "url", cfgv.get("whatsapp_url", "")),
                 "ig_backup": (_get_default_button_label(cfgv, "ig_backup"), "url", cfgv.get("instagram_backup_url", "")),
                 "bots": (_get_default_button_label(cfgv, "bots"), "url", cfgv.get("bots_url", "")),
             }
@@ -2150,6 +2194,7 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
             "potato": "potato_url",
             "linktree": "linktree_url",
             "tg": "telegram_channel_url",
+            "whatsapp": "whatsapp_url",
             "ig_backup": "instagram_backup_url",
             "bots": "bots_url",
         }
@@ -2948,8 +2993,9 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
             # Tous les boutons par défaut peuvent être renommés
             label_keys = {
                 "infos": "infos_label", "contact": "contact_label", "miniapp": "miniapp_label",
-                "potato": "potato_label", "tg": "tg_label", "instagram": "instagram_label",
-                "ig_backup": "ig_backup_label", "linktree": "linktree_label", "bots": "bots_label",
+                "potato": "potato_label", "tg": "tg_label", "whatsapp": "whatsapp_label",
+                "instagram": "instagram_label", "ig_backup": "ig_backup_label",
+                "linktree": "linktree_label", "bots": "bots_label",
             }
             cfg_key = label_keys.get(ident)
             if cfg_key:
@@ -3010,6 +3056,7 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 "potato": "potato_url",
                 "linktree": "linktree_url",
                 "tg": "telegram_channel_url",
+                "whatsapp": "whatsapp_url",
                 "ig_backup": "instagram_backup_url",
                 "bots": "bots_url",
             }
@@ -3027,7 +3074,7 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         raw = (msg.text or msg.caption or "").strip()
         customs = list(cfg.get("custom_buttons", []))
         hidden = list(cfg.get("hidden_buttons", []))
-        allowed_defaults = {"infos", "contact", "miniapp", "instagram", "potato", "linktree", "tg", "ig_backup", "bots"}
+        allowed_defaults = {"infos", "contact", "miniapp", "instagram", "potato", "linktree", "tg", "whatsapp", "ig_backup", "bots"}
         # Nouveau flux guidé d'ajout: type -> valeur -> label
         if key == "btn_add_type":
             ctype = raw.lower()
