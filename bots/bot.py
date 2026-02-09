@@ -516,23 +516,23 @@ def _get_default_button_label(cfg, key):
 
 def _build_welcome_keyboard_layout(cfg, hidden=None, bot_username=None):
     """
-    Clavier d'accueil : disposition comme sur la photo
-    - Ligne 1: Potato | Contact (2 boutons)
-    - Ligne 2: MiniApp (bouton large pleine largeur)
+    Clavier d'accueil :
+    - Ligne 1: WhatsApp | Contact
+    - Ligne 2: Potato | Telegram
+    - Ligne 3: MiniApp (bouton large pleine largeur)
     - Lignes suivantes: reste en grille 2 colonnes
     """
     try:
         rows = []
         hidden = list(cfg.get("hidden_buttons", [])) if isinstance(cfg.get("hidden_buttons"), list) else []
 
-        # Définition des boutons: (key, type, get_value, ordre)
-        # ordre: "top" = ligne 1 avec 2 boutons, "long" = miniapp pleine largeur, "grid" = grille 2 colonnes
+        # ordre: "row1" = WhatsApp|Contact, "row2" = Potato|Telegram, "long" = MiniApp, "grid" = reste
         default_buttons = [
-            ("potato", "url", lambda c: c.get("potato_url", ""), "top"),
-            ("contact", "message", lambda c: c.get("contact_text", ""), "top"),
+            ("whatsapp", "url", lambda c: c.get("whatsapp_url", ""), "row1"),
+            ("contact", "message", lambda c: c.get("contact_text", ""), "row1"),
+            ("potato", "url", lambda c: c.get("potato_url", ""), "row2"),
+            ("tg", "url", lambda c: c.get("telegram_channel_url", ""), "row2"),
             ("miniapp", "url", lambda c: c.get("miniapp_url", ""), "long"),
-            ("tg", "url", lambda c: c.get("telegram_channel_url", ""), "grid"),
-            ("whatsapp", "url", lambda c: c.get("whatsapp_url", ""), "grid"),
             ("instagram", "url", lambda c: c.get("instagram_url", ""), "grid"),
             ("bots", "url", lambda c: c.get("bots_url", ""), "grid"),
             ("ig_backup", "url", lambda c: c.get("instagram_backup_url", ""), "grid"),
@@ -556,32 +556,38 @@ def _build_welcome_keyboard_layout(cfg, hidden=None, bot_username=None):
             else:
                 return InlineKeyboardButton(label, callback_data=f"nolink_{key}")
 
-        top_btns, long_btn, grid_btns = [], None, []
+        row1_btns, row2_btns, long_btn, grid_btns = [], [], None, []
         for key, btype, get_val, order in default_buttons:
             if key in hidden:
                 continue
             value = get_val(cfg) if callable(get_val) else get_val
             label = _get_default_button_label(cfg, key)
-            # Ne pas afficher les boutons URL sans URL configurée (sauf nolink)
             if btype == "url" and (not value or not str(value).strip()):
                 btn = make_btn(key, btype, value, label)
             elif btype == "message" or (btype == "url" and value and str(value).strip()):
                 btn = make_btn(key, btype, value, label)
             else:
                 continue
-            if order == "top":
-                top_btns.append(btn)
+            if order == "row1":
+                row1_btns.append(btn)
+            elif order == "row2":
+                row2_btns.append(btn)
             elif order == "long":
                 long_btn = btn
             else:
                 grid_btns.append(btn)
 
-        # Ligne 1: 2 boutons (Potato | Contact)
-        if len(top_btns) >= 2:
-            rows.append(top_btns[:2])
-        elif top_btns:
-            rows.append(top_btns)
-        # Ligne 2: MiniApp pleine largeur
+        # Ligne 1: WhatsApp | Contact
+        if len(row1_btns) >= 2:
+            rows.append(row1_btns[:2])
+        elif row1_btns:
+            rows.append(row1_btns)
+        # Ligne 2: Potato | Telegram
+        if len(row2_btns) >= 2:
+            rows.append(row2_btns[:2])
+        elif row2_btns:
+            rows.append(row2_btns)
+        # Ligne 3: MiniApp pleine largeur
         if long_btn:
             rows.append([long_btn])
         # Lignes suivantes: grille 2 colonnes
