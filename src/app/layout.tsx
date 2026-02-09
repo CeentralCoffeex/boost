@@ -90,8 +90,8 @@ export default async function RootLayout({
               'body .menu-bar{width:100%!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;min-height:56px!important;position:relative!important;padding:8px 16px 8px 24px!important;}',
               'body .menu-bar-voir-btn{position:absolute!important;right:16px!important;top:50%!important;transform:translateY(-50%)!important;background:#1a1a1a!important;color:#fff!important;padding:8px 16px!important;border:none!important;border-radius:8px!important;font-weight:600!important;font-size:12px!important;cursor:pointer!important;font-family:Montserrat,sans-serif!important;min-width:60px!important;max-width:70px!important;flex-shrink:0!important;appearance:none!important;-webkit-appearance:none!important;}',
               'body .mobile-bottom-box{bottom:calc(30px + env(safe-area-inset-bottom,0))!important;}',
-              'body .page-categorie-force-light,body .page-categorie-loading.page-categorie-force-light,body .page-categorie-notfound{background-color:#f5f5f5!important;color:#333!important;}',
-              'body .page-categorie-notfound{min-height:100vh!important;display:flex!important;align-items:center!important;justify-content:center!important;}',
+              'body .page-categorie.page-categorie-force-light,body .page-categorie.page-categorie-notfound{background-color:#f5f5f5!important;color:#333!important;}',
+              'body .page-categorie.page-categorie-notfound{min-height:100vh!important;display:flex!important;align-items:center!important;justify-content:center!important;}',
             ].join(''),
           }}
         />
@@ -117,6 +117,17 @@ export default async function RootLayout({
             </TelegramAccessGuard>
           </ErrorBoundary>
         </AuthSessionProvider>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: [
+              '/* Dernier recours: menu bar + VOIR appliqués en fin de body */',
+              'body .menu-bar-section{width:100%!important;max-width:100%!important;}',
+              'body .menu-bar-wrapper{background:rgba(255,255,255,.95)!important;border-radius:12px!important;box-shadow:0 8px 30px rgba(0,0,0,.12)!important;}',
+              'body .menu-bar{display:flex!important;align-items:center!important;min-height:56px!important;position:relative!important;}',
+              'body .menu-bar-voir-btn{position:absolute!important;right:16px!important;top:50%!important;transform:translateY(-50%)!important;background:#1a1a1a!important;color:#fff!important;border:none!important;border-radius:8px!important;}',
+            ].join(''),
+          }}
+        />
       </body>
     </html>
   );
