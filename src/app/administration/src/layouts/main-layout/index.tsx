@@ -91,10 +91,10 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
     </Box>;
   }
 
-  if (error) {
+  if (error || !isAuthenticated) {
     return <Box sx={{ width: 1, height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#1a1a1a', color: '#fff', padding: 3, textAlign: 'center', flexDirection: 'column', gap: 2 }}>
       <div style={{ fontSize: '48px' }}>🚫</div>
-      <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{error}</div>
+      <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{error || '❌ Accès refusé'}</div>
       <div style={{ fontSize: '14px', opacity: 0.7 }}>Contactez un administrateur si vous pensez que c'est une erreur</div>
     </Box>;
   }
