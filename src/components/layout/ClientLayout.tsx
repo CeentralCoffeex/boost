@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Header from "../Header";
@@ -23,24 +23,6 @@ export default function ClientLayout({
   const router = useRouter();
   const isAdmin = pathname?.startsWith('/admin');
   const isProductPage = pathname?.includes('/product/');
-  const [, setVisible] = useState(0);
-
-  useEffect(() => {
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') {
-        (window as Window & { Telegram?: { WebApp?: { ready?: () => void; expand?: () => void } } }).Telegram?.WebApp?.ready?.();
-        (window as Window & { Telegram?: { WebApp?: { expand?: () => void } } }).Telegram?.WebApp?.expand?.();
-        setVisible((n) => n + 1);
-        router.refresh();
-      }
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    window.addEventListener('pageshow', onVisible);
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible);
-      window.removeEventListener('pageshow', onVisible);
-    };
-  }, [router]);
 
   useEffect(() => {
     let cancelled = false;
