@@ -23,53 +23,41 @@
   max-width: 280px;
 }
 
-/* Barre une ligne : (icône + texte) centrés | flèche à droite */
+/* Barre unique : icône | texte | flèche sur une seule ligne, bien alignés */
 .page-categorie-subcategory-trigger {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
   width: 100%;
   height: 44px;
-  min-height: 44px;
-  padding: 0 14px;
+  padding: 0 16px;
   box-sizing: border-box;
-  border-radius: 8px;
+  border-radius: 999px;
   border: 1px solid rgba(0,0,0,0.08);
-  background: #f3f4f6;
+  background: #f5f5f4;
   color: #374151;
   font-family: 'Montserrat', sans-serif;
   font-size: 14px;
   font-weight: 500;
-  line-height: 1;
   cursor: pointer;
+  gap: 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
   transition: background 0.2s;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-  gap: 12px;
 }
 .page-categorie-subcategory-trigger:hover {
-  background: #e5e7eb;
+  background: #e8e8e6;
 }
-.page-categorie-subcategory-trigger-inner {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-.page-categorie-subcategory-trigger-inner .page-categorie-subcategory-icon {
+.page-categorie-subcategory-trigger .page-categorie-subcategory-icon {
   flex-shrink: 0;
   width: 18px;
   height: 18px;
   display: block;
   margin: 0;
-  padding: 0;
   color: #6b7280;
 }
-.page-categorie-subcategory-trigger-inner .page-categorie-subcategory-label {
-  flex-shrink: 0;
+.page-categorie-subcategory-trigger .page-categorie-subcategory-label {
+  flex: 1;
+  min-width: 0;
   margin: 0;
   padding: 0;
   white-space: nowrap;
@@ -81,13 +69,12 @@
   text-align: center;
   color: inherit;
 }
-.page-categorie-subcategory-chevron {
+.page-categorie-subcategory-trigger .page-categorie-subcategory-chevron {
   flex-shrink: 0;
   width: 18px;
   height: 18px;
   display: block;
   margin: 0;
-  padding: 0;
   color: #6b7280;
   transition: transform 0.2s;
 }
