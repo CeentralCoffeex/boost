@@ -23,10 +23,11 @@
   max-width: 280px;
 }
 
-/* Barre unique : icône | texte | flèche sur une seule ligne, bien alignés */
+/* Barre : icône + texte à gauche, flèche au fond à droite (comme 2e photo) */
 .page-categorie-subcategory-trigger {
   display: flex;
   flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
   width: 100%;
   height: 44px;
@@ -40,14 +41,25 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  gap: 10px;
+  gap: 0;
   box-shadow: 0 1px 2px rgba(0,0,0,0.06);
   transition: background 0.2s;
+  overflow: hidden;
 }
 .page-categorie-subcategory-trigger:hover {
   background: #e8e8e6;
 }
-.page-categorie-subcategory-trigger .page-categorie-subcategory-icon {
+/* Bloc gauche : icône + "Tous" */
+.page-categorie-subcategory-trigger-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding-right: 10px;
+}
+.page-categorie-subcategory-trigger-left .page-categorie-subcategory-icon {
   flex-shrink: 0;
   width: 18px;
   height: 18px;
@@ -55,7 +67,7 @@
   margin: 0;
   color: #6b7280;
 }
-.page-categorie-subcategory-trigger .page-categorie-subcategory-label {
+.page-categorie-subcategory-trigger-left .page-categorie-subcategory-label {
   flex: 1;
   min-width: 0;
   margin: 0;
@@ -66,11 +78,20 @@
   line-height: 1;
   font-size: 14px;
   font-weight: 500;
-  text-align: center;
+  text-align: left;
   color: inherit;
 }
-.page-categorie-subcategory-trigger .page-categorie-subcategory-chevron {
+/* Flèche au fond du rectangle à droite, centrée verticalement */
+.page-categorie-subcategory-chevron-wrap {
   flex-shrink: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 44px;
+}
+.page-categorie-subcategory-chevron-wrap .page-categorie-subcategory-chevron {
   width: 18px;
   height: 18px;
   display: block;
