@@ -82,12 +82,8 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
     checkAuth();
   }, []);
 
-  if (isLoading) {
-    return <PageLoader />;
-  }
-
-  if (!isAuthenticated) {
-    return <PageLoader />;
+  if (isLoading || !isAuthenticated) {
+    return null;
   }
 
   return (

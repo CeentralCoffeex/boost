@@ -1,11 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 export default function AdminPage() {
-  const [checking, setChecking] = useState(true);
-  const [error, setError] = useState('');
-
   useEffect(() => {
     const checkAndRedirect = async () => {
       try {
@@ -17,14 +14,14 @@ export default function AdminPage() {
         
         const headers: Record<string, string> = { 
           'Cache-Control': 'no-cache',
-          'X-Admin-Route': 'true' // Indique qu'on vient d'une route admin
+          'X-Admin-Route': 'true'
         };
         if (initData) {
           headers['Authorization'] = `tma ${initData}`;
           headers['X-Telegram-Init-Data'] = initData;
         }
 
-        // Vérifier si admin AVANT de rediriger (timeout de 10s)
+        // Vérifier si admin (timeout de 10s)
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         
@@ -40,8 +37,7 @@ export default function AdminPage() {
         
         if (!data.allowed) {
           // Non autorisé : retour à l'accueil
-          setError('Accès refusé - vous n\'êtes pas administrateur');
-          setTimeout(() => window.location.href = '/', 2000);
+          window.location.href = '/';
           return;
         }
 
@@ -59,40 +55,14 @@ export default function AdminPage() {
         }
       } catch (error: any) {
         console.error('Admin check failed:', error);
-        if (error?.name === 'AbortError') {
-          setError('Timeout - la base de données met trop de temps à répondre');
-        } else {
-          setError('Erreur de vérification - veuillez réessayer');
-        }
-        // Attendre 3s puis retenter automatiquement
-        setTimeout(() => window.location.reload(), 3000);
+        // En cas d'erreur, retenter après 1 seconde
+        setTimeout(() => window.location.reload(), 1000);
       }
     };
 
     checkAndRedirect();
   }, []);
 
-  return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column',
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      height: '100vh',
-      fontSize: '18px',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      background: 'white',
-      padding: '20px',
-      textAlign: 'center'
-    }}>
-      {error ? (
-        <>
-          <div style={{ color: '#ef4444', marginBottom: '10px' }}>⚠️ {error}</div>
-          <div style={{ fontSize: '14px', color: '#666' }}>Nouvelle tentative dans 3 secondes...</div>
-        </>
-      ) : (
-        checking && 'Vérification de vos droits administrateur...'
-      )}
-    </div>
-  )
+  // Page invisible pendant la vérification
+  return null;
 }
