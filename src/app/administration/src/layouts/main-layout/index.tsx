@@ -3,7 +3,6 @@ import { Box, Drawer } from '@mui/material';
 import Topbar from './Topbar/Topbar';
 import Sidebar from './Sidebar/Sidebar';
 import { useLocation } from 'react-router-dom';
-import PageLoader from '../../components/loading/PageLoader';
 
 export const drawerOpenWidth = 240;
 export const drawerCloseWidth = 110;
@@ -115,7 +114,7 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
   }, []);
 
   if (isLoading || !isAuthenticated) {
-    return null;
+    return <Box sx={{ width: 1, height: '100vh' }} />;
   }
 
   return (
