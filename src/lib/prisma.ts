@@ -7,6 +7,7 @@ declare global {
 }
 
 // Configuration du client Prisma avec optimisations
+// Pour SQLite : ajouter ?busy_timeout=10000 dans DATABASE_URL pour limiter les P1008 (timeout)
 const prismaClientSingleton = () => {
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
