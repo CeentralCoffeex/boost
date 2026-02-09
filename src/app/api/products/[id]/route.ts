@@ -9,7 +9,19 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { id: rawId } = await params;
+    let id = typeof rawId === 'string' ? rawId.trim() : '';
+    if (id) {
+      try {
+        id = decodeURIComponent(id);
+      } catch {
+        // Garder l'id tel quel si le décodage échoue
+      }
+    }
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID requis' }, { status: 400 });
+    }
 
     const product = await prisma.product.findUnique({
       where: { id },
@@ -25,13 +37,17 @@ export async function GET(
     });
 
     if (!product) {
-      return NextResponse.json(
+      const res = NextResponse.json(
         { error: 'Produit non trouvé' },
         { status: 404 }
       );
+      res.headers.set('Cache-Control', 'no-store, max-age=0');
+      return res;
     }
 
-    return NextResponse.json(product);
+    const res = NextResponse.json(product);
+    res.headers.set('Cache-Control', 'no-store, max-age=0');
+    return res;
   } catch (error) {
     console.error('Error fetching product:', error);
     return NextResponse.json(

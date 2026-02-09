@@ -529,15 +529,16 @@ button.text-white * {
   padding: 14px 20px;
 }
 
-/* Texte et icône "Voir mon panier" toujours en blanc */
+/* Texte "Voir mon panier" en blanc ; icône en contour blanc (pas remplie) */
 .page-product-success-modal-btn-cart,
-.page-product-success-modal-btn-cart *,
-.page-product-success-modal-btn-cart svg,
-.page-product-success-modal-btn-cart path,
 .page-product-success-modal-btn-cart span {
   color: #ffffff !important;
+}
+.page-product-success-modal-btn-cart svg,
+.page-product-success-modal-btn-cart path {
   stroke: #ffffff !important;
-  fill: #ffffff !important;
+  fill: none !important;
+  color: #ffffff !important;
 }
 
 .page-product-success-modal-btn-cart-inner {
@@ -554,14 +555,13 @@ button.text-white * {
   flex-shrink: 0;
   width: 20px;
   height: 20px;
-  color: #ffffff !important;
   stroke: #ffffff !important;
-  fill: #ffffff !important;
+  fill: none !important;
 }
 
 .page-product-success-modal-btn-cart-inner svg path {
   stroke: #ffffff !important;
-  fill: #ffffff !important;
+  fill: none !important;
 }
 
 .page-product-success-modal-btn-cart-inner span {
@@ -635,14 +635,14 @@ button.text-white * {
   flex: 1;
 }
 
-/* Panier : cercle strict à droite (jamais ovale) */
+/* Panier : cercle à droite, un peu agrandi */
 .page-product-cta-btn {
-  width: 56px !important;
-  height: 56px !important;
-  min-width: 56px !important;
-  min-height: 56px !important;
-  max-width: 56px !important;
-  max-height: 56px !important;
+  width: 64px !important;
+  height: 64px !important;
+  min-width: 64px !important;
+  min-height: 64px !important;
+  max-width: 64px !important;
+  max-height: 64px !important;
   aspect-ratio: 1 !important;
   border-radius: 50% !important;
   background: #0a0a0a;
@@ -864,6 +864,13 @@ button.text-white * {
   justify-content: center;
   gap: 10px;
   white-space: nowrap;
+  color: #ffffff;
+}
+/* Icône panier en contour blanc (pas remplie) */
+.page-product-add-to-cart-btn-inner svg,
+.page-product-add-to-cart-btn-inner svg path {
+  stroke: #ffffff !important;
+  fill: none !important;
 }
 .page-product-add-to-cart-btn-inner svg {
   flex-shrink: 0;

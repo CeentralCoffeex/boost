@@ -312,50 +312,42 @@
 [data-theme="blue-white"] .page-profil .profile-card {
   background-color: #1565c0 !important;
   background: #1565c0 !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
+  border: none !important;
 }
 
 /* Rectangles info livraison - style news (thème blanc) */
-/* Wrapper pour bordure animée profil */
+/* Wrapper sans bordure animée ni contour coloré */
 .profil-info-animated-border-wrapper {
   position: relative;
   border-radius: 12px;
-  padding: 2px;
-  background: linear-gradient(90deg, 
-    rgba(var(--separator-rgb, 190, 242, 100), 0.3),
-    rgba(var(--separator-rgb, 190, 242, 100), 0.6),
-    rgba(var(--separator-rgb, 190, 242, 100), 0.3),
-    rgba(var(--separator-rgb, 190, 242, 100), 0.6),
-    rgba(var(--separator-rgb, 190, 242, 100), 0.3)
-  ) !important;
-  background-size: 400% 100% !important;
-  animation: profil-border-glow 3s linear infinite !important;
-  filter: drop-shadow(0 0 6px rgba(var(--separator-rgb, 190, 242, 100), 0.4)) !important;
-  will-change: background-position;
+  padding: 0 !important;
+  background: transparent !important;
+  animation: none !important;
+  filter: none !important;
+  will-change: auto;
   z-index: 1;
 }
 
-@keyframes profil-border-glow {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 200% 50%;
-  }
-  100% {
-    background-position: 400% 50%;
-  }
+/* Pas de contour / bordure colorée sur les blocs info profil */
+.page-profil .profil-info-animated-border-wrapper,
+.page-profil .page-profil-info-rect {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+.page-profil .profile-card {
+  border: none !important;
+  outline: none !important;
 }
 
 .page-profil-info-rect {
   background: #ffffff;
   color: #1a1a1a;
-  border-radius: 11px;
+  border-radius: 12px;
   overflow: hidden;
   font-family: 'Montserrat', 'Arial', sans-serif;
   position: relative;
   z-index: 2;
-  border: none;
 }
 .page-profil-info-rect-header {
   background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
@@ -613,7 +605,7 @@
   [data-theme="blanc"] .page-product .page-product-cta-btn svg,
   [data-theme="blanc"] .page-product .page-product-cta-btn path,
   [data-theme="blanc"] .page-product .page-product-add-to-cart-btn svg,
-  [data-theme="blanc"] .page-product .page-product-add-to-cart-btn path { color: #ffffff !important; stroke: #ffffff !important; fill: #ffffff !important; }
+  [data-theme="blanc"] .page-product .page-product-add-to-cart-btn path { color: #ffffff !important; stroke: #ffffff !important; fill: none !important; }
   [data-theme="blanc"] .page-product .page-product-cta-btn:hover,
   [data-theme="blanc"] .page-product .page-product-add-to-cart-btn:hover { background-color: #262626 !important; }
 [data-theme="blanc"] .page-product .page-product-category { background-color: #0a0a0a !important; color: #ffffff !important; }

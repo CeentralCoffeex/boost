@@ -4,7 +4,49 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { validateTelegramWebAppData } from '@/lib/telegram-webapp';
 
-/** GET /api/products/[id]/like - Vérifie si l'utilisateur a liké */
+function getClientIp(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  const ip = forwarded ? forwarded.split(',')[0].trim() : null;
+  return ip || request.headers.get('x-real-ip') || '0.0.0.0';
+}
+
+/** Résout l'identité : userId (Telegram) si dispo, sinon null (on utilisera l'IP) */
+async function resolveUserId(request: NextRequest): Promise<string | null> {
+  const session = await getServerSession(authOptions);
+  if (session?.user?.id) return session.user.id;
+
+  const authHeader = request.headers.get('authorization');
+  const initData =
+    authHeader?.startsWith('tma ') ? authHeader.substring(4) : request.headers.get('x-telegram-init-data');
+
+  if (!initData) return null;
+
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  if (!botToken) return null;
+
+  const telegramUser = validateTelegramWebAppData(initData, botToken);
+  if (!telegramUser) return null;
+
+  let user = await prisma.user.findUnique({
+    where: { telegramId: telegramUser.id.toString() },
+    select: { id: true },
+  });
+
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        telegramId: telegramUser.id.toString(),
+        name: telegramUser.first_name || 'User',
+        role: 'USER',
+      },
+      select: { id: true },
+    });
+  }
+
+  return user?.id ?? null;
+}
+
+/** GET /api/products/[id]/like - Vérifie si l'utilisateur a liké (Telegram ou IP) */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -15,120 +57,39 @@ export async function GET(
       return NextResponse.json({ error: 'ID requis' }, { status: 400 });
     }
 
-    // Récupérer l'utilisateur (session ou initData)
-    const session = await getServerSession(authOptions);
-    let userId = session?.user?.id;
+    const userId = await resolveUserId(request);
 
-    if (!userId) {
-      const authHeader = request.headers.get('authorization');
-      const initData = authHeader?.startsWith('tma ') 
-        ? authHeader.substring(4) 
-        : request.headers.get('x-telegram-init-data');
-
-      if (initData) {
-        const botToken = process.env.TELEGRAM_BOT_TOKEN;
-        if (botToken) {
-          const telegramUser = validateTelegramWebAppData(initData, botToken);
-          if (telegramUser) {
-            // Trouver ou créer l'utilisateur
-            let user = await prisma.user.findUnique({
-              where: { telegramId: telegramUser.id.toString() },
-              select: { id: true },
-            });
-            
-            // Si l'utilisateur n'existe pas, le créer
-            if (!user) {
-              user = await prisma.user.create({
-                data: {
-                  telegramId: telegramUser.id.toString(),
-                  name: telegramUser.first_name || 'User',
-                  role: 'USER',
-                },
-                select: { id: true },
-              });
-            }
-            
-            userId = user?.id;
-          }
-        }
-      }
-    }
-
-    if (!userId) {
-      return NextResponse.json({ liked: false });
-    }
-
-    // Vérifier si l'utilisateur a liké
-    const like = await prisma.productLike.findUnique({
-      where: {
-        userId_productId: {
-          userId,
-          productId: id,
+    if (userId) {
+      const like = await prisma.productLike.findUnique({
+        where: {
+          userId_productId: { userId, productId: id },
         },
+      });
+      return NextResponse.json({ liked: !!like });
+    }
+
+    const ip = getClientIp(request);
+    const likeByIp = await prisma.productLikeByIp.findUnique({
+      where: {
+        productId_ip: { productId: id, ip },
       },
     });
-
-    return NextResponse.json({ liked: !!like });
+    return NextResponse.json({ liked: !!likeByIp });
   } catch (error) {
     console.error('Error checking like:', error);
     return NextResponse.json({ liked: false });
   }
 }
 
-/** POST /api/products/[id]/like - Ajoute un like si l'utilisateur n'a pas déjà liké */
+/** POST /api/products/[id]/like - Un like par produit par utilisateur (Telegram) ou par IP */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-    
     if (!id) {
       return NextResponse.json({ error: 'ID requis' }, { status: 400 });
-    }
-
-    // Récupérer l'utilisateur (session ou initData)
-    const session = await getServerSession(authOptions);
-    let userId = session?.user?.id;
-
-    if (!userId) {
-      const authHeader = request.headers.get('authorization');
-      const initData = authHeader?.startsWith('tma ') 
-        ? authHeader.substring(4) 
-        : request.headers.get('x-telegram-init-data');
-
-      if (initData) {
-        const botToken = process.env.TELEGRAM_BOT_TOKEN;
-        if (botToken) {
-          const telegramUser = validateTelegramWebAppData(initData, botToken);
-          
-          if (telegramUser) {
-            // Trouver ou créer l'utilisateur
-            let user = await prisma.user.findUnique({
-              where: { telegramId: telegramUser.id.toString() },
-              select: { id: true },
-            });
-            
-            // Si l'utilisateur n'existe pas, le créer
-            if (!user) {
-              user = await prisma.user.create({
-                data: {
-                  telegramId: telegramUser.id.toString(),
-                  name: telegramUser.first_name || 'User',
-                  role: 'USER',
-                },
-                select: { id: true },
-              });
-            }
-            
-            userId = user?.id;
-          }
-        }
-      }
-    }
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
     const product = await prisma.product.findUnique({ where: { id } });
@@ -136,42 +97,73 @@ export async function POST(
       return NextResponse.json({ error: 'Produit non trouvé' }, { status: 404 });
     }
 
-    // Vérifier si l'utilisateur a déjà liké CE PRODUIT
-    const existingLike = await prisma.productLike.findUnique({
-      where: {
-        userId_productId: {
-          userId,
-          productId: id,
-        },
-      },
-    });
+    const userId = await resolveUserId(request);
 
-    if (existingLike) {
-      return NextResponse.json({ error: 'Déjà liké', alreadyLiked: true }, { status: 400 });
-    }
-    
-    // Créer le like et incrémenter le compteur
-    await prisma.$transaction([
-      prisma.productLike.create({
-        data: {
-          userId,
-          productId: id,
+    if (userId) {
+      const existingLike = await prisma.productLike.findUnique({
+        where: {
+          userId_productId: { userId, productId: id },
         },
-      }),
-      prisma.product.update({
-        where: { id },
-        data: { likesCount: { increment: 1 } },
-      }),
-    ]);
+      });
+      if (existingLike) {
+        const updated = await prisma.product.findUnique({
+          where: { id },
+          select: { likesCount: true },
+        });
+        return NextResponse.json({
+          error: 'Déjà liké',
+          alreadyLiked: true,
+          likesCount: updated?.likesCount ?? product.likesCount,
+        }, { status: 400 });
+      }
+
+      await prisma.$transaction([
+        prisma.productLike.create({
+          data: { userId, productId: id },
+        }),
+        prisma.product.update({
+          where: { id },
+          data: { likesCount: { increment: 1 } },
+        }),
+      ]);
+    } else {
+      const ip = getClientIp(request);
+      const existingByIp = await prisma.productLikeByIp.findUnique({
+        where: {
+          productId_ip: { productId: id, ip },
+        },
+      });
+      if (existingByIp) {
+        const updated = await prisma.product.findUnique({
+          where: { id },
+          select: { likesCount: true },
+        });
+        return NextResponse.json({
+          error: 'Déjà liké',
+          alreadyLiked: true,
+          likesCount: updated?.likesCount ?? product.likesCount,
+        }, { status: 400 });
+      }
+
+      await prisma.$transaction([
+        prisma.productLikeByIp.create({
+          data: { productId: id, ip },
+        }),
+        prisma.product.update({
+          where: { id },
+          data: { likesCount: { increment: 1 } },
+        }),
+      ]);
+    }
 
     const updated = await prisma.product.findUnique({
       where: { id },
       select: { likesCount: true },
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      likesCount: updated?.likesCount ?? product.likesCount + 1 
+    return NextResponse.json({
+      success: true,
+      likesCount: updated?.likesCount ?? product.likesCount + 1,
     });
   } catch (error) {
     console.error('Error liking product:', error);

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, ShoppingBag } from 'lucide-react';
 import { FormattedTextWithBreaks } from '@/lib/formatted-text';
 
 interface ProductVariant {
@@ -299,7 +299,7 @@ export default function ProductDetail() {
               setQuantity(1);
             }}
           >
-            <ShoppingCart size={32} color="#ffffff" strokeWidth={2.5} />
+            <ShoppingBag size={28} color="#ffffff" strokeWidth={2} />
           </button>
         </div>
 

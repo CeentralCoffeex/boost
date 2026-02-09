@@ -100,19 +100,15 @@ const ProductCard = ({
       
       if (!res.ok) {
         if (data.alreadyLiked) {
-          // Déjà liké, on garde le like actif
           setLiked(true);
+          if (data.likesCount !== undefined) setLikes(data.likesCount);
         } else {
-          // Erreur, on restaure l'état précédent
           setLiked(previousLiked);
           setLikes(previousLikes);
         }
       } else {
-        // Succès : le like est confirmé
         setLiked(true);
-        if (data.likesCount !== undefined) {
-          setLikes(data.likesCount);
-        }
+        if (data.likesCount !== undefined) setLikes(data.likesCount);
       }
     } catch (error) {
       setLiked(previousLiked);

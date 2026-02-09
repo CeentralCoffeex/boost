@@ -236,8 +236,10 @@ export default function CategoryPage() {
                     setSubcategoryDropdownOpen(false);
                   }}
                 >
-                  <span>Tous</span>
-                  {selectedSubcategoryId === null && <Check size={16} strokeWidth={2.5} className="page-categorie-subcategory-check" />}
+                  <span className="page-categorie-subcategory-item-check-wrap">
+                    {selectedSubcategoryId === null && <Check size={16} strokeWidth={2.5} className="page-categorie-subcategory-check" />}
+                  </span>
+                  <span className="page-categorie-subcategory-item-label">Tous</span>
                 </button>
                 {subcategories.map((sub) => (
                   <button
@@ -251,8 +253,10 @@ export default function CategoryPage() {
                       setSubcategoryDropdownOpen(false);
                     }}
                   >
-                    <span>{sub.name}</span>
-                    {selectedSubcategoryId === sub.id && <Check size={16} strokeWidth={2.5} className="page-categorie-subcategory-check" />}
+                    <span className="page-categorie-subcategory-item-check-wrap">
+                      {selectedSubcategoryId === sub.id && <Check size={16} strokeWidth={2.5} className="page-categorie-subcategory-check" />}
+                    </span>
+                    <span className="page-categorie-subcategory-item-label">{sub.name}</span>
                   </button>
                 ))}
               </div>
@@ -301,7 +305,7 @@ export default function CategoryPage() {
           {displayedProducts.map((product) => (
             <Link
               key={product.id}
-              href={`/product/${product.id}`}
+              href={product.id ? `/product/${encodeURIComponent(product.id)}` : '#'}
               prefetch={true}
               scroll={false}
               className="page-categorie-card"
