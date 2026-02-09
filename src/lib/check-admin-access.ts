@@ -80,11 +80,32 @@ export async function checkAdminAccess(request?: NextRequest | null): Promise<bo
           const cacheKey = `tg:${telegramIdStr}`;
           const cached = getCachedAdmin(cacheKey);
           if (cached !== null) return cached;
+          
+          // Vérifier config.json d'abord (rapide, pas de DB)
           const isBotAdm = isBotAdmin(telegramIdStr);
-          const dbAdmin = await prisma.telegramAdmin.findFirst({ where: { telegramId: telegramIdStr, isActive: true } });
-          const ok = isBotAdm || dbAdmin !== null;
-          setCachedAdmin(cacheKey, ok);
-          return ok;
+          if (isBotAdm) {
+            setCachedAdmin(cacheKey, true);
+            return true;
+          }
+          
+          // Vérifier DB avec timeout de 3 secondes
+          try {
+            const dbAdminPromise = prisma.telegramAdmin.findFirst({ 
+              where: { telegramId: telegramIdStr, isActive: true } 
+            });
+            const timeoutPromise = new Promise<null>((_, reject) => 
+              setTimeout(() => reject(new Error('DB timeout')), 3000)
+            );
+            const dbAdmin = await Promise.race([dbAdminPromise, timeoutPromise]);
+            const ok = dbAdmin !== null;
+            setCachedAdmin(cacheKey, ok);
+            return ok;
+          } catch (error: any) {
+            // En cas de timeout DB, on refuse l'accès (sauf si config.json dit admin)
+            console.error('[checkAdminAccess] DB timeout for Telegram ID:', telegramIdStr);
+            setCachedAdmin(cacheKey, false);
+            return false;
+          }
         }
       }
     }
