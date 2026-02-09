@@ -41,47 +41,44 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
 
   useEffect(() => {
     const checkAuth = async () => {
+      const initData = typeof sessionStorage !== 'undefined'
+        ? sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')
+        : null;
+      
+      // Si pas d'initData, virer direct
+      if (!initData) {
+        console.error('[admin] No initData - access denied');
+        window.location.href = '/';
+        return;
+      }
+
+      const headers: Record<string, string> = {
+        'Authorization': `tma ${initData}`,
+        'X-Telegram-Init-Data': initData,
+        'Cache-Control': 'no-cache'
+      };
+
       try {
-        const initData = typeof sessionStorage !== 'undefined'
-          ? sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')
-          : null;
+        const res = await fetch('/api/admin/verify', {
+          credentials: 'include',
+          headers,
+        });
         
-        const headers: Record<string, string> = { 'Cache-Control': 'no-cache' };
-        if (initData) {
-          headers['Authorization'] = `tma ${initData}`;
-          headers['X-Telegram-Init-Data'] = initData;
-        }
-
-        // Vérification rapide - timeout 3 secondes max
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-        try {
-          const verifyRes = await fetch('/api/admin/verify', {
-            credentials: 'include',
-            cache: 'no-store',
-            headers,
-            signal: controller.signal,
-          });
-          clearTimeout(timeoutId);
-          
-          const data = await verifyRes.json();
+        if (res.ok) {
+          const data = await res.json();
           if (data.allowed) {
             setIsAuthenticated(true);
-          } else {
-            window.location.href = '/';
+            setIsLoading(false);
+            return;
           }
-        } catch (err: any) {
-          clearTimeout(timeoutId);
-          // Si timeout ou erreur : refuser l'accès
-          console.error('[admin] Verification failed:', err?.message);
-          window.location.href = '/';
         }
-      } catch (error) {
-        console.error('[admin-layout] Auth check failed');
+        
+        // Pas autorisé
+        console.error('[admin] Access denied');
         window.location.href = '/';
-      } finally {
-        setIsLoading(false);
+      } catch (err) {
+        console.error('[admin] Error:', err);
+        window.location.href = '/';
       }
     };
 
