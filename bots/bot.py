@@ -518,8 +518,8 @@ def _build_welcome_keyboard_layout(cfg, hidden=None, bot_username=None):
     """
     Clavier d'accueil :
     - Ligne 1: WhatsApp | Contact
-    - Ligne 2: Potato | Telegram
-    - Ligne 3: MiniApp (bouton large pleine largeur)
+    - Ligne 2: MiniApp (bouton large pleine largeur)
+    - Ligne 3: Potato | Telegram
     - Lignes suivantes: reste en grille 2 colonnes
     """
     try:
@@ -582,14 +582,14 @@ def _build_welcome_keyboard_layout(cfg, hidden=None, bot_username=None):
             rows.append(row1_btns[:2])
         elif row1_btns:
             rows.append(row1_btns)
-        # Ligne 2: Potato | Telegram
+        # Ligne 2: MiniApp pleine largeur (directement sous WhatsApp/Contact)
+        if long_btn:
+            rows.append([long_btn])
+        # Ligne 3: Potato | Telegram
         if len(row2_btns) >= 2:
             rows.append(row2_btns[:2])
         elif row2_btns:
             rows.append(row2_btns)
-        # Ligne 3: MiniApp pleine largeur
-        if long_btn:
-            rows.append([long_btn])
         # Lignes suivantes: grille 2 colonnes
         temp_row = []
         for btn in grid_btns:
@@ -2128,6 +2128,7 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
     # Nouveaux handlers pour modification par étapes
     if data.startswith("adm_edit_btn_name:"):
         try:
+            context.user_data.pop("adm_edit_key", None)
             parts = data.split(":", 2)
             print(f"[DEBUG] adm_edit_btn_name parts: {parts}")
             if len(parts) >= 3:
@@ -2151,6 +2152,7 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     if data.startswith("adm_edit_btn_url:"):
         try:
+            context.user_data.pop("adm_edit_key", None)
             parts = data.split(":", 2)
             print(f"[DEBUG] adm_edit_btn_url parts: {parts}")
             if len(parts) >= 3:
@@ -2454,7 +2456,8 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
     msg = update.message
     cfg = _load_config()
-    
+    raw = (msg.text or msg.caption or "").strip()
+
     # ========== GESTION PRODUITS (input handlers) ==========
     if key and str(key).startswith("prod_"):
         raw = (msg.text or msg.caption or "").strip()
@@ -2917,47 +2920,7 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         except Exception:
             pass
         return
-    # Edition de liens depuis le sous-menu Liens
-    if edit_key:
-        new_val = (msg.text or "").strip()
-        # Valider les URLs: doivent commencer par http:// ou https://
-        if edit_key.endswith("_url") or edit_key in ("order_link", "contact_link"):
-            nv = new_val.lower()
-            if not (nv.startswith("http://") or nv.startswith("https://")):
-                await msg.reply_text("URL invalide. Merci d'envoyer une adresse commençant par http:// ou https://")
-                try:
-                    context.user_data.pop("adm_edit_key", None)
-                except Exception:
-                    pass
-                return
-        if edit_key == "order_telegram_username":
-            # Sanitize: remove @, keep alphanumeric + underscore
-            new_val = new_val.lstrip("@").replace(" ", "").lower()
-            new_val = "".join(c for c in new_val if c.isalnum() or c == "_") or "savpizz13"
-        try:
-            cfg[edit_key] = new_val
-            _save_config(cfg)
-        except Exception:
-            pass
-        # Mettre à jour le bouton de menu WebApp si la mini-app est modifiée
-        if edit_key == "miniapp_url" and new_val:
-            try:
-                await context.bot.set_chat_menu_button(
-                    menu_button=MenuButtonWebApp(
-                        text="Menu",
-                        web_app=WebAppInfo(url=new_val),
-                    )
-                )
-            except Exception:
-                pass
-        # Confirmation
-        await msg.reply_text("Mis à jour avec succès.")
-        try:
-            context.user_data.pop("adm_edit_key", None)
-        except Exception:
-            pass
-        return
-    # Nouveaux handlers pour modification par étapes
+    # Modification nom/URL bouton : priorité sur edit_key pour éviter conflits
     if key == "edit_btn_name":
         new_name = raw.strip()
         if not new_name:
@@ -3007,7 +2970,12 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
             if cfg_key:
                 cfg[cfg_key] = new_name
                 _save_config(cfg)
-                await msg.reply_text(f"✅ Nom du bouton mis à jour: {new_name}")
+                kb = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("📝 Modifier le nom", callback_data=f"adm_edit_btn_name:def:{ident}")],
+                    [InlineKeyboardButton("🔗 Modifier l'URL", callback_data=f"adm_edit_btn_url:def:{ident}")],
+                    [InlineKeyboardButton("✅ Terminer", callback_data="adm_manage_buttons"), InlineKeyboardButton("❌ Annuler", callback_data="adm_manage_buttons")]
+                ])
+                await msg.reply_text(f"✅ Nom du bouton mis à jour: {new_name}\n\nQue voulez-vous faire ?", reply_markup=kb)
             else:
                 await msg.reply_text("❌ Bouton inconnu.")
         else:
@@ -3015,7 +2983,7 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
         context.user_data.pop("await_action", None)
         return
-    
+
     if key == "edit_btn_url":
         new_url = raw.strip()
         if not new_url:
@@ -3074,7 +3042,44 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         
         context.user_data.pop("await_action", None)
         return
-    
+
+    # Edition de liens depuis le sous-menu Liens (adm_edit_key)
+    if edit_key:
+        new_val = (msg.text or "").strip()
+        if edit_key.endswith("_url") or edit_key in ("order_link", "contact_link"):
+            nv = new_val.lower()
+            if not (nv.startswith("http://") or nv.startswith("https://")):
+                await msg.reply_text("URL invalide. Merci d'envoyer une adresse commençant par http:// ou https://")
+                try:
+                    context.user_data.pop("adm_edit_key", None)
+                except Exception:
+                    pass
+                return
+        if edit_key == "order_telegram_username":
+            new_val = new_val.lstrip("@").replace(" ", "").lower()
+            new_val = "".join(c for c in new_val if c.isalnum() or c == "_") or "savpizz13"
+        try:
+            cfg[edit_key] = new_val
+            _save_config(cfg)
+        except Exception:
+            pass
+        if edit_key == "miniapp_url" and new_val:
+            try:
+                await context.bot.set_chat_menu_button(
+                    menu_button=MenuButtonWebApp(
+                        text="Menu",
+                        web_app=WebAppInfo(url=new_val),
+                    )
+                )
+            except Exception:
+                pass
+        await msg.reply_text("Mis à jour avec succès.")
+        try:
+            context.user_data.pop("adm_edit_key", None)
+        except Exception:
+            pass
+        return
+
     # Gestion des boutons personnalisés et masquage/affichage
     if key and str(key).startswith("btn_"):
         raw = (msg.text or msg.caption or "").strip()
