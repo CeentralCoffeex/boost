@@ -73,6 +73,18 @@
   min-width: 60px;
   max-width: 70px;
   flex-shrink: 0;
+  position: absolute !important;
+  right: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  background: #1a1a1a !important;
+  color: #fff !important;
+  padding: 8px 16px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  font-family: Montserrat, sans-serif !important;
 }
 
 .menu-dropdown-portal {

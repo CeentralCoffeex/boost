@@ -682,8 +682,8 @@ body {
     margin-bottom: 10px;
   }
 
-  /* Boutons mobile génériques - SANS action-btn */
-  button, .btn {
+  /* Boutons mobile génériques - SANS action-btn, SANS menu-bar-voir-btn (style dédié) */
+  button:not(.menu-bar-voir-btn), .btn {
     width: 100%;
     max-width: 300px;
     margin: 10px auto;
@@ -733,20 +733,20 @@ body {
     position: relative;
   }
 
-  /* Forcer tous les boutons dans toutes les pages à être cliquables sur mobile */
-  .portfolio-grid button,
+  /* Forcer tous les boutons dans toutes les pages à être cliquables sur mobile (sauf .menu-bar-voir-btn) */
+  .portfolio-grid button:not(.menu-bar-voir-btn),
   .portfolio-grid .btn,
-  .portfolio-item button,
+  .portfolio-item button:not(.menu-bar-voir-btn),
   .portfolio-item .btn,
-  .mobile-content button,
+  .mobile-content button:not(.menu-bar-voir-btn),
   .mobile-content .btn,
-  .project-card button,
+  .project-card button:not(.menu-bar-voir-btn),
   .project-card .btn,
-  .service-card button,
+  .service-card button:not(.menu-bar-voir-btn),
   .service-card .btn,
-  .cta-section button,
+  .cta-section button:not(.menu-bar-voir-btn),
   .cta-section .btn,
-  .action-buttons button,
+  .action-buttons button:not(.menu-bar-voir-btn),
   .action-buttons .btn {
     position: relative;
     z-index: 1000;
@@ -1632,14 +1632,19 @@ body {
 
   /* Animations rebondissantes pour TOUT le contenu au chargement de page */
   
-  /* Animation globale pour tout le contenu mobile SAUF le header */
-  .mobile-content,
-  .content,
+  /* Ne pas animer .mobile-content ni .content : la barre menu et le contenu doivent être visibles dès l'ouverture (mini app). */
+  /* On anime seulement .portfolio-grid et .text-section pour l'entrée. */
   .portfolio-grid,
   .text-section {
     animation: pageEnter 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
     opacity: 0;
     transform: translateY(50px) scale(0.9);
+  }
+  
+  .mobile-content,
+  .content {
+    opacity: 1;
+    transform: none;
   }
   
   /* Animations supprimées - utilisation des animations slideInLeft définies dans les styles principaux */
