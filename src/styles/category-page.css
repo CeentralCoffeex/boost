@@ -4,7 +4,7 @@
   justify-content: center;
   align-items: center;
   width: 100%;
-  padding: 8px 20px 12px;
+  padding: 6px 20px 10px;
   margin-top: 0;
 }
 .page-categorie-subcategory-wrapper {
@@ -12,14 +12,19 @@
   width: 100%;
   max-width: 280px;
 }
+
+/* Barre (une ligne) : icône + "Tous" + flèche alignés, pas un gros rectangle */
 .page-categorie-subcategory-trigger {
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
+  justify-content: flex-start;
   gap: 10px;
   width: 100%;
-  padding: 8px 14px;
-  min-height: 40px;
-  border-radius: 10px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 8px;
   border: 1px solid rgba(0,0,0,0.08);
   background: #f3f4f6;
   color: #374151;
@@ -35,14 +40,24 @@
 }
 .page-categorie-subcategory-icon {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #6b7280;
 }
 .page-categorie-subcategory-label {
   flex: 1;
   text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .page-categorie-subcategory-chevron {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #6b7280;
   transition: transform 0.2s;
 }

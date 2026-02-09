@@ -105,7 +105,7 @@ export default function PanierPage() {
             cursor: 'pointer',
           }}
         >
-          <ChevronLeft size={28} strokeWidth={2} color="#333" className="page-panier-back-icon" />
+          <ChevronLeft size={36} strokeWidth={2.5} color="#333" className="page-panier-back-icon" />
         </button>
         <h1 style={{
           fontFamily: "'Orbitron', sans-serif",
@@ -276,8 +276,8 @@ export default function PanierPage() {
                     background: '#ff4444',
                     border: 'none',
                     borderRadius: '12px',
-                    width: '48px',
-                    height: '48px',
+                    width: '56px',
+                    height: '56px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -286,7 +286,7 @@ export default function PanierPage() {
                     boxShadow: '0 2px 8px rgba(255, 68, 68, 0.3)'
                   }}
                 >
-                  <Trash2 size={28} strokeWidth={2.5} color="white" />
+                  <Trash2 size={36} strokeWidth={2.5} color="white" />
                 </button>
               </div>
             ))}
