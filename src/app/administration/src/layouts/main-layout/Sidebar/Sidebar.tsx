@@ -32,12 +32,12 @@ const Sidebar = ({ open }: { open: boolean }): ReactElement => {
           position: 'fixed',
           height: 98,
           zIndex: 1,
-          bgcolor: 'background.default',
+          bgcolor: '#000',
           p: 0,
           justifyContent: 'center',
           width: open ? drawerOpenWidth - 1 : drawerCloseWidth - 1,
           borderBottom: '1px solid',
-          borderColor: 'divider',
+          borderColor: '#222',
         }}
       >
         <Box

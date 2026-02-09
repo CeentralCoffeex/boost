@@ -112,7 +112,12 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerOpenWidth },
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
+              width: drawerOpenWidth,
+              bgcolor: '#000',
+              borderRight: '1px solid #222'
+            },
           }}
         >
           <Sidebar open={open} />
@@ -127,6 +132,8 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
             width: open ? drawerOpenWidth : drawerCloseWidth,
             '& .MuiDrawer-paper': {
               width: open ? drawerOpenWidth : drawerCloseWidth,
+              bgcolor: '#000',
+              borderRight: '1px solid #222'
             },
           }}
         >

@@ -30,9 +30,9 @@ const NavItem = ({ navItem, open }: { navItem: NavItemProps; open: boolean }) =>
         className={isActive ? 'nav-item-active' : ''}
         sx={{
           opacity: navItem.active ? 1 : 0.5,
-          bgcolor: isActive ? (open ? 'common.white' : '') : 'background.default',
+          bgcolor: isActive ? (open ? 'common.white' : '') : '#000',
           '&:hover': {
-            bgcolor: 'background.paper',
+            bgcolor: isActive ? 'common.white' : '#1a1a1a',
           },
           '& .MuiTouchRipple-root': {
             color: isActive ? 'common.black' : 'text.disabled',
