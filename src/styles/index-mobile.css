@@ -47,19 +47,27 @@
 .font-montserrat { font-family: 'Montserrat', 'Arial', sans-serif; }
 .hero-footer-offset { transform: translateY(-15px); }
 
-/* Menu bar (au-dessus des catégories) */
+/* Menu bar (au-dessus des catégories) - layout fixe pour éviter bugs au chargement */
 .menu-bar-section {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   position: relative;
   z-index: 100;
+  contain: layout style;
 }
 .menu-bar-wrapper {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   overflow: visible;
+  position: relative;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 .menu-bar {
   width: 100%;
@@ -68,25 +76,108 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-height: 56px;
+  padding: 8px 16px 8px 24px;
+  position: relative;
+}
+.menu-bar-trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 16px;
+}
+.menu-bar-trigger svg {
+  width: 20px;
+  height: 20px;
+  color: #1f2937;
+  transition: transform 0.2s ease;
+}
+.menu-bar-trigger.open svg {
+  transform: rotate(180deg);
 }
 .menu-bar-voir-btn {
   min-width: 60px;
   max-width: 70px;
   flex-shrink: 0;
+  height: 40px;
+  padding: 8px 16px;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  transition: opacity 0.2s, background 0.2s;
+}
+.menu-bar-voir-btn:hover {
+  background: #333;
+}
+.menu-bar-voir-btn:active {
+  opacity: 0.9;
 }
 
 .menu-dropdown-portal {
   z-index: 9999 !important;
   position: absolute !important;
+  left: 16px;
+  top: 100%;
+  margin-top: 4px;
+  width: 200px;
+  min-width: 200px;
+  max-width: 90vw;
+  background: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 12px 16px;
 }
 
 @media (max-width: 360px) {
   .menu-bar-voir-btn {
     min-width: 50px;
     max-width: 60px;
-    padding: 8px 10px !important;
-    font-size: 10px !important;
+    padding: 8px 10px;
+    font-size: 10px;
   }
+}
+
+/* Bouton "Voir les détails" - base stable (évite bug au premier chargement) */
+.project-button.project-button-details,
+.new-product-card .project-button.project-button-details {
+  width: 100%;
+  padding: 11px 20px;
+  margin-top: 16px;
+  background: #0a0a0a;
+  color: #ffffff;
+  border: none;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: none;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.25s ease;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  font-family: 'Montserrat', sans-serif;
+  box-sizing: border-box;
+}
+.project-button.project-button-details:hover,
+.new-product-card .project-button.project-button-details:hover {
+  background: #1a1a1a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+.project-button.project-button-details:active,
+.new-product-card .project-button.project-button-details:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 /* ========================================

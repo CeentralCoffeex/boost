@@ -47,61 +47,23 @@ export default function MenuBar() {
 
   return (
     <div className="menu-bar-section w-full px-4 mb-4 relative z-50">
-      <div className="menu-bar-wrapper bg-white/95 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 relative">
-        <div className="menu-bar" style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'flex-start',
-          minHeight: '56px',
-          position: 'relative',
-          padding: '8px 16px',
-          paddingLeft: '24px'
-        }}>
+      <div className="menu-bar-wrapper">
+        <div className="menu-bar">
           <div
             ref={menuRef}
-            className="cursor-pointer"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '2px'
-            }}
+            className={`menu-bar-trigger ${isOpen ? 'open' : ''}`}
             onClick={() => setIsOpen(!isOpen)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsOpen(!isOpen); } }}
           >
-            <span style={{
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: 600,
-              color: '#1f2937',
-              fontSize: '16px'
-            }}>
-              {selectedMenu}
-            </span>
-            <ChevronDown 
-              className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-              style={{ width: '20px', height: '20px', color: '#1f2937' }}
-            />
+            <span>{selectedMenu}</span>
+            <ChevronDown />
           </div>
 
           <button
+            type="button"
             className="menu-bar-voir-btn"
-            style={{
-              position: 'absolute',
-              right: '16px',
-              top: '40%',
-              transform: 'translateY(-50%)',
-              background: '#1a1a1a',
-              color: 'white',
-              padding: '8px 16px',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: 600,
-              fontSize: '12px',
-              cursor: 'pointer',
-              fontFamily: 'Montserrat, sans-serif',
-              minWidth: '60px',
-              maxWidth: '70px'
-            }}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
