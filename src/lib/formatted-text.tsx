@@ -2,118 +2,38 @@
 
 import React from 'react';
 
-/**
- * Parse **bold** et [c=#hex]texte coloré[/c]
- * Retourne des ReactNode pour affichage
- */
-export function parseFormattedText(text: string): React.ReactNode[] {
-  const parts: React.ReactNode[] = [];
-  let remaining = text;
-  let key = 0;
-  while (remaining.length > 0) {
-    const colorMatch = remaining.match(/\[c=([#a-fA-F0-9]+)\](.*?)\[\/c\]/s);
-    const boldMatch = remaining.match(/\*\*(.+?)\*\*/s);
-    const colorIdx = colorMatch ? remaining.indexOf('[c=') : -1;
-    const boldIdx = boldMatch ? remaining.indexOf('**') : -1;
-    let nextIdx = -1;
-    let match: RegExpMatchArray | null = null;
-    let type: 'color' | 'bold' = 'bold';
-    if (colorMatch && (boldIdx < 0 || colorIdx < boldIdx)) {
-      nextIdx = colorIdx;
-      match = colorMatch;
-      type = 'color';
-    } else if (boldMatch) {
-      nextIdx = boldIdx;
-      match = boldMatch;
-      type = 'bold';
-    }
-    if (match && nextIdx >= 0) {
-      if (nextIdx > 0) {
-        parts.push(<span key={key++}>{remaining.slice(0, nextIdx)}</span>);
-      }
-      if (type === 'color' && match[2] !== undefined) {
-        parts.push(
-          <span key={key++} style={{ color: match[1] }}>
-            {parseFormattedText(match[2])}
-          </span>
-        );
-      } else if (type === 'bold' && match[1] !== undefined) {
-        parts.push(
-          <strong key={key++}>{parseFormattedText(match[1])}</strong>
-        );
-      }
-      remaining = remaining.slice(nextIdx + (type === 'color' ? match[0].length : match[0].length));
-    } else {
-      parts.push(<span key={key++}>{remaining}</span>);
-      break;
-    }
-  }
-  return parts;
-}
-
 /** Version texte brut sans balises (pour aperçus) */
 export function stripFormattedText(text: string): string {
+  if (!text || typeof text !== 'string') return '';
   return text
+    .replace(/<[^>]+>/g, '')
     .replace(/\*\*(.+?)\*\*/gs, '$1')
     .replace(/\[c=[#a-fA-F0-9]+\](.*?)\[\/c\]/gs, '$1');
 }
 
 /**
- * Décode les entités HTML de manière sécurisée
+ * Enlève tout HTML et ne garde que le texte + retours à la ligne.
  */
-export function decodeHtmlEntities(text: string | null | undefined): string {
+function stripHtmlKeepNewlines(text: string): string {
   if (!text || typeof text !== 'string') return '';
-  if (typeof window === 'undefined') return text;
-  try {
-    const txt = document.createElement('textarea');
-    txt.innerHTML = text;
-    return txt.value;
-  } catch (error) {
-    console.error('Error decoding HTML entities:', error);
-    return text;
-  }
+  const decoded = typeof document !== 'undefined'
+    ? (() => { try { const t = document.createElement('textarea'); t.innerHTML = text; return t.value; } catch { return text; } })()
+    : text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  return decoded.replace(/<[^>]+>/g, '');
 }
 
 /**
- * Affiche un texte formaté avec retours à la ligne préservés.
- * Format: **gras**, [c=#hex]couleur[/c], \n pour les sauts de ligne.
- * Supporte aussi le HTML direct généré par le RichTextEditor.
+ * Affiche la description produit : uniquement retours à la ligne conservés, pas de HTML (couleur, gras).
  */
 export function FormattedTextWithBreaks({ text, className }: { text: string; className?: string }) {
   if (!text) return <span className={className}></span>;
-  
-  // Décoder les entités HTML si elles existent
-  const decodedText = decodeHtmlEntities(text);
-  
-  // Si le texte contient des balises HTML (<b>, <i>, <u>, <span style=...>), on l'affiche directement
-  const hasHtmlTags = /<[^>]+>/.test(decodedText);
-  
-  if (hasHtmlTags) {
-    // Remplacer les \n par <br> pour le HTML
-    const htmlWithBreaks = decodedText.replace(/\n/g, '<br>');
-    return (
-      <span 
-        className={className} 
-        dangerouslySetInnerHTML={{ __html: htmlWithBreaks }}
-      />
-    );
-  }
-  
-  // Sinon, parser les balises custom **bold** et [c=#hex]...[/c]
-  const lines = text.split('\n');
+
+  const plain = stripHtmlKeepNewlines(text);
+  const lines = plain.split('\n');
   const items: React.ReactNode[] = [];
-  let key = 0;
-  lines.forEach((line) => {
-    const trimmed = line.trim();
-    if (trimmed === '') {
-      items.push(<br key={key++} />);
-    } else {
-      items.push(
-        <span key={key++} style={{ display: 'block' }}>
-          {parseFormattedText(trimmed)}
-        </span>
-      );
-    }
+  lines.forEach((line, i) => {
+    if (i > 0) items.push(<br key={`br-${i}`} />);
+    items.push(<React.Fragment key={i}>{line}</React.Fragment>);
   });
   return <span className={className}>{items}</span>;
 }
