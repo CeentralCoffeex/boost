@@ -14,6 +14,7 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
   const [open, setOpen] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
   const location = useLocation();
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -41,24 +42,23 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const initData = typeof sessionStorage !== 'undefined'
-        ? sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')
-        : null;
-      
-      // Si pas d'initData, virer direct
-      if (!initData) {
-        console.error('[admin] No initData - access denied');
-        window.location.href = '/';
-        return;
-      }
-
-      const headers: Record<string, string> = {
-        'Authorization': `tma ${initData}`,
-        'X-Telegram-Init-Data': initData,
-        'Cache-Control': 'no-cache'
-      };
-
       try {
+        const initData = typeof sessionStorage !== 'undefined'
+          ? sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')
+          : null;
+        
+        if (!initData) {
+          setError('❌ Accès refusé : ouvrez depuis le bot Telegram');
+          setIsLoading(false);
+          return;
+        }
+
+        const headers: Record<string, string> = {
+          'Authorization': `tma ${initData}`,
+          'X-Telegram-Init-Data': initData,
+          'Cache-Control': 'no-cache'
+        };
+
         const res = await fetch('/api/admin/verify', {
           credentials: 'include',
           headers,
@@ -73,20 +73,30 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
           }
         }
         
-        // Pas autorisé
-        console.error('[admin] Access denied');
-        window.location.href = '/';
-      } catch (err) {
+        setError('❌ Accès refusé : vous n\'êtes pas administrateur');
+        setIsLoading(false);
+      } catch (err: any) {
         console.error('[admin] Error:', err);
-        window.location.href = '/';
+        setError(`❌ Erreur : ${err?.message || 'Impossible de vérifier l\'accès'}`);
+        setIsLoading(false);
       }
     };
 
     checkAuth();
   }, []);
 
-  if (isLoading || !isAuthenticated) {
-    return <Box sx={{ width: 1, height: '100vh' }} />;
+  if (isLoading) {
+    return <Box sx={{ width: 1, height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#000', color: '#fff' }}>
+      <div>Chargement...</div>
+    </Box>;
+  }
+
+  if (error) {
+    return <Box sx={{ width: 1, height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#1a1a1a', color: '#fff', padding: 3, textAlign: 'center', flexDirection: 'column', gap: 2 }}>
+      <div style={{ fontSize: '48px' }}>🚫</div>
+      <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{error}</div>
+      <div style={{ fontSize: '14px', opacity: 0.7 }}>Contactez un administrateur si vous pensez que c'est une erreur</div>
+    </Box>;
   }
 
   return (
