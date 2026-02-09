@@ -156,9 +156,10 @@ export const productUpdateSchema = z.object({
   image: z.string().max(1000).optional().nullable(),
   videoUrl: z.string().max(1000).optional().nullable(),
   section: z.enum(['PHARE', 'DECOUVRIR', 'CATEGORIE']).default('DECOUVRIR'),
-  categoryId: z.string().cuid().optional().nullable(),
-  featuredInRecent: z.boolean().optional(),
-  featuredInTrending: z.boolean().optional(),
+  categoryId: z.preprocess(
+    (v) => (v === '' || v === undefined ? null : v),
+    z.string().cuid().nullable()
+  ).optional(),
   variants: z.array(productVariantSchema).max(50).optional(),
 })
 export const productCreateSchema = productUpdateSchema
@@ -172,7 +173,10 @@ export const productPatchSchema = z.object({
   image: z.string().max(1000).optional().nullable(),
   videoUrl: z.string().max(1000).optional().nullable(),
   section: z.enum(['PHARE', 'DECOUVRIR', 'CATEGORIE']).optional(),
-  categoryId: z.string().cuid().optional().nullable(),
+  categoryId: z.preprocess(
+    (v) => (v === '' || v === undefined ? null : v),
+    z.string().cuid().nullable()
+  ).optional(),
 }).refine((d) => Object.keys(d).length > 0, { message: 'Au moins un champ requis' })
 
 /** Formate les erreurs Zod pour une réponse API */

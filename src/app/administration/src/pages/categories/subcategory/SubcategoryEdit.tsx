@@ -157,7 +157,7 @@ const SubcategoryEdit = (): ReactElement => {
       if (response.ok) {
         setSuccess(isEditing ? 'Sous-catégorie modifiée' : 'Sous-catégorie créée');
         const returnUrl = parentId ? `/categories?edit=${parentId}` : '/categories';
-        setTimeout(() => navigate(returnUrl), 1500);
+        setTimeout(() => navigate(returnUrl), 500);
       } else {
         const result = await response.json();
         setError(result.error || 'Erreur lors de la sauvegarde');

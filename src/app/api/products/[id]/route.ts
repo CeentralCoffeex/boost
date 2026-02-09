@@ -86,8 +86,6 @@ export async function PUT(
           videoUrl: data.videoUrl ?? null,
           section: data.section,
           categoryId: data.categoryId ?? null,
-          featuredInRecent: data.featuredInRecent ?? undefined,
-          featuredInTrending: data.featuredInTrending ?? undefined,
         },
       });
 

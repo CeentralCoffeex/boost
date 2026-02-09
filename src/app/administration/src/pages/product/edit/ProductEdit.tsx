@@ -248,10 +248,14 @@ const ProductEdit = (): ReactElement => {
       const method = isEditing ? 'PUT' : 'POST';
       const url = isEditing ? `/api/products/${id}` : '/api/products';
 
-      const result = await fetchWithCSRF(url, { method, body: JSON.stringify(payload) });
+      const result = await fetchWithCSRF(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
       if (result.ok) {
         setSuccess('Produit enregistré avec succès');
-        setTimeout(() => navigate(-1), 1000);
+        setTimeout(() => navigate(-1), 400);
       } else {
         const data = await result.json();
         setError(data.error || 'Erreur lors de la sauvegarde');
@@ -266,6 +270,9 @@ const ProductEdit = (): ReactElement => {
 
   return (
     <Box sx={{ minHeight: '100vh', width: '100%', m: 0, p: 0, overflowX: 'hidden' }}>
+      {loading && (
+        <LinearProgress sx={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, height: 3, bgcolor: '#222', '& .MuiLinearProgress-bar': { bgcolor: 'white' } }} />
+      )}
       {/* Header */}
       <Box sx={{ 
         py: 2, 
@@ -317,7 +324,7 @@ const ProductEdit = (): ReactElement => {
                 '&:hover': { bgcolor: '#e0e0e0' }
               }}
             >
-              {loading ? 'Saving...' : 'Enregistrer'}
+              {loading ? 'Enregistrement...' : 'Enregistrer'}
             </Button>
           </Stack>
         </Stack>
