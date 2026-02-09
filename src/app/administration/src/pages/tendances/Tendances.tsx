@@ -1,5 +1,5 @@
 import { ReactElement, useEffect, useState } from 'react';
-import { Box, Card, Stack, Typography, CircularProgress, Alert } from '@mui/material';
+import { Box, Card, Stack, Typography, CircularProgress, Alert, Switch, FormControlLabel } from '@mui/material';
 import IconifyIcon from '../../components/base/IconifyIcon';
 
 interface Product {
@@ -7,6 +7,7 @@ interface Product {
   title: string;
   image: string;
   categoryId: string;
+  section: string;
 }
 
 interface Category {
@@ -15,11 +16,16 @@ interface Category {
   products: Product[];
 }
 
+const MAX_FEATURED = 10; // Limite de produits en avant par section
+
 const Tendances = (): ReactElement => {
   const [categoriesWithProducts, setCategoriesWithProducts] = useState<Category[]>([]);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isTendances, setIsTendances] = useState(true); // true = PHARE (Tendances), false = DECOUVRIR (Récents)
+  const [saving, setSaving] = useState(false);
+
+  const currentSection = isTendances ? 'PHARE' : 'DECOUVRIR';
 
   useEffect(() => {
     fetchData();
@@ -58,14 +64,6 @@ const Tendances = (): ReactElement => {
         .sort((a, b) => a.name.localeCompare(b.name));
 
       setCategoriesWithProducts(categoriesArray);
-
-      // Charger les sélections depuis localStorage
-      try {
-        const saved = localStorage.getItem('admin_featured_trending');
-        if (saved) {
-          setSelectedIds(new Set(JSON.parse(saved)));
-        }
-      } catch {}
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -73,24 +71,58 @@ const Tendances = (): ReactElement => {
     }
   };
 
-  const handleToggle = async (productId: string) => {
-    const newSelected = new Set(selectedIds);
-    if (newSelected.has(productId)) {
-      newSelected.delete(productId);
-    } else {
-      newSelected.add(productId);
-    }
-    setSelectedIds(newSelected);
+  const handleToggle = async (productId: string, currentProductSection: string) => {
+    if (saving) return;
+    setSaving(true);
 
-    // Sauvegarder dans localStorage
     try {
-      localStorage.setItem('admin_featured_trending', JSON.stringify(Array.from(newSelected)));
+      // Compter combien de produits sont déjà dans la section actuelle
+      const allProducts = categoriesWithProducts.flatMap(c => c.products);
+      const currentSectionCount = allProducts.filter(p => p.section === currentSection).length;
+      
+      // Si on ajoute et qu'on a atteint la limite
+      if (currentProductSection !== currentSection && currentSectionCount >= MAX_FEATURED) {
+        alert(`Maximum ${MAX_FEATURED} produits en avant pour ${isTendances ? 'Tendances' : 'Récents'}`);
+        setSaving(false);
+        return;
+      }
+
+      // Déterminer la nouvelle section
+      const newSection = currentProductSection === currentSection ? 'CATEGORIE' : currentSection;
+
+      // Enregistrer en base
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: newSection })
+      });
+
+      if (!response.ok) throw new Error('Erreur lors de la sauvegarde');
+
+      // Mettre à jour l'état local
+      setCategoriesWithProducts(prev =>
+        prev.map(cat => ({
+          ...cat,
+          products: cat.products.map(p =>
+            p.id === productId ? { ...p, section: newSection } : p
+          )
+        }))
+      );
+
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1500);
     } catch (error) {
       console.error('Error saving:', error);
+      alert('Erreur lors de la sauvegarde');
+    } finally {
+      setSaving(false);
     }
   };
+
+  const currentSectionProducts = categoriesWithProducts
+    .flatMap(c => c.products)
+    .filter(p => p.section === currentSection);
 
   if (loading) {
     return (
@@ -105,13 +137,59 @@ const Tendances = (): ReactElement => {
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
         <Box>
           <Typography variant="h5" fontWeight={700} color="white">
-            Gérer les tendances
+            Gérer les produits en avant
           </Typography>
           <Typography variant="body2" color="#999" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
-            Sélectionnez les produits à afficher en priorité dans "Tendances" (en vert = sélectionné)
+            Sélectionnez les produits à mettre en avant (max {MAX_FEATURED} par section)
           </Typography>
         </Box>
       </Stack>
+
+      {/* Switch Récents / Tendances */}
+      <Box sx={{ 
+        mb: 3, 
+        p: 2, 
+        bgcolor: '#111', 
+        borderRadius: 2, 
+        border: '1px solid #222',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Typography 
+            variant="subtitle1" 
+            fontWeight={700} 
+            color={!isTendances ? 'white' : '#666'}
+            sx={{ transition: 'color 0.2s' }}
+          >
+            🕐 Récents
+          </Typography>
+          <Switch
+            checked={isTendances}
+            onChange={(e) => setIsTendances(e.target.checked)}
+            sx={{
+              '& .MuiSwitch-switchBase.Mui-checked': {
+                color: '#10b981',
+              },
+              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                backgroundColor: '#10b981',
+              },
+            }}
+          />
+          <Typography 
+            variant="subtitle1" 
+            fontWeight={700} 
+            color={isTendances ? 'white' : '#666'}
+            sx={{ transition: 'color 0.2s' }}
+          >
+            🔥 Tendances
+          </Typography>
+        </Stack>
+        <Typography variant="body2" color="#999">
+          {currentSectionProducts.length} / {MAX_FEATURED} sélectionnés
+        </Typography>
+      </Box>
 
       {showSuccess && (
         <Alert 
@@ -125,7 +203,7 @@ const Tendances = (): ReactElement => {
           }}
           onClose={() => setShowSuccess(false)}
         >
-          Tendances enregistrées
+          ✓ Enregistré
         </Alert>
       )}
 
@@ -161,22 +239,23 @@ const Tendances = (): ReactElement => {
                 }}
               >
                 {category.products.map((product) => {
-                  const isSelected = selectedIds.has(product.id);
+                  const isSelected = product.section === currentSection;
                   return (
                     <Card
                       key={product.id}
-                      onClick={() => handleToggle(product.id)}
+                      onClick={() => handleToggle(product.id, product.section)}
                       sx={{
                         minWidth: 120,
                         maxWidth: 120,
-                        cursor: 'pointer',
+                        cursor: saving ? 'wait' : 'pointer',
                         border: isSelected ? '3px solid #10b981' : '2px solid #333',
                         transition: 'all 0.2s',
                         bgcolor: isSelected ? '#064e3b' : '#0a0a0a',
                         position: 'relative',
+                        opacity: saving ? 0.6 : 1,
                         '&:hover': {
                           borderColor: isSelected ? '#10b981' : '#555',
-                          transform: 'scale(1.02)',
+                          transform: saving ? 'none' : 'scale(1.02)',
                           boxShadow: isSelected ? '0 0 12px rgba(16,185,129,0.4)' : '0 0 8px rgba(255,255,255,0.1)',
                         },
                       }}
@@ -268,15 +347,23 @@ const Tendances = (): ReactElement => {
       <Box sx={{ 
         mt: 3, 
         p: 2, 
-        bgcolor: selectedIds.size > 0 ? '#064e3b' : '#111', 
+        bgcolor: currentSectionProducts.length > 0 ? '#064e3b' : '#111', 
         borderRadius: 2, 
-        border: selectedIds.size > 0 ? '1px solid #10b981' : '1px solid #222',
+        border: currentSectionProducts.length > 0 ? '1px solid #10b981' : '1px solid #222',
         transition: 'all 0.3s'
       }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Typography variant="body2" color={selectedIds.size > 0 ? 'white' : '#999'} fontWeight={600}>
-            {selectedIds.size > 0 ? `✓ ${selectedIds.size} produit(s) sélectionné(s)` : 'Aucun produit sélectionné'}
+        <Stack spacing={1}>
+          <Typography variant="body2" color={currentSectionProducts.length > 0 ? 'white' : '#999'} fontWeight={600}>
+            {currentSectionProducts.length > 0 
+              ? `✓ ${currentSectionProducts.length} produit(s) en avant dans "${isTendances ? 'Tendances' : 'Récents'}"` 
+              : `Aucun produit en avant dans "${isTendances ? 'Tendances' : 'Récents'}"`
+            }
           </Typography>
+          {currentSectionProducts.length > 0 && (
+            <Typography variant="caption" color="#999">
+              Cliquez sur un produit vert pour le retirer
+            </Typography>
+          )}
         </Stack>
       </Box>
     </Box>

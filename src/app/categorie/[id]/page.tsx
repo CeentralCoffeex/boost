@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronDown, ShoppingCart, Cannabis, Check } from 'lucide-react';
+import { ChevronLeft, ShoppingCart, Cannabis } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import ProductThumbnail from '@/components/product/ProductThumbnail';
 
@@ -220,14 +220,6 @@ export default function CategoryPage() {
                 <Cannabis size={18} strokeWidth={2} className="page-categorie-subcategory-icon" aria-hidden />
                 <span className="page-categorie-subcategory-label">{selectedSubcategoryName}</span>
               </span>
-              <span className="page-categorie-subcategory-chevron-wrap">
-                <ChevronDown
-                  size={18}
-                  strokeWidth={2}
-                  className={`page-categorie-subcategory-chevron ${subcategoryDropdownOpen ? 'rotate-180' : ''}`}
-                  aria-hidden
-                />
-              </span>
             </button>
             {subcategoryDropdownOpen && (
               <div className="page-categorie-subcategory-dropdown" role="listbox">
@@ -241,9 +233,6 @@ export default function CategoryPage() {
                     setSubcategoryDropdownOpen(false);
                   }}
                 >
-                  <span className="page-categorie-subcategory-item-check-wrap">
-                    {selectedSubcategoryId === null && <Check size={16} strokeWidth={2.5} className="page-categorie-subcategory-check" />}
-                  </span>
                   <span className="page-categorie-subcategory-item-label">Tous</span>
                 </button>
                 {subcategories.map((sub) => (
@@ -258,9 +247,6 @@ export default function CategoryPage() {
                       setSubcategoryDropdownOpen(false);
                     }}
                   >
-                    <span className="page-categorie-subcategory-item-check-wrap">
-                      {selectedSubcategoryId === sub.id && <Check size={16} strokeWidth={2.5} className="page-categorie-subcategory-check" />}
-                    </span>
                     <span className="page-categorie-subcategory-item-label">{sub.name}</span>
                   </button>
                 ))}
