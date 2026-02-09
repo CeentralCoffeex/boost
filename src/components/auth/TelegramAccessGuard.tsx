@@ -44,6 +44,25 @@ export default function TelegramAccessGuard({
   }, []);
 
   useEffect(() => {
+    const onVisible = () => {
+      const tg = (window as Window & { Telegram?: { WebApp?: { ready?: () => void; expand?: () => void } } }).Telegram?.WebApp;
+      if (tg) {
+        tg.ready?.();
+        tg.expand?.();
+      }
+      if (TELEGRAM_ONLY && getInitData()) {
+        setIsViaTelegram(true);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('pageshow', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('pageshow', onVisible);
+    };
+  }, []);
+
+  useEffect(() => {
     if (isViaTelegram === false) {
       document.documentElement.classList.add('tg-guard-blocking');
       document.body.classList.add('tg-guard-blocking');
