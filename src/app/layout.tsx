@@ -80,15 +80,16 @@ export default async function RootLayout({
         <style
           dangerouslySetInnerHTML={{
             __html: [
-              '/* Critical: header page catégorie + barre menu + bouton VOIR (affichage immédiat) */',
-              '.page-categorie{min-height:100vh;background:#f5f5f5;padding:20px;padding-top:80px;padding-bottom:120px;box-sizing:border-box;}',
-              '.page-categorie-header{position:fixed;top:0;left:0;right:0;background:#f5f5f5;padding:20px;z-index:100;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.05);box-sizing:border-box;}',
-              '.page-categorie-back,.page-categorie-back-btn{position:absolute;left:20px;background:transparent;border:none;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;cursor:pointer;}',
-              '.page-categorie-header h1{font-family:Orbitron,sans-serif;font-size:24px;font-weight:700;color:#333;margin:0;text-transform:uppercase;}',
-              '.menu-bar-section{width:100%;max-width:100%;box-sizing:border-box;position:relative;z-index:100;}',
-              '.menu-bar-wrapper{width:100%;max-width:100%;box-sizing:border-box;overflow:visible;position:relative;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.12);border:1px solid rgba(255,255,255,.5);}',
-              '.menu-bar{width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-start;min-height:56px;position:relative;padding:8px 16px 8px 24px;}',
-              '.menu-bar-voir-btn{position:absolute;right:16px;top:40%;transform:translateY(-50%);background:#1a1a1a;color:#fff;padding:8px 16px;border:none;border-radius:8px;font-weight:600;font-size:12px;cursor:pointer;font-family:Montserrat,sans-serif;min-width:60px;max-width:70px;flex-shrink:0;}',
+              '/* Critical: appliqué dès le premier rendu, !important pour ne pas être écrasé */',
+              'body .page-categorie{min-height:100vh!important;background:#f5f5f5!important;padding:20px!important;padding-top:80px!important;padding-bottom:120px!important;box-sizing:border-box!important;}',
+              'body .page-categorie-header{position:fixed!important;top:0!important;left:0!important;right:0!important;background:#f5f5f5!important;padding:20px!important;z-index:100!important;display:flex!important;align-items:center!important;justify-content:center!important;box-shadow:0 2px 8px rgba(0,0,0,.05)!important;box-sizing:border-box!important;}',
+              'body .page-categorie-back,body .page-categorie-back-btn{position:absolute!important;left:20px!important;background:transparent!important;border:none!important;border-radius:50%!important;width:48px!important;height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;}',
+              'body .page-categorie-header h1{font-family:Orbitron,sans-serif!important;font-size:24px!important;font-weight:700!important;color:#333!important;margin:0!important;text-transform:uppercase!important;}',
+              'body .menu-bar-section{width:100%!important;max-width:100%!important;box-sizing:border-box!important;position:relative!important;z-index:100!important;}',
+              'body .menu-bar-wrapper{width:100%!important;max-width:100%!important;box-sizing:border-box!important;overflow:visible!important;position:relative!important;background:rgba(255,255,255,.95)!important;backdrop-filter:blur(12px)!important;-webkit-backdrop-filter:blur(12px)!important;border-radius:12px!important;box-shadow:0 8px 30px rgba(0,0,0,.12)!important;border:1px solid rgba(255,255,255,.5)!important;}',
+              'body .menu-bar{width:100%!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;min-height:56px!important;position:relative!important;padding:8px 16px 8px 24px!important;}',
+              'body .menu-bar-voir-btn{position:absolute!important;right:16px!important;top:50%!important;transform:translateY(-50%)!important;background:#1a1a1a!important;color:#fff!important;padding:8px 16px!important;border:none!important;border-radius:8px!important;font-weight:600!important;font-size:12px!important;cursor:pointer!important;font-family:Montserrat,sans-serif!important;min-width:60px!important;max-width:70px!important;flex-shrink:0!important;appearance:none!important;-webkit-appearance:none!important;}',
+              'body .mobile-bottom-box{bottom:calc(30px + env(safe-area-inset-bottom,0))!important;}',
             ].join(''),
           }}
         />
