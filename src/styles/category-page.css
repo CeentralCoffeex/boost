@@ -1,4 +1,14 @@
 /* Page catégorie – CSS critique chargé avec le layout pour affichage immédiat */
+
+/* Flèche retour bien visible (icône agrandie) */
+.page-categorie-back-btn .page-categorie-back-icon,
+.page-categorie-back-btn svg {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+}
+
 .page-categorie-selector-row {
   display: flex;
   justify-content: center;
@@ -13,7 +23,7 @@
   max-width: 280px;
 }
 
-/* Barre (une ligne) : icône + "Tous" + flèche alignés, pas un gros rectangle */
+/* Barre (une ligne) : icône + texte + flèche sur la même ligne, flèche à droite après le texte */
 .page-categorie-subcategory-trigger {
   display: flex;
   flex-direction: row;
@@ -24,6 +34,7 @@
   width: 100%;
   height: 40px;
   padding: 0 14px;
+  box-sizing: border-box;
   border-radius: 8px;
   border: 1px solid rgba(0,0,0,0.08);
   background: #f3f4f6;
@@ -31,20 +42,25 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 14px;
   font-weight: 500;
+  line-height: 1;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  overflow: hidden;
 }
 .page-categorie-subcategory-trigger:hover {
   background: #e5e7eb;
 }
+/* Icône : à gauche, centrée verticalement dans la barre */
 .page-categorie-subcategory-icon {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0;
   color: #6b7280;
 }
+/* Texte au milieu, ne déborde pas */
 .page-categorie-subcategory-label {
   flex: 1;
   text-align: left;
@@ -52,17 +68,37 @@
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
 }
+/* Flèche à droite après le texte, même ligne, centrée */
 .page-categorie-subcategory-chevron {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0;
+  margin-left: 4px;
   color: #6b7280;
   transition: transform 0.2s;
 }
+/* SVGs (Lucide) alignés au centre dans la barre */
+.page-categorie-subcategory-trigger > svg {
+  flex-shrink: 0;
+  margin: 0;
+}
 .page-categorie-subcategory-chevron.rotate-180 {
   transform: rotate(180deg);
+}
+/* Force tout sur une seule ligne, rien en dessous de l’icône */
+.page-categorie-subcategory-trigger > * {
+  align-self: center;
+  flex-shrink: 0;
+}
+.page-categorie-subcategory-trigger > .page-categorie-subcategory-label {
+  flex-shrink: 1;
+  min-width: 0;
 }
 .page-categorie-subcategory-dropdown {
   position: absolute;

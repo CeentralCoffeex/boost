@@ -136,7 +136,7 @@ export default function CheckoutPage() {
             cursor: 'pointer',
           }}
         >
-          <ChevronLeft size={28} strokeWidth={2} color="#333" className="page-panier-back-icon" />
+          <ChevronLeft size={40} strokeWidth={2.5} color="#333" className="page-panier-back-icon" />
         </button>
         <h1 style={{
           fontFamily: "'Orbitron', sans-serif",

@@ -619,8 +619,9 @@
 [data-theme="blanc"] .page-product .page-product-category { background-color: #0a0a0a !important; color: #ffffff !important; }
 [data-theme="blanc"] .page-product .page-product-back-btn,
 [data-theme="blanc"] .page-product.page-product-loading .page-product-back-btn {
-  background: rgba(0,0,0,0.08) !important;
-  border-color: rgba(0,0,0,0.15) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 [data-theme="blanc"] .page-product .page-product-back-btn,
 [data-theme="blanc"] .page-product .page-product-back-btn svg,
@@ -720,8 +721,9 @@
   background-color: #1976d2 !important;
 }
 [data-theme="blue-white"] .page-product .page-product-back-btn {
-  background: rgba(255,255,255,0.2) !important;
-  border-color: rgba(255,255,255,0.4) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 [data-theme="blue-white"] .page-product .page-product-back-btn,
 [data-theme="blue-white"] .page-product .page-product-back-btn svg,
@@ -924,8 +926,9 @@
 [data-theme="noir"] .page-product .page-product-cta-btn,
 [data-theme="noir"] .page-product .page-product-add-to-cart-btn { background-color: #404040 !important; color: #ffffff !important; }
 [data-theme="noir"] .page-product .page-product-back-btn {
-  background: rgba(255,255,255,0.15) !important;
-  border-color: rgba(255,255,255,0.3) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 [data-theme="noir"] .page-product .page-product-back-btn,
 [data-theme="noir"] .page-product .page-product-back-btn svg,

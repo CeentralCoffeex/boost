@@ -182,7 +182,7 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
             zIndex: 1
           }}
         >
-          <ChevronLeft size={28} strokeWidth={2} color="#333" className="page-profil-back-icon" />
+          <ChevronLeft size={40} strokeWidth={2.5} color="#333" className="page-profil-back-icon" />
         </button>
 
         <h1 style={{

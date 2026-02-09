@@ -264,34 +264,57 @@ button.text-white * {
   position: relative;
 }
 
+/* Page produit : uniquement l’icône flèche en haut à gauche, rien autour (pas de barre, pas de cadre) */
 .page-product-back-btn {
   position: fixed;
   top: 16px;
   left: 16px;
   z-index: 2000;
-  border: none;
-  border-radius: 0;
-  width: 44px;
-  height: 44px;
-  display: flex;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  padding: 8px !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: #fff;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  background: transparent;
-  color: #fff;
+}
+.page-product-back-btn:hover,
+.page-product-back-btn:focus,
+.page-product-back-btn:active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
-/* Flèche retour en haut à gauche de la vidéo/image, sans rectangle */
+/* Sur la vidéo/image : même chose, juste l’icône */
 .page-product-back-btn--on-video {
   position: absolute;
   top: 12px;
   left: 12px;
   z-index: 10;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  padding: 8px !important;
+  margin: 0 !important;
   background: transparent !important;
   border: none !important;
+  box-shadow: none !important;
   color: #ffffff !important;
-  width: 44px;
-  height: 44px;
+}
+.page-product-back-btn--on-video:hover,
+.page-product-back-btn--on-video:focus,
+.page-product-back-btn--on-video:active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .page-product-back-btn--on-video svg,
@@ -316,6 +339,15 @@ button.text-white * {
   top: 20px;
   left: 20px;
   color: #0a0a0a;
+}
+
+/* Panier et checkout : flèche retour bien visible */
+.page-panier .page-panier-back-btn .page-panier-back-icon,
+.page-panier .page-panier-back-btn svg {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
 }
 
 .page-product-media-container {
@@ -490,11 +522,22 @@ button.text-white * {
 .page-product-success-modal-btn-cart {
   border: none;
   background-color: #22c55e;
-  color: white;
+  color: #ffffff !important;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 14px 20px;
+}
+
+/* Texte et icône "Voir mon panier" toujours en blanc */
+.page-product-success-modal-btn-cart,
+.page-product-success-modal-btn-cart *,
+.page-product-success-modal-btn-cart svg,
+.page-product-success-modal-btn-cart path,
+.page-product-success-modal-btn-cart span {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: #ffffff !important;
 }
 
 .page-product-success-modal-btn-cart-inner {
@@ -504,18 +547,28 @@ button.text-white * {
   gap: 10px;
   flex-wrap: nowrap;
   white-space: nowrap;
+  color: #ffffff !important;
 }
 
 .page-product-success-modal-btn-cart-inner svg {
   flex-shrink: 0;
   width: 20px;
   height: 20px;
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+.page-product-success-modal-btn-cart-inner svg path {
+  stroke: #ffffff !important;
+  fill: #ffffff !important;
 }
 
 .page-product-success-modal-btn-cart-inner span {
   font-size: 15px;
   font-weight: 600;
   font-family: 'Montserrat', sans-serif;
+  color: #ffffff !important;
 }
 
 .page-product-hidden-video {
@@ -572,7 +625,7 @@ button.text-white * {
 }
 
 .page-product-title {
-  font-family: 'Orbitron', sans-serif !important;
+  font-family: 'Rajdhani', sans-serif !important;
   font-size: clamp(1.1rem, 4.5vw, 1.5rem) !important;
   font-weight: 700 !important;
   color: #0a0a0a;
@@ -582,22 +635,30 @@ button.text-white * {
   flex: 1;
 }
 
-/* Panier : rond à droite (toujours cercle) */
+/* Panier : cercle strict à droite (jamais ovale) */
 .page-product-cta-btn {
-  width: 56px;
-  height: 56px;
-  min-width: 56px;
-  min-height: 56px;
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
+  max-width: 56px !important;
+  max-height: 56px !important;
+  aspect-ratio: 1 !important;
   border-radius: 50% !important;
   background: #0a0a0a;
   color: #ffffff;
   border: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  padding: 0 !important;
   box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+.page-product-cta-btn svg {
+  flex-shrink: 0;
 }
 
 /* Chips catégorie / tag */
@@ -631,6 +692,7 @@ button.text-white * {
   margin: 0;
   font-size: 13px;
   color: #374151;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .page-product-desc-p--muted {
@@ -641,6 +703,7 @@ button.text-white * {
 .page-product-desc-label {
   font-weight: 600;
   color: #0a0a0a;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* Variantes */
@@ -695,7 +758,7 @@ button.text-white * {
   color: #0a0a0a;
   font-size: 12px;
   font-weight: 600;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: 1.2;
 }
 
@@ -704,7 +767,7 @@ button.text-white * {
   font-size: 14px;
   font-weight: 700;
   color: #0a0a0a;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* Bloc panier intégré (quantité + prix + bouton) */
@@ -748,7 +811,7 @@ button.text-white * {
   color: #666;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .page-product-total-price {
@@ -763,23 +826,23 @@ button.text-white * {
   font-weight: 600;
   color: #666;
   text-transform: uppercase;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .page-product-total-value {
   font-size: 20px;
   font-weight: 700;
   color: #0a0a0a;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: 1;
 }
 
-/* Bouton Ajouter au panier */
+/* Bouton Ajouter au panier : icône + texte sur la même ligne */
 .page-product-add-to-cart-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 0;
   width: 100%;
   padding: 16px 20px;
   border-radius: 12px;
@@ -788,12 +851,22 @@ button.text-white * {
   color: #ffffff;
   font-size: 14px;
   font-weight: 700;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(0,0,0,0.25);
   transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+.page-product-add-to-cart-btn-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+.page-product-add-to-cart-btn-inner svg {
+  flex-shrink: 0;
 }
 .page-product-add-to-cart-btn:hover {
   transform: translateY(-2px);

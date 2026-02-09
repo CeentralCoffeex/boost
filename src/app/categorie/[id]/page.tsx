@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { ChevronLeft, ChevronDown, ShoppingCart, Cannabis, Check } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import ProductThumbnail from '@/components/product/ProductThumbnail';
@@ -71,9 +72,6 @@ export default function CategoryPage() {
     router.push('/');
   };
 
-  const handleProductClick = (productId: string) => {
-    router.push(`/product/${productId}`);
-  };
 
   // Fermer le dropdown au clic extérieur
   useEffect(() => {
@@ -193,7 +191,7 @@ export default function CategoryPage() {
             cursor: 'pointer',
           }}
         >
-          <ChevronLeft size={28} strokeWidth={2} color="#333" className="page-categorie-back-icon" />
+          <ChevronLeft size={40} strokeWidth={2.5} color="#333" className="page-categorie-back-icon" />
         </button>
         <h1 style={{
           fontFamily: "'Orbitron', sans-serif",
@@ -301,10 +299,12 @@ export default function CategoryPage() {
           margin: '0 auto',
         }}>
           {displayedProducts.map((product) => (
-            <div 
-              key={product.id} 
+            <Link
+              key={product.id}
+              href={`/product/${product.id}`}
+              prefetch={true}
+              scroll={false}
               className="page-categorie-card"
-              onClick={() => handleProductClick(product.id)}
               style={{
                 background: 'white',
                 borderRadius: '16px',
@@ -316,9 +316,11 @@ export default function CategoryPage() {
                 cursor: 'pointer',
                 transition: 'transform 0.2s',
                 minWidth: 0,
+                textDecoration: 'none',
+                color: 'inherit',
               }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
             >
               {/* Image ou frame vidéo */}
               <div className="page-categorie-card-img" style={{
@@ -343,7 +345,7 @@ export default function CategoryPage() {
               </div>
 
               {/* Info */}
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 {(product.categoryId ? (subcategories.find(s => s.id === product.categoryId)?.name ?? category.name) : category.name) && (
                   <span className="page-categorie-card-category">
                     {product.categoryId ? (subcategories.find(s => s.id === product.categoryId)?.name ?? category.name) : category.name}
@@ -372,19 +374,26 @@ export default function CategoryPage() {
                 </p>
               </div>
 
-              {/* Icon Cart */}
-              <div className="page-categorie-card-cart" style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                backgroundColor: '#f0f0f0',
-              }}>
-                 <ShoppingCart size={20} color="#333" className="page-categorie-cart-icon" />
+              {/* Icon Cart : clic n'ouvre pas le produit */}
+              <div
+                className="page-categorie-card-cart"
+                role="button"
+                tabIndex={0}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  backgroundColor: '#f0f0f0',
+                }}
+              >
+                <ShoppingCart size={20} color="#333" className="page-categorie-cart-icon" />
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

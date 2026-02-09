@@ -42,12 +42,10 @@ function getInitialProduct(_id: string | string[] | undefined): Product | null {
 export default function ProductDetail() {
   const params = useParams();
   const router = useRouter();
-  const [product, setProduct] = useState<Product | null>(() => getInitialProduct(params?.id as string | undefined));
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(() => {
-    const p = getInitialProduct(params?.id as string | undefined);
-    const first = p?.variants?.[0];
-    return first ?? null;
-  });
+  const productId = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : undefined;
+  const [product, setProduct] = useState<Product | null>(() => getInitialProduct(productId));
+  const [loadError, setLoadError] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [videoPosterUrl, setVideoPosterUrl] = useState<string | null>(null);
@@ -70,19 +68,35 @@ export default function ProductDetail() {
   };
 
   useEffect(() => {
-    if (params.id) {
-      fetch(`/api/products/${params.id}`, { cache: 'no-store' })
-        .then(res => res.json())
-        .then(data => {
-          setProduct({ ...data, price: data.price || data.basePrice });
-          if (data.variants && data.variants.length > 0) {
-            const sorted = [...data.variants].sort((a, b) => (parseFloat(String(a.price).replace(',', '.')) || 0) - (parseFloat(String(b.price).replace(',', '.')) || 0));
-            setSelectedVariant(sorted[0]);
-          }
-        })
-        .catch(console.error);
-    }
-  }, [params.id]);
+    if (!productId) return;
+    setLoadError(false);
+    let cancelled = false;
+    fetch(`/api/products/${productId}`, { cache: 'no-store' })
+      .then(res => res.json())
+      .then(data => {
+        if (cancelled) return;
+        if (data?.error) {
+          setProduct(null);
+          setLoadError(true);
+          return;
+        }
+        setLoadError(false);
+        setProduct({ ...data, price: data.price || data.basePrice });
+        if (data.variants && data.variants.length > 0) {
+          const sorted = [...data.variants].sort((a: ProductVariant, b: ProductVariant) => (parseFloat(String(a.price).replace(',', '.')) || 0) - (parseFloat(String(b.price).replace(',', '.')) || 0));
+          setSelectedVariant(sorted[0]);
+        } else {
+          setSelectedVariant(null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProduct(null);
+          setLoadError(true);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [productId]);
 
   useEffect(() => {
     if (!product?.videoUrl) return;
@@ -130,10 +144,24 @@ export default function ProductDetail() {
     return () => { hidden.remove(); };
   }, [product?.videoUrl]);
 
+  if (loadError) {
+    return (
+      <div className="page-product page-product-loading">
+        <button className="page-product-back-btn" onClick={handleBack} aria-label="Retour">
+          <ArrowLeft size={32} />
+        </button>
+        <div style={{ padding: '80px 20px 20px', textAlign: 'center', fontFamily: "'Montserrat', sans-serif" }}>
+          <p style={{ margin: 0, color: '#666' }}>Produit introuvable.</p>
+          <button type="button" onClick={handleBack} style={{ marginTop: 16, padding: '10px 20px', cursor: 'pointer' }}>Retour</button>
+        </div>
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="page-product page-product-loading">
-        <button className="page-product-back-btn" onClick={handleBack}>
+        <button className="page-product-back-btn" onClick={handleBack} aria-label="Retour">
           <ArrowLeft size={32} />
         </button>
       </div>
@@ -383,8 +411,10 @@ export default function ProductDetail() {
                   setQuantity(1);
                 }}
               >
-                <ShoppingCart size={20} strokeWidth={2.5} />
-                Ajouter au panier
+                <span className="page-product-add-to-cart-btn-inner">
+                  <ShoppingCart size={20} strokeWidth={2.5} />
+                  <span>Ajouter au panier</span>
+                </span>
               </button>
             </motion.div>
           )}
