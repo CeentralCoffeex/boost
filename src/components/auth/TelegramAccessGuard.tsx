@@ -3,47 +3,48 @@
 import { useEffect, useState } from 'react';
 import { getInitData } from '@/lib/telegram-client';
 
-// Injected at build time via next.config.js env (from TELEGRAM_ONLY in .env)
 const TELEGRAM_ONLY = process.env.NEXT_PUBLIC_TELEGRAM_ONLY === 'true';
 
+function getInitialViaTelegram(): boolean | null {
+  if (typeof window === 'undefined') return null;
+  if (!TELEGRAM_ONLY) return true;
+  return getInitData() ? true : null;
+}
+
 /**
- * Bloque l'accès au site si l'utilisateur n'ouvre pas via Telegram WebApp.
- * initData disponible dès le chargement (script beforeInteractive).
+ * En mode TELEGRAM_ONLY, bloque l'accès si pas ouvert via Telegram.
+ * Sinon on affiche le contenu tout de suite (pas d'écran de chargement).
  */
 export default function TelegramAccessGuard({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [isViaTelegram, setIsViaTelegram] = useState<boolean | null>(null);
+  const [isViaTelegram, setIsViaTelegram] = useState<boolean | null>(getInitialViaTelegram);
 
   useEffect(() => {
     if (!TELEGRAM_ONLY) {
       setIsViaTelegram(true);
       return;
     }
-    const check = () => {
-      try {
-        const initData = getInitData();
-        if (initData) {
-          setIsViaTelegram(true);
-          return;
-        }
-        // Un seul délai si script Telegram pas encore chargé
-        const t = setTimeout(() => {
-          setIsViaTelegram(!!getInitData());
-        }, 300);
-        return () => clearTimeout(t);
-      } catch {
-        setIsViaTelegram(false);
-      }
-    };
-    const done = check();
-    return typeof done === 'function' ? done : undefined;
+    if (getInitData()) {
+      setIsViaTelegram(true);
+      return;
+    }
+    const t = setTimeout(() => setIsViaTelegram(!!getInitData()), 200);
+    return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
-    if (isViaTelegram === false || isViaTelegram === null) {
+    const tg = typeof window !== 'undefined' ? (window as Window & { Telegram?: { WebApp?: { ready?: () => void; expand?: () => void } } }).Telegram?.WebApp : undefined;
+    if (tg) {
+      tg.ready?.();
+      tg.expand?.();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isViaTelegram === false) {
       document.documentElement.classList.add('tg-guard-blocking');
       document.body.classList.add('tg-guard-blocking');
       return () => {
@@ -53,11 +54,7 @@ export default function TelegramAccessGuard({
     }
   }, [isViaTelegram]);
 
-  if (isViaTelegram === null) {
-    return <div className="tg-guard-loading" />;
-  }
-
-  if (!isViaTelegram) {
+  if (isViaTelegram === false) {
     return (
       <div className="tg-guard-overlay">
         <div className="tg-guard-box">
