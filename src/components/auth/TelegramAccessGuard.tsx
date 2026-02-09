@@ -44,16 +44,6 @@ export default function TelegramAccessGuard({
   }, []);
 
   useEffect(() => {
-    const onVisible = () => {
-      if (TELEGRAM_ONLY && getInitData()) {
-        setIsViaTelegram(true);
-      }
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, []);
-
-  useEffect(() => {
     if (isViaTelegram === false) {
       document.documentElement.classList.add('tg-guard-blocking');
       document.body.classList.add('tg-guard-blocking');

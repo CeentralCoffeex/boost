@@ -79,6 +79,14 @@ export default async function RootLayout({
         <Script src="https://telegram.org/js/telegram-web-app.js?59" strategy="beforeInteractive" nonce={nonce} />
       </head>
       <body className={`${inter.className} ${orbitron.variable} ${rajdhani.variable} ${dancingScript.variable}`}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: [
+              '(function(){var n=0;function go(){try{var t=window.Telegram&&window.Telegram.WebApp;if(t){t.ready();t.expand();return;}}catch(e){}',
+              'n++;if(n<10)setTimeout(go,50);}go();})();',
+            ].join(''),
+          }}
+        />
         <AuthSessionProvider>
           <ErrorBoundary>
             <TelegramAccessGuard>
