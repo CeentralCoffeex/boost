@@ -380,6 +380,15 @@ def _load_config():
         # Gestion dynamique des boutons
         "hidden_buttons": [],  # ex: ["infos", "contact", "miniapp", "instagram", "potato", "linktree", "tg", "ig_backup", "bots"]
         "custom_buttons": [],  # liste d'objets: {id, label, type: "url"|"message", value}
+        "miniapp_label": "GhostLine13 MiniApp",
+        "infos_label": "Informations ℹ️",
+        "contact_label": "Contact 📱",
+        "potato_label": "Potato 🥔",
+        "tg_label": "Telegram 📸",
+        "instagram_label": "Instagram",
+        "ig_backup_label": "Instagram Backup",
+        "linktree_label": "Linktree",
+        "bots_label": "Bots 🤖",
     }
     try:
         with open(_CONFIG_PATH, "r", encoding="utf-8") as f:
@@ -395,9 +404,12 @@ def _load_config():
     return defaults
 
 def _save_config(cfg: dict):
+    """Sauvegarde en fusionnant avec la config existante pour ne jamais perdre de clés."""
     try:
+        existing = _load_config()
+        existing.update(cfg)
         with open(_CONFIG_PATH, "w", encoding="utf-8") as f:
-            json.dump(cfg, f, ensure_ascii=False, indent=2)
+            json.dump(existing, f, ensure_ascii=False, indent=2)
     except Exception:
         pass
 
@@ -488,39 +500,83 @@ async def _get_welcome_media():
     return None
 
 
+def _get_default_button_label(cfg, key):
+    """Label des boutons par défaut (config ou valeur par défaut)."""
+    defaults = {
+        "infos": "Informations ℹ️", "contact": "Contact 📱", "miniapp": "GhostLine13 MiniApp",
+        "potato": "Potato 🥔", "tg": "Telegram 📸", "instagram": "Instagram",
+        "ig_backup": "Instagram Backup", "linktree": "Linktree", "bots": "Bots 🤖",
+    }
+    cfg_key = f"{key}_label" if key != "miniapp" else "miniapp_label"
+    return cfg.get(cfg_key) or defaults.get(key, "Bouton")
+
+
 def _build_welcome_keyboard_layout(cfg, hidden=None, bot_username=None):
     """
-    Clavier d'accueil : uniquement les boutons personnalisés (2 par ligne)
+    Clavier d'accueil : boutons par défaut (non masqués) + boutons personnalisés (2 par ligne)
     """
-    rows = []
+    try:
+        rows = []
+        hidden = list(cfg.get("hidden_buttons", [])) if isinstance(cfg.get("hidden_buttons"), list) else []
 
-    # Boutons personnalisés : 2 par ligne
-    customs = cfg.get("custom_buttons", [])
-    if customs:
-        temp_row = []
-        for c in customs:
-            label = c.get("label", "Bouton")
-            cid = c.get("id")
-            ctype = c.get("type", "message")
-            value = c.get("value", "")
-            
-            if ctype == "url" and value:
-                btn = InlineKeyboardButton(label, url=value)
-            else:
-                btn = InlineKeyboardButton(label, callback_data=f"custom:{cid}")
-            
-            temp_row.append(btn)
-            
-            # 2 boutons par ligne
-            if len(temp_row) == 2:
+        # Boutons par défaut (infos, contact, miniapp, potato, etc.)
+        default_buttons = [
+            ("infos", "message", lambda c: c.get("infos_text", "")),
+            ("contact", "message", lambda c: c.get("contact_text", "")),
+            ("miniapp", "url", lambda c: c.get("miniapp_url", "")),
+            ("potato", "url", lambda c: c.get("potato_url", "")),
+            ("tg", "url", lambda c: c.get("telegram_channel_url", "")),
+            ("instagram", "url", lambda c: c.get("instagram_url", "")),
+            ("ig_backup", "url", lambda c: c.get("instagram_backup_url", "")),
+            ("linktree", "url", lambda c: c.get("linktree_url", "")),
+            ("bots", "url", lambda c: c.get("bots_url", "")),
+        ]
+        for key, btype, get_val in default_buttons:
+            if key in hidden:
+                continue
+            value = get_val(cfg) if callable(get_val) else get_val
+            label = _get_default_button_label(cfg, key)
+            if btype == "url" and value and str(value).strip():
+                if key == "miniapp":
+                    try:
+                        mode = os.getenv("MINIAPP_OPEN_MODE", "webapp").lower()
+                        if mode == "webapp":
+                            rows.append([InlineKeyboardButton(label, web_app=WebAppInfo(url=str(value).strip()))])
+                        else:
+                            rows.append([InlineKeyboardButton(label, url=str(value).strip())])
+                    except Exception:
+                        rows.append([InlineKeyboardButton(label, url=str(value).strip())])
+                else:
+                    rows.append([InlineKeyboardButton(label, url=str(value).strip())])
+            elif btype == "message":
+                rows.append([InlineKeyboardButton(label, callback_data=key)])
+            elif btype == "url" and (not value or not str(value).strip()):
+                rows.append([InlineKeyboardButton(label, callback_data=f"nolink_{key}")])
+
+        # Boutons personnalisés : 2 par ligne
+        customs = cfg.get("custom_buttons", []) if isinstance(cfg.get("custom_buttons"), list) else []
+        if customs:
+            temp_row = []
+            for c in customs:
+                label = c.get("label", "Bouton")
+                cid = c.get("id")
+                ctype = c.get("type", "message")
+                value = c.get("value", "")
+                if ctype == "url" and value:
+                    btn = InlineKeyboardButton(label, url=value)
+                else:
+                    btn = InlineKeyboardButton(label, callback_data=f"custom:{cid}")
+                temp_row.append(btn)
+                if len(temp_row) == 2:
+                    rows.append(temp_row)
+                    temp_row = []
+            if temp_row:
                 rows.append(temp_row)
-                temp_row = []
-        
-        # Ajouter le dernier bouton s'il reste
-        if temp_row:
-            rows.append(temp_row)
 
-    return InlineKeyboardMarkup(rows) if rows else InlineKeyboardMarkup([[]])
+        return InlineKeyboardMarkup(rows) if rows else InlineKeyboardMarkup([[]])
+    except Exception as e:
+        print(f"[ERROR] _build_welcome_keyboard_layout: {e}")
+        return InlineKeyboardMarkup([[]])
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1991,15 +2047,15 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
         else:
             # Bouton par défaut
             label_map = {
-                "infos": ("Informations ℹ️", "message", cfgv.get("infos_text", "")),
-                "contact": ("Contact 📱", "message", cfgv.get("contact_text", "")),
-                "miniapp": ("MiniApp", "url", cfgv.get("miniapp_url", "")),
-                "instagram": ("Instagram", "url", cfgv.get("instagram_url", "")),
-                "potato": ("Potato 🥔", "url", cfgv.get("potato_url", "")),
-                "linktree": ("Linktree", "url", cfgv.get("linktree_url", "")),
-                "tg": ("Canal Telegram", "url", cfgv.get("telegram_channel_url", "")),
-                "ig_backup": ("Instagram Backup", "url", cfgv.get("instagram_backup_url", "")),
-                "bots": ("Bots 🤖", "url", cfgv.get("bots_url", "")),
+                "infos": (_get_default_button_label(cfgv, "infos"), "message", cfgv.get("infos_text", "")),
+                "contact": (_get_default_button_label(cfgv, "contact"), "message", cfgv.get("contact_text", "")),
+                "miniapp": (_get_default_button_label(cfgv, "miniapp"), "url", cfgv.get("miniapp_url", "")),
+                "instagram": (_get_default_button_label(cfgv, "instagram"), "url", cfgv.get("instagram_url", "")),
+                "potato": (_get_default_button_label(cfgv, "potato"), "url", cfgv.get("potato_url", "")),
+                "linktree": (_get_default_button_label(cfgv, "linktree"), "url", cfgv.get("linktree_url", "")),
+                "tg": (_get_default_button_label(cfgv, "tg"), "url", cfgv.get("telegram_channel_url", "")),
+                "ig_backup": (_get_default_button_label(cfgv, "ig_backup"), "url", cfgv.get("instagram_backup_url", "")),
+                "bots": (_get_default_button_label(cfgv, "bots"), "url", cfgv.get("bots_url", "")),
             }
             if ident in label_map:
                 label, btype, value = label_map[ident]
@@ -2856,25 +2912,27 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if not new_name:
             await msg.reply_text("❌ Le nom ne peut pas être vide.")
             return
-        
+
+        cfg = _load_config()
         editing = context.user_data.get("editing_button", {})
         kind = editing.get("kind")
         ident = editing.get("id")
-        
+
         if kind == "c":
             # Bouton personnalisé
             customs = list(cfg.get("custom_buttons", []))
             updated = False
+            found_c = None
             for c in customs:
                 if str(c.get("id")) == str(ident):
                     c["label"] = new_name
+                    found_c = c
                     updated = True
                     break
-            if updated:
+            if updated and found_c:
                 cfg["custom_buttons"] = customs
                 _save_config(cfg)
-                # Retourner à l'interface de modification
-                button_info = {"label": new_name, "type": c.get("type", "?"), "value": c.get("value", "")}
+                button_info = {"label": new_name, "type": found_c.get("type", "?"), "value": found_c.get("value", "")}
                 context.user_data["editing_button"]["info"] = button_info
                 display_value = button_info["value"][:100] + "..." if len(button_info["value"]) > 100 else button_info["value"]
                 text = f"✅ Nom modifié !\n\n✏️ MODIFICATION DU BOUTON\n\n📝 Nom actuel: {button_info['label']}\n🔧 Type: {button_info['type']}\n🔗 Valeur: {display_value}\n\nQue voulez-vous modifier ?"
@@ -2884,9 +2942,25 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
                     [InlineKeyboardButton("✅ Terminer", callback_data="adm_manage_buttons"), InlineKeyboardButton("❌ Annuler", callback_data="adm_manage_buttons")]
                 ])
                 await msg.reply_text(text, reply_markup=kb)
+            elif not updated:
+                await msg.reply_text("❌ Bouton introuvable.")
+        elif kind == "def":
+            # Tous les boutons par défaut peuvent être renommés
+            label_keys = {
+                "infos": "infos_label", "contact": "contact_label", "miniapp": "miniapp_label",
+                "potato": "potato_label", "tg": "tg_label", "instagram": "instagram_label",
+                "ig_backup": "ig_backup_label", "linktree": "linktree_label", "bots": "bots_label",
+            }
+            cfg_key = label_keys.get(ident)
+            if cfg_key:
+                cfg[cfg_key] = new_name
+                _save_config(cfg)
+                await msg.reply_text(f"✅ Nom du bouton mis à jour: {new_name}")
+            else:
+                await msg.reply_text("❌ Bouton inconnu.")
         else:
-            await msg.reply_text("❌ Modification impossible pour les boutons par défaut.")
-        
+            await msg.reply_text("❌ Modification impossible pour ce type de bouton.")
+
         context.user_data.pop("await_action", None)
         return
     
