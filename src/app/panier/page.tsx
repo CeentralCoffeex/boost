@@ -276,8 +276,8 @@ export default function PanierPage() {
                     background: '#ff4444',
                     border: 'none',
                     borderRadius: '12px',
-                    width: '44px',
-                    height: '44px',
+                    width: '48px',
+                    height: '48px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -286,7 +286,7 @@ export default function PanierPage() {
                     boxShadow: '0 2px 8px rgba(255, 68, 68, 0.3)'
                   }}
                 >
-                  <Trash2 size={24} color="white" />
+                  <Trash2 size={28} strokeWidth={2.5} color="white" />
                 </button>
               </div>
             ))}

@@ -269,21 +269,53 @@ button.text-white * {
   top: 16px;
   left: 16px;
   z-index: 2000;
-  border: 1px solid rgba(0,0,0,0.2);
-  border-radius: 50%;
+  border: none;
+  border-radius: 0;
   width: 44px;
   height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  background: rgba(255,255,255,0.9);
-  color: #0a0a0a;
+  background: transparent;
+  color: #fff;
+}
+
+/* Flèche retour en haut à gauche de la vidéo/image, sans rectangle */
+.page-product-back-btn--on-video {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  width: 44px;
+  height: 44px;
+}
+
+.page-product-back-btn--on-video svg,
+.page-product-back-btn--on-video path {
+  stroke: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Tous thèmes : sur la vidéo la flèche reste blanche sans fond */
+[data-theme] .page-product .page-product-back-btn--on-video {
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+}
+[data-theme] .page-product .page-product-back-btn--on-video svg,
+[data-theme] .page-product .page-product-back-btn--on-video path {
+  stroke: #ffffff !important;
+  color: #ffffff !important;
 }
 
 .page-product-loading .page-product-back-btn {
   top: 20px;
   left: 20px;
+  color: #0a0a0a;
 }
 
 .page-product-media-container {
@@ -457,12 +489,33 @@ button.text-white * {
 
 .page-product-success-modal-btn-cart {
   border: none;
-  background-color: #0088cc;
+  background-color: #22c55e;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  padding: 14px 20px;
+}
+
+.page-product-success-modal-btn-cart-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.page-product-success-modal-btn-cart-inner svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.page-product-success-modal-btn-cart-inner span {
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .page-product-hidden-video {
@@ -519,9 +572,9 @@ button.text-white * {
 }
 
 .page-product-title {
-  font-family: 'Orbitron', sans-serif;
-  font-size: clamp(1.25rem, 5vw, 1.75rem);
-  font-weight: 700;
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: clamp(1.1rem, 4.5vw, 1.5rem) !important;
+  font-weight: 700 !important;
   color: #0a0a0a;
   margin: 0;
   letter-spacing: 0.05em;
@@ -529,12 +582,13 @@ button.text-white * {
   flex: 1;
 }
 
+/* Panier : rond à droite (toujours cercle) */
 .page-product-cta-btn {
-  width: 72px;
-  height: 72px;
-  min-width: 72px;
-  min-height: 72px;
-  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  min-height: 56px;
+  border-radius: 50% !important;
   background: #0a0a0a;
   color: #ffffff;
   border: none;
@@ -616,17 +670,17 @@ button.text-white * {
 }
 
 .page-product-variant-btn {
-  padding: 8px 4px;
+  padding: 8px 6px;
   border-radius: 8px;
   border: 1px solid rgba(0,0,0,0.15);
   background: #f9fafb;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
+  flex-direction: column !important;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  min-height: 44px;
+  gap: 4px;
+  min-height: 48px;
 }
 
 .page-product-variant-btn.page-product-variant-selected {
@@ -635,16 +689,22 @@ button.text-white * {
   background: rgba(0,0,0,0.06);
 }
 
+/* Grammes au-dessus, prix en dessous */
 .page-product-variant-name {
+  display: block;
   color: #0a0a0a;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  line-height: 1.2;
 }
 
 .page-product-price {
-  font-size: 16px;
+  display: block;
+  font-size: 14px;
   font-weight: 700;
   color: #0a0a0a;
+  font-family: 'Montserrat', sans-serif;
 }
 
 /* Bloc panier intégré (quantité + prix + bouton) */
@@ -683,11 +743,12 @@ button.text-white * {
 }
 
 .page-product-qty-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: #666;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .page-product-total-price {
@@ -702,13 +763,14 @@ button.text-white * {
   font-weight: 600;
   color: #666;
   text-transform: uppercase;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .page-product-total-value {
-  font-size: 24px;
-  font-weight: 900;
+  font-size: 20px;
+  font-weight: 700;
   color: #0a0a0a;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   line-height: 1;
 }
 
@@ -724,9 +786,9 @@ button.text-white * {
   border: none;
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
   color: #ffffff;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
-  font-family: inherit;
+  font-family: 'Montserrat', sans-serif;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(0,0,0,0.25);
   transition: all 0.2s ease;

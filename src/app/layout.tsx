@@ -77,13 +77,16 @@ export default async function RootLayout({
   return (
     <html lang="fr" data-theme="blanc" {...(nonce ? { nonce } : {})}>
       <head>
-        {/* CSS critique barre menu : premier bloc dans head pour affichage correct dès le 1er paint (pas de flash, pas de remontage) */}
+        {/* CSS critique barre menu : même règles que index-mobile.css pour 1er paint sans conflit */}
         <style
           dangerouslySetInnerHTML={{
             __html: [
-              'body .menu-bar-section{width:100%!important;max-width:100%!important;box-sizing:border-box!important;position:relative!important;z-index:100!important;display:block!important;visibility:visible!important;opacity:1!important;}',
+              'body .menu-bar-section{width:100%!important;max-width:100%!important;box-sizing:border-box!important;position:relative!important;z-index:100!important;display:block!important;padding:0 16px 16px!important;}',
               'body .menu-bar-wrapper{width:100%!important;max-width:100%!important;box-sizing:border-box!important;overflow:visible!important;position:relative!important;display:block!important;background:rgba(255,255,255,0.95)!important;backdrop-filter:blur(12px)!important;-webkit-backdrop-filter:blur(12px)!important;border-radius:12px!important;box-shadow:0 8px 30px rgba(0,0,0,0.12)!important;border:1px solid rgba(255,255,255,0.5)!important;}',
               'body .menu-bar{width:100%!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;min-height:56px!important;position:relative!important;padding:8px 16px 8px 24px!important;}',
+              'body .menu-bar-trigger{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;cursor:pointer!important;}',
+              'body .menu-bar-label{font-family:Montserrat,sans-serif!important;font-weight:600!important;color:#1f2937!important;font-size:16px!important;}',
+              'body .menu-bar-chevron{width:20px!important;height:20px!important;color:#1f2937!important;}',
               'body .menu-bar-voir-btn{position:absolute!important;right:16px!important;top:50%!important;transform:translateY(-50%)!important;background:#1a1a1a!important;color:#fff!important;padding:8px 16px!important;border:none!important;border-radius:8px!important;font-weight:600!important;font-size:12px!important;cursor:pointer!important;font-family:Montserrat,sans-serif!important;min-width:60px!important;max-width:70px!important;flex-shrink:0!important;appearance:none!important;-webkit-appearance:none!important;box-sizing:border-box!important;}',
             ].join(''),
           }}
@@ -123,18 +126,7 @@ export default async function RootLayout({
             </TelegramAccessGuard>
           </ErrorBoundary>
         </AuthSessionProvider>
-        {/* Dernier style du document : barre menu + bouton bas. Gagne en cascade sur tout le CSS chargé avant. */}
-        <style
-          dangerouslySetInnerHTML={{
-            __html: [
-              'body .menu-bar-section{width:100%!important;max-width:100%!important;position:relative!important;z-index:100!important;display:block!important;visibility:visible!important;opacity:1!important;}',
-              'body .menu-bar-wrapper{width:100%!important;background:rgba(255,255,255,0.95)!important;border-radius:12px!important;box-shadow:0 8px 30px rgba(0,0,0,0.12)!important;border:1px solid rgba(255,255,255,0.5)!important;position:relative!important;}',
-              'body .menu-bar{display:flex!important;align-items:center!important;justify-content:flex-start!important;min-height:56px!important;position:relative!important;padding:8px 16px 8px 24px!important;}',
-              'body .menu-bar-voir-btn{position:absolute!important;right:16px!important;top:50%!important;transform:translateY(-50%)!important;background:#1a1a1a!important;color:#fff!important;padding:8px 16px!important;border:none!important;border-radius:8px!important;font-weight:600!important;font-size:12px!important;cursor:pointer!important;font-family:Montserrat,sans-serif!important;min-width:60px!important;max-width:70px!important;}',
-              'body .mobile-bottom-box{bottom:calc(24px + env(safe-area-inset-bottom,24px))!important;}',
-            ].join(''),
-          }}
-        />
+        <style dangerouslySetInnerHTML={{ __html: 'body .mobile-bottom-box{bottom:calc(24px + env(safe-area-inset-bottom,24px))!important;}' }} />
       </body>
     </html>
   );
