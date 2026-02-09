@@ -118,18 +118,21 @@ export default function PanierPage() {
         </h1>
       </div>
 
-      {/* Liste des produits - avec scroll forcé */}
-      <div style={{
-        flex: '1 1 auto',
-        overflowY: 'scroll',
-        overflowX: 'hidden',
-        padding: '20px',
-        paddingTop: '20px',
-        paddingBottom: '200px',
-        WebkitOverflowScrolling: 'touch',
-        height: 'calc(100vh - 100px - 160px)',
-        maxHeight: 'calc(100vh - 100px - 160px)',
-      }}>
+      {/* Liste des produits - zone scrollable (minHeight: 0 obligatoire en flex pour que overflow fonctionne) */}
+      <div
+        className="page-panier-list"
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          padding: '20px',
+          paddingTop: '12px',
+          paddingBottom: '200px',
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
+        }}
+      >
         {cartItems.length === 0 ? (
           <div style={{
             background: 'white',
