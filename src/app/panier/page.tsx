@@ -119,7 +119,7 @@ export default function PanierPage() {
         overflowY: 'visible',
         padding: '20px',
         paddingTop: '20px',
-        paddingBottom: cartItems.length > 0 ? '20px' : '20px',
+        paddingBottom: cartItems.length > 0 ? '180px' : '20px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: cartItems.length === 0 ? 'center' : 'flex-start',
@@ -285,19 +285,23 @@ export default function PanierPage() {
         )}
       </div>
 
-      {/* Total et Commander */}
+      {/* Total et Commander - Fixe en bas */}
       {cartItems.length > 0 && (
-        <div className="page-panier-footer" style={{
-          flexShrink: 0,
-          padding: '0 20px',
-          paddingBottom: '30px',
-          backgroundColor: '#f5f5f5'
+        <div style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: '15px 20px',
+          paddingBottom: '20px',
+          backgroundColor: '#f5f5f5',
+          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.15)',
+          zIndex: 1000,
         }}>
           <div style={{
             background: 'white',
             borderRadius: '16px',
             padding: '20px',
-            boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.15)'
           }}>
             <div style={{
               display: 'flex',

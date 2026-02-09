@@ -72,7 +72,7 @@ export default function ClientLayout({
               {/* Arrière-plan : children (page d'accueil quand intercepté) ou HomePage (nav directe) */}
               {isProductPage && !modal ? <HomePage /> : children}
             </div>
-            <Footer />
+            {pathname !== '/panier' && pathname !== '/panier/checkout' && <Footer />}
           </div>
 
           {/* Overlay produit : apparaît au-dessus, sans glissement */}

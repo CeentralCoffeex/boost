@@ -17,7 +17,7 @@
     "test:e2e:open": "cypress open",
     "security:audit": "npm audit && npm audit fix",
     "analyze": "ANALYZE=true npm run build",
-    "db:generate": "prisma generate && npx tsx prisma/restore-data.ts || true",
+    "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
@@ -26,7 +26,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "webhook:set": "node scripts/set-telegram-webhook.js",
     "deploy": "bash scripts/deploy.sh",
-    "postinstall": "prisma generate && npx tsx prisma/restore-data.ts || true",
+    "postinstall": "prisma generate",
     "build:admin": "npm run build --prefix src/app/administration && node scripts/copy-admin.js"
   },
   "dependencies": {
