@@ -121,16 +121,14 @@ export default function PanierPage() {
       {/* Liste des produits */}
       <div style={{
         flex: 1,
-        overflowY: 'auto',
+        overflowY: 'scroll',
         overflowX: 'hidden',
         padding: '20px',
         paddingTop: '20px',
-        paddingBottom: cartItems.length > 0 ? '20px' : '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: cartItems.length === 0 ? 'center' : 'flex-start',
-        alignItems: 'center',
+        paddingBottom: '20px',
+        display: 'block',
         WebkitOverflowScrolling: 'touch',
+        minHeight: 0,
       }}>
         {cartItems.length === 0 ? (
           <div style={{
@@ -141,6 +139,7 @@ export default function PanierPage() {
             boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
             width: '100%',
             maxWidth: '340px',
+            margin: '0 auto',
           }}>
             <p style={{
               fontSize: '16px',
@@ -151,7 +150,7 @@ export default function PanierPage() {
             </p>
           </div>
         ) : (
-          <div style={{ width: '100%' }}>
+          <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}>
             {cartItems.map((item) => (
               <div key={item.id} style={{
                 background: 'white',
