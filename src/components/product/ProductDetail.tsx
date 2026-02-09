@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, usePathname } from 'next/navigation';
 import { ArrowLeft, ShoppingCart, ShoppingBag } from 'lucide-react';
 import { FormattedTextWithBreaks } from '@/lib/formatted-text';
 
@@ -41,8 +41,12 @@ function getInitialProduct(_id: string | string[] | undefined): Product | null {
 
 export default function ProductDetail() {
   const params = useParams();
+  const pathname = usePathname();
   const router = useRouter();
-  const productId = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : undefined;
+  // ID depuis l'URL pour éviter tout décalage (route interceptée / modal)
+  const idFromPath = pathname?.match(/^\/product\/([^/]+)/)?.[1];
+  const idFromParams = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : undefined;
+  const productId = (idFromPath || idFromParams)?.trim() || undefined;
   const [product, setProduct] = useState<Product | null>(() => getInitialProduct(productId));
   const [loadError, setLoadError] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);

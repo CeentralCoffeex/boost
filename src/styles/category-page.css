@@ -43,7 +43,7 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 14px;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
@@ -52,41 +52,51 @@
 .page-categorie-subcategory-trigger:hover {
   background: #e5e7eb;
 }
-/* Icône à gauche, centrée */
-.page-categorie-subcategory-icon {
+/* Icône à gauche : même ligne que le texte (SVG en block) */
+.page-categorie-subcategory-icon,
+.page-categorie-subcategory-trigger > svg.page-categorie-subcategory-icon {
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  width: 18px;
+  height: 18px;
   margin: 0;
+  padding: 0;
   color: #6b7280;
+  vertical-align: middle;
+  line-height: 0;
 }
-/* Texte : aligné au centre verticalement, ne déborde pas */
+/* Texte sur la même ligne que l'icône, centré verticalement */
 .page-categorie-subcategory-label {
   flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  line-height: 1.2;
-  display: flex;
+  line-height: 1;
+  font-size: 14px;
+  font-weight: 500;
+  align-self: center;
+  display: inline-flex;
   align-items: center;
 }
-/* Flèche à droite après le texte, même ligne, centrée */
-.page-categorie-subcategory-chevron {
+/* Flèche à droite : même ligne, centrée */
+.page-categorie-subcategory-chevron,
+.page-categorie-subcategory-trigger > svg.page-categorie-subcategory-chevron {
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  width: 18px;
+  height: 18px;
   margin: 0;
   margin-left: 4px;
+  padding: 0;
   color: #6b7280;
+  vertical-align: middle;
+  line-height: 0;
   transition: transform 0.2s;
 }
-/* SVGs (Lucide) alignés au centre dans la barre */
 .page-categorie-subcategory-trigger > svg {
   flex-shrink: 0;
   margin: 0;
@@ -97,7 +107,6 @@
 /* Force tout sur une seule ligne, rien en dessous de l’icône */
 .page-categorie-subcategory-trigger > * {
   align-self: center;
-  flex-shrink: 0;
 }
 .page-categorie-subcategory-trigger > .page-categorie-subcategory-label {
   flex-shrink: 1;
