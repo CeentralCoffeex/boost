@@ -1221,8 +1221,8 @@ def _admin_panel_caption() -> str:
 def _admin_keyboard():
     cfg = _load_config()
     base_url = (cfg.get("miniapp_url") or "").rstrip("/")
-    # Utiliser /admin (route Next.js) + hash pour la page Produits - plus fiable que /administration/index.html
-    admin_url = f"{base_url}/admin#/product" if base_url else ""
+    # Utiliser /administration/index.html directement avec hash router
+    admin_url = f"{base_url}/administration/index.html#/product" if base_url else ""
     rows = [
         [InlineKeyboardButton("📊 Statistiques", callback_data="adm_stats"), InlineKeyboardButton("💬 Utilisateurs", callback_data="adm_users")],
         [InlineKeyboardButton("💬 Message accueil", callback_data="adm_edit_welcome"), InlineKeyboardButton("☎️ Contact", callback_data="adm_edit_contact")],
@@ -1555,7 +1555,7 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
     if data == "adm_categories":
         cfg = _load_config()
         base = (cfg.get("miniapp_url") or "").rstrip("/")
-        admin_url = base + "/admin#/categories" if base else ""
+        admin_url = base + "/administration/index.html#/categories" if base else ""
         if not (cfg.get("miniapp_url") or "").strip():
             await _admin_edit("❌ Configurez miniapp_url dans les liens pour ouvrir l'admin.", reply_markup=_with_back(_admin_keyboard()))
             return
@@ -1565,7 +1565,7 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
     if data == "adm_profil_blocks":
         cfg = _load_config()
         base = (cfg.get("miniapp_url") or "").rstrip("/")
-        admin_url = base + "/admin#/profil" if base else ""
+        admin_url = base + "/administration/index.html#/profil" if base else ""
         if not (cfg.get("miniapp_url") or "").strip():
             await _admin_edit("❌ Configurez miniapp_url dans les liens pour ouvrir l'admin.", reply_markup=_with_back(_admin_keyboard()))
             return
