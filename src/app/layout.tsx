@@ -95,7 +95,7 @@ export default async function RootLayout({
               'body .page-categorie-header{position:fixed!important;top:0!important;left:0!important;right:0!important;background:#f5f5f5!important;padding:20px!important;z-index:100!important;display:flex!important;align-items:center!important;justify-content:center!important;box-shadow:0 2px 8px rgba(0,0,0,.05)!important;box-sizing:border-box!important;}',
               'body .page-categorie-back,body .page-categorie-back-btn{position:absolute!important;left:20px!important;background:transparent!important;border:none!important;border-radius:50%!important;width:48px!important;height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;}',
               'body .page-categorie-header h1{font-family:Orbitron,sans-serif!important;font-size:24px!important;font-weight:700!important;color:#333!important;margin:0!important;text-transform:uppercase!important;}',
-              'body .mobile-bottom-box{bottom:calc(30px + env(safe-area-inset-bottom,0))!important;}',
+              'body .mobile-bottom-box{bottom:calc(24px + env(safe-area-inset-bottom,24px))!important;}',
               'body .page-categorie.page-categorie-force-light,body .page-categorie.page-categorie-notfound{background-color:#f5f5f5!important;color:#333!important;}',
               'body .page-categorie.page-categorie-notfound{min-height:100vh!important;display:flex!important;align-items:center!important;justify-content:center!important;}',
             ].join(''),
@@ -123,6 +123,18 @@ export default async function RootLayout({
             </TelegramAccessGuard>
           </ErrorBoundary>
         </AuthSessionProvider>
+        {/* Dernier style du document : barre menu + bouton bas. Gagne en cascade sur tout le CSS chargé avant. */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: [
+              'body .menu-bar-section{width:100%!important;max-width:100%!important;position:relative!important;z-index:100!important;display:block!important;visibility:visible!important;opacity:1!important;}',
+              'body .menu-bar-wrapper{width:100%!important;background:rgba(255,255,255,0.95)!important;border-radius:12px!important;box-shadow:0 8px 30px rgba(0,0,0,0.12)!important;border:1px solid rgba(255,255,255,0.5)!important;position:relative!important;}',
+              'body .menu-bar{display:flex!important;align-items:center!important;justify-content:flex-start!important;min-height:56px!important;position:relative!important;padding:8px 16px 8px 24px!important;}',
+              'body .menu-bar-voir-btn{position:absolute!important;right:16px!important;top:50%!important;transform:translateY(-50%)!important;background:#1a1a1a!important;color:#fff!important;padding:8px 16px!important;border:none!important;border-radius:8px!important;font-weight:600!important;font-size:12px!important;cursor:pointer!important;font-family:Montserrat,sans-serif!important;min-width:60px!important;max-width:70px!important;}',
+              'body .mobile-bottom-box{bottom:calc(24px + env(safe-area-inset-bottom,24px))!important;}',
+            ].join(''),
+          }}
+        />
       </body>
     </html>
   );
