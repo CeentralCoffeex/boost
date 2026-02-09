@@ -216,12 +216,15 @@ export default function CategoryPage() {
               aria-expanded={subcategoryDropdownOpen}
               aria-haspopup="listbox"
             >
-              <Cannabis size={18} strokeWidth={2} className="page-categorie-subcategory-icon" />
-              <span className="page-categorie-subcategory-label">{selectedSubcategoryName}</span>
+              <span className="page-categorie-subcategory-trigger-inner">
+                <Cannabis size={18} strokeWidth={2} className="page-categorie-subcategory-icon" aria-hidden />
+                <span className="page-categorie-subcategory-label">{selectedSubcategoryName}</span>
+              </span>
               <ChevronDown
                 size={18}
                 strokeWidth={2}
                 className={`page-categorie-subcategory-chevron ${subcategoryDropdownOpen ? 'rotate-180' : ''}`}
+                aria-hidden
               />
             </button>
             {subcategoryDropdownOpen && (

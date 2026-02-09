@@ -23,16 +23,15 @@
   max-width: 280px;
 }
 
-/* Barre une ligne : grille [ icône | texte centré | flèche ] */
+/* Barre une ligne : (icône + texte) centrés | flèche à droite */
 .page-categorie-subcategory-trigger {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
   width: 100%;
-  min-height: 44px;
   height: 44px;
-  max-height: 44px;
+  min-height: 44px;
   padding: 0 14px;
   box-sizing: border-box;
   border-radius: 8px;
@@ -46,56 +45,50 @@
   cursor: pointer;
   transition: background 0.2s;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  gap: 12px;
 }
 .page-categorie-subcategory-trigger:hover {
   background: #e5e7eb;
 }
-/* Colonne 1 : icône à gauche */
-.page-categorie-subcategory-trigger .page-categorie-subcategory-icon,
-.page-categorie-subcategory-trigger > svg:first-of-type {
-  grid-column: 1;
+.page-categorie-subcategory-trigger-inner {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.page-categorie-subcategory-trigger-inner .page-categorie-subcategory-icon {
+  flex-shrink: 0;
   width: 18px;
   height: 18px;
-  min-width: 18px;
-  min-height: 18px;
+  display: block;
   margin: 0;
   padding: 0;
   color: #6b7280;
-  display: block;
-  justify-self: start;
-  align-self: center;
 }
-/* Texte sur la même ligne que l'icône, centré entre l'icône et la flèche */
-.page-categorie-subcategory-label {
-  grid-column: 2;
+.page-categorie-subcategory-trigger-inner .page-categorie-subcategory-label {
+  flex-shrink: 0;
   margin: 0;
-  padding: 0 6px;
-  text-align: center;
+  padding: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1;
   font-size: 14px;
   font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
+  text-align: center;
+  color: inherit;
 }
-/* Flèche à droite : même ligne, centrée */
-.page-categorie-subcategory-trigger .page-categorie-subcategory-chevron,
-.page-categorie-subcategory-trigger > svg:last-of-type {
-  grid-column: 3;
+.page-categorie-subcategory-chevron {
+  flex-shrink: 0;
   width: 18px;
   height: 18px;
-  min-width: 18px;
-  min-height: 18px;
+  display: block;
   margin: 0;
   padding: 0;
   color: #6b7280;
-  display: block;
-  justify-self: end;
-  align-self: center;
   transition: transform 0.2s;
 }
 .page-categorie-subcategory-chevron.rotate-180 {
