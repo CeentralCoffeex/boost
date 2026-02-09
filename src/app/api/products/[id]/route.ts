@@ -91,6 +91,7 @@ export async function PUT(
     // Utilisation d'une transaction pour mettre à jour le produit et ses variantes
     const product = await prisma.$transaction(async (tx) => {
       // 1. Mise à jour des champs du produit
+      const defaultUnit = data.defaultUnit === 'ml' ? 'none' : (data.defaultUnit ?? null);
       await tx.product.update({
         where: { id },
         data: {
@@ -101,6 +102,7 @@ export async function PUT(
           image: data.image ?? null,
           videoUrl: data.videoUrl ?? null,
           section: data.section,
+          defaultUnit: defaultUnit !== undefined ? defaultUnit : undefined,
           categoryId: data.categoryId ?? null,
         },
       });
@@ -184,6 +186,7 @@ export async function PATCH(
     if (data.image !== undefined) updateData.image = data.image;
     if (data.videoUrl !== undefined) updateData.videoUrl = data.videoUrl;
     if (data.section !== undefined) updateData.section = data.section;
+    if (data.defaultUnit !== undefined) updateData.defaultUnit = data.defaultUnit === 'ml' ? 'none' : data.defaultUnit;
     if (data.categoryId !== undefined) updateData.categoryId = data.categoryId;
 
     const product = await prisma.product.update({

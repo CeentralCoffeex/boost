@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
     }
     const data = validation.data;
 
+    const defaultUnit = data.defaultUnit === 'ml' ? 'none' : (data.defaultUnit ?? null);
     const product = await (prisma.product as any).create({
       data: {
         title: data.title,
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
         image: data.image ?? null,
         videoUrl: data.videoUrl ?? null,
         section: data.section,
+        defaultUnit,
         categoryId: data.categoryId ?? null,
         variants: {
           create: (data.variants || []).map((v) => ({

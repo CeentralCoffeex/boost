@@ -156,6 +156,7 @@ export const productUpdateSchema = z.object({
   image: z.string().max(1000).optional().nullable(),
   videoUrl: z.string().max(1000).optional().nullable(),
   section: z.enum(['PHARE', 'DECOUVRIR', 'CATEGORIE']).default('DECOUVRIR'),
+  defaultUnit: z.enum(['gramme', 'none', 'ml']).optional().nullable(),
   categoryId: z.preprocess(
     (v) => (v === '' || v === undefined ? null : v),
     z.string().cuid().nullable()
@@ -173,6 +174,7 @@ export const productPatchSchema = z.object({
   image: z.string().max(1000).optional().nullable(),
   videoUrl: z.string().max(1000).optional().nullable(),
   section: z.enum(['PHARE', 'DECOUVRIR', 'CATEGORIE']).optional(),
+  defaultUnit: z.enum(['gramme', 'none', 'ml']).optional().nullable(),
   categoryId: z.preprocess(
     (v) => (v === '' || v === undefined ? null : v),
     z.string().cuid().nullable()

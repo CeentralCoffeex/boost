@@ -24,7 +24,7 @@ interface ProductForm {
   image: string;
   videoUrl: string;
   categoryId: string;
-  defaultUnit: 'gramme' | 'ml';
+  defaultUnit: 'gramme' | 'none';
 }
 
 interface Category {
@@ -117,7 +117,7 @@ const ProductEdit = (): ReactElement => {
           image: product.image || '',
           videoUrl: product.videoUrl || '',
           categoryId: product.categoryId || '',
-          defaultUnit: product.defaultUnit || 'gramme',
+          defaultUnit: (product.defaultUnit === 'ml' || product.defaultUnit === 'none' ? 'none' : 'gramme'),
         });
         
         // Trier les variantes par prix avant de les afficher
@@ -541,7 +541,7 @@ const ProductEdit = (): ReactElement => {
                 }}
               >
                 <ToggleButton value="gramme">G (Grammes)</ToggleButton>
-                <ToggleButton value="ml">ML (Millilitres)</ToggleButton>
+                <ToggleButton value="none">Enlever G</ToggleButton>
               </ToggleButtonGroup>
             </Stack>
           </Grid>
