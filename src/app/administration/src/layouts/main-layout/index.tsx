@@ -40,9 +40,52 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
   }, [open]);
 
   useEffect(() => {
-    // BYPASS COMPLET - ACCÈS DIRECT
-    setIsAuthenticated(true);
-    setIsLoading(false);
+    const checkAuth = async () => {
+      try {
+        const initData = typeof sessionStorage !== 'undefined'
+          ? sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')
+          : null;
+        
+        const headers: Record<string, string> = { 'Cache-Control': 'no-cache' };
+        if (initData) {
+          headers['Authorization'] = `tma ${initData}`;
+          headers['X-Telegram-Init-Data'] = initData;
+        }
+
+        // Vérification rapide - timeout 3 secondes max
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+        try {
+          const verifyRes = await fetch('/api/admin/verify', {
+            credentials: 'include',
+            cache: 'no-store',
+            headers,
+            signal: controller.signal,
+          });
+          clearTimeout(timeoutId);
+          
+          const data = await verifyRes.json();
+          if (data.allowed) {
+            setIsAuthenticated(true);
+          } else {
+            window.location.href = '/';
+          }
+        } catch (err: any) {
+          clearTimeout(timeoutId);
+          // Si timeout ou erreur : refuser l'accès
+          console.error('[admin] Verification failed:', err?.message);
+          window.location.href = '/';
+        }
+      } catch (error) {
+        console.error('[admin-layout] Auth check failed');
+        window.location.href = '/';
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
   if (isLoading || !isAuthenticated) {
