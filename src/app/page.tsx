@@ -178,51 +178,13 @@ export default function HomePage() {
   useEffect(() => {
     let cancelled = false;
     
-    // Charger depuis le cache d'abord
-    const loadFromCache = () => {
-      try {
-        const cachedProducts = sessionStorage.getItem('home_products');
-        const cachedCategories = sessionStorage.getItem('home_categories');
-        const cachedTime = sessionStorage.getItem('home_cache_time');
-        
-        // Cache valide pendant 5 minutes
-        const isCacheValid = cachedTime && (Date.now() - parseInt(cachedTime)) < 5 * 60 * 1000;
-        
-        if (isCacheValid) {
-          if (cachedProducts) setProducts(JSON.parse(cachedProducts));
-          if (cachedCategories) setCategories(JSON.parse(cachedCategories));
-          return true;
-        }
-      } catch {}
-      return false;
-    };
-    
-    const hasCache = loadFromCache();
-    
-    // Charger depuis l'API (toujours, mais en arrière-plan si cache valide)
+    // Données toujours fraîches pour que les modifs admin soient visibles tout de suite
     Promise.all([
-      fetch('/api/products', { 
-        cache: 'force-cache',
-        next: { revalidate: 30 }
-      } as any).then(res => res.json()).then(data => {
-        if (!cancelled && Array.isArray(data)) {
-          setProducts(data);
-          try {
-            sessionStorage.setItem('home_products', JSON.stringify(data));
-            sessionStorage.setItem('home_cache_time', Date.now().toString());
-          } catch {}
-        }
+      fetch('/api/products', { cache: 'no-store' }).then(res => res.json()).then(data => {
+        if (!cancelled && Array.isArray(data)) setProducts(data);
       }).catch(() => {}),
-      fetch('/api/categories', {
-        cache: 'force-cache',
-        next: { revalidate: 60 }
-      } as any).then(res => res.json()).then(data => {
-        if (!cancelled && Array.isArray(data)) {
-          setCategories(data);
-          try {
-            sessionStorage.setItem('home_categories', JSON.stringify(data));
-          } catch {}
-        }
+      fetch('/api/categories', { cache: 'no-store' }).then(res => res.json()).then(data => {
+        if (!cancelled && Array.isArray(data)) setCategories(data);
       }).catch(() => {}),
     ]);
     return () => { cancelled = true; };

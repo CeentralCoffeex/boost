@@ -50,19 +50,28 @@ export async function GET(
     });
 
     if (!category) {
-      const all = await prisma.category.findMany({
-        where: { isActive: true, parentId: null },
-        include: {
-          subcategories: { orderBy: { order: 'asc' } },
-          products: {
-            orderBy: { createdAt: 'desc' },
-            include: { variants: { orderBy: [{ type: 'asc' }, { name: 'asc' }] } }
-          }
-        }
-      });
       const normalize = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
       const paramNorm = normalize(raw);
-      category = all.find(c => normalize(c.url) === paramNorm || normalize(c.name) === paramNorm) || null;
+      const lightList = await prisma.category.findMany({
+        where: { isActive: true, parentId: null },
+        select: { id: true, url: true, name: true }
+      });
+      const matched = lightList.find(c => normalize(c.url) === paramNorm || normalize(c.name) === paramNorm);
+      if (matched) {
+        category = await prisma.category.findFirst({
+          where: { id: matched.id },
+          include: {
+            parent: { select: { id: true, name: true } },
+            subcategories: { orderBy: { order: 'asc' } },
+            products: {
+              orderBy: { createdAt: 'desc' },
+              include: {
+                variants: { orderBy: [{ type: 'asc' }, { name: 'asc' }] }
+              }
+            }
+          }
+        });
+      }
     }
 
     if (!category) {
@@ -94,7 +103,9 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(category);
+    const response = NextResponse.json(category);
+    response.headers.set('Cache-Control', 'no-store, max-age=0');
+    return response;
   } catch (error) {
     console.error('Error fetching category:', error);
     return NextResponse.json(

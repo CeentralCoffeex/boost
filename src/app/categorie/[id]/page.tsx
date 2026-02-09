@@ -39,7 +39,6 @@ export default function CategoryPage() {
   const subcategoryDropdownRef = useRef<HTMLDivElement>(null);
   const fetchRef = useRef(0);
 
-  // Extraire l'id depuis le pathname (plus fiable que useParams)
   const id = pathname?.replace(/^\/categorie\/?/, '').split('/')[0]?.trim() || '';
 
   useEffect(() => {
@@ -50,7 +49,7 @@ export default function CategoryPage() {
     }
     const generation = ++fetchRef.current;
     setLoading(true);
-    fetch(`/api/categories/${encodeURIComponent(id)}`, { cache: 'no-store', credentials: 'include' })
+    fetch(`/api/categories/${encodeURIComponent(id)}`, { credentials: 'include', cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (generation !== fetchRef.current) return;
@@ -105,15 +104,38 @@ export default function CategoryPage() {
 
   if (loading) {
     return (
-      <div className="page-categorie page-categorie-loading" style={{
+      <div className="page-categorie" style={{
         minHeight: '100vh',
         backgroundColor: '#f5f5f5',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        padding: '20px',
+        paddingTop: '80px',
+        paddingBottom: '120px',
         fontFamily: "'Montserrat', sans-serif"
       }}>
-        Chargement...
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0,
+          backgroundColor: '#f5f5f5', padding: '20px', zIndex: 100,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+        }}>
+          <div style={{ width: 48, height: 48 }} />
+          <div style={{ flex: 1, height: 28, backgroundColor: '#e0e0e0', borderRadius: 8, margin: '0 16px', maxWidth: 200 }} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))', gap: 16, width: '100%', maxWidth: 1200, margin: '0 auto' }}>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} style={{
+              background: 'white', borderRadius: 16, padding: 20, display: 'flex', gap: 15, alignItems: 'center',
+              boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)'
+            }}>
+              <div style={{ width: 80, height: 80, borderRadius: 12, backgroundColor: '#e8e8e8', flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ height: 12, backgroundColor: '#e8e8e8', borderRadius: 4, marginBottom: 8, width: '60%' }} />
+                <div style={{ height: 14, backgroundColor: '#e8e8e8', borderRadius: 4, marginBottom: 6 }} />
+                <div style={{ height: 12, backgroundColor: '#e8e8e8', borderRadius: 4, width: '90%' }} />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

@@ -35,15 +35,7 @@ function getVideoMimeType(url: string): string {
   return 'video/mp4';
 }
 
-function getInitialProduct(id: string | string[] | undefined): Product | null {
-  if (typeof window === 'undefined' || !id || Array.isArray(id)) return null;
-  try {
-    const cached = sessionStorage.getItem(`product_${id}`);
-    if (cached) {
-      const data = JSON.parse(cached);
-      return { ...data, price: data.price ?? data.basePrice };
-    }
-  } catch (_) {}
+function getInitialProduct(_id: string | string[] | undefined): Product | null {
   return null;
 }
 
@@ -79,31 +71,16 @@ export default function ProductDetail() {
 
   useEffect(() => {
     if (params.id) {
-      const cachedProduct = sessionStorage.getItem(`product_${params.id}`);
-      if (cachedProduct) {
-        try {
-          const data = JSON.parse(cachedProduct);
+      fetch(`/api/products/${params.id}`, { cache: 'no-store' })
+        .then(res => res.json())
+        .then(data => {
           setProduct({ ...data, price: data.price || data.basePrice });
           if (data.variants && data.variants.length > 0) {
             const sorted = [...data.variants].sort((a, b) => (parseFloat(String(a.price).replace(',', '.')) || 0) - (parseFloat(String(b.price).replace(',', '.')) || 0));
             setSelectedVariant(sorted[0]);
           }
-        } catch {}
-      }
-      
-      fetch(`/api/products/${params.id}`, {
-        cache: 'force-cache',
-        next: { revalidate: 60 }
-      } as any).then(res => res.json()).then(data => {
-        setProduct({ ...data, price: data.price || data.basePrice });
-        if (data.variants && data.variants.length > 0) {
-          const sorted = [...data.variants].sort((a, b) => (parseFloat(String(a.price).replace(',', '.')) || 0) - (parseFloat(String(b.price).replace(',', '.')) || 0));
-          setSelectedVariant(sorted[0]);
-        }
-        try {
-          sessionStorage.setItem(`product_${params.id}`, JSON.stringify(data));
-        } catch {}
-      }).catch(console.error);
+        })
+        .catch(console.error);
     }
   }, [params.id]);
 

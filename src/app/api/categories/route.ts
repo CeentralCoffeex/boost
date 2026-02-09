@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     });
 
     const response = NextResponse.json(categories);
-    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+    response.headers.set('Cache-Control', 'no-store, max-age=0');
     return response;
   } catch (error) {
     console.error('Error fetching categories:', error);
