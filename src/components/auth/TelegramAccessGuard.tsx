@@ -5,33 +5,49 @@ import { getInitData } from '@/lib/telegram-client';
 
 const TELEGRAM_ONLY = process.env.NEXT_PUBLIC_TELEGRAM_ONLY === 'true';
 
-function getInitialViaTelegram(): boolean | null {
+/** Détecte si la page est en iframe (embed, console preview, mini fenêtre intégrée). */
+function isInIframe(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true; // accès à top bloqué = probablement iframe
+  }
+}
+
+function getInitialAllowed(): boolean | null {
   if (typeof window === 'undefined') return null;
+  if (isInIframe()) return false;
   if (!TELEGRAM_ONLY) return true;
   return getInitData() ? true : null;
 }
 
 /**
- * En mode TELEGRAM_ONLY, bloque l'accès si pas ouvert via Telegram.
- * Sinon on affiche le contenu tout de suite (pas d'écran de chargement).
+ * Bloque l'accès si :
+ * - la page est ouverte en iframe (embed, console, mini fenêtre intégrée),
+ * - ou en mode TELEGRAM_ONLY si pas ouvert via la vraie Mini App Telegram.
  */
 export default function TelegramAccessGuard({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [isViaTelegram, setIsViaTelegram] = useState<boolean | null>(getInitialViaTelegram);
+  const [allowed, setAllowed] = useState<boolean | null>(getInitialAllowed);
 
   useEffect(() => {
+    if (isInIframe()) {
+      setAllowed(false);
+      return;
+    }
     if (!TELEGRAM_ONLY) {
-      setIsViaTelegram(true);
+      setAllowed(true);
       return;
     }
     if (getInitData()) {
-      setIsViaTelegram(true);
+      setAllowed(true);
       return;
     }
-    const t = setTimeout(() => setIsViaTelegram(!!getInitData()), 200);
+    const t = setTimeout(() => setAllowed(!!getInitData()), 200);
     return () => clearTimeout(t);
   }, []);
 
@@ -44,7 +60,7 @@ export default function TelegramAccessGuard({
   }, []);
 
   useEffect(() => {
-    if (isViaTelegram === false) {
+    if (allowed === false) {
       document.documentElement.classList.add('tg-guard-blocking');
       document.body.classList.add('tg-guard-blocking');
       return () => {
@@ -52,9 +68,9 @@ export default function TelegramAccessGuard({
         document.body.classList.remove('tg-guard-blocking');
       };
     }
-  }, [isViaTelegram]);
+  }, [allowed]);
 
-  if (isViaTelegram === false) {
+  if (allowed === false) {
     return (
       <div className="tg-guard-overlay">
         <div className="tg-guard-box">
@@ -74,7 +90,7 @@ export default function TelegramAccessGuard({
           </div>
           <h1 className="tg-guard-title">Accès interdit</h1>
           <p className="tg-guard-text">
-            Ouvrez ce site depuis l&apos;application Telegram pour y accéder.
+            Ouvrez ce site uniquement depuis la Mini App Telegram (bot), pas dans un navigateur, une console ou une fenêtre intégrée.
           </p>
         </div>
       </div>

@@ -136,6 +136,10 @@ const nextConfig = {
         source: '/((?!administration).*)',
         headers: [
           {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
             key: 'X-DNS-Prefetch-Control',
             value: 'on',
           },
