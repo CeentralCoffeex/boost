@@ -18,6 +18,10 @@ function isInIframe(): boolean {
 function getInitialAllowed(): boolean | null {
   if (typeof window === 'undefined') return null;
   if (isInIframe()) return false;
+  // Exception pour les routes admin : toujours autoriser (vérification faite côté serveur)
+  if (typeof window !== 'undefined' && (window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/administration'))) {
+    return true;
+  }
   if (!TELEGRAM_ONLY) return true;
   return getInitData() ? true : null;
 }
@@ -35,6 +39,11 @@ export default function TelegramAccessGuard({
   const [allowed, setAllowed] = useState<boolean | null>(getInitialAllowed);
 
   useEffect(() => {
+    // Exception pour les routes admin : toujours autoriser (vérification faite côté serveur)
+    if (typeof window !== 'undefined' && (window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/administration'))) {
+      setAllowed(true);
+      return;
+    }
     if (isInIframe()) {
       setAllowed(false);
       return;
@@ -47,7 +56,8 @@ export default function TelegramAccessGuard({
       setAllowed(true);
       return;
     }
-    const t = setTimeout(() => setAllowed(!!getInitData()), 200);
+    // Attendre plus longtemps pour que Telegram WebApp se charge
+    const t = setTimeout(() => setAllowed(!!getInitData()), 500);
     return () => clearTimeout(t);
   }, []);
 

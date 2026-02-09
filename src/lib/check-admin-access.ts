@@ -39,6 +39,29 @@ export async function checkAdminAccess(request?: NextRequest | null): Promise<bo
     const apiKey = request.headers.get('x-api-key');
     const validApiKey = process.env.BOT_API_KEY;
     if (apiKey && validApiKey && apiKey === validApiKey) return true;
+    
+    // Si c'est une route admin et qu'on a une session valide, on autorise rapidement
+    const isAdminRoute = request.headers.get('x-admin-route') === 'true';
+    if (isAdminRoute) {
+      // Vérifier cache d'abord pour éviter timeout
+      const authHeader = request.headers.get('authorization');
+      const initDataHeader = request.headers.get('x-telegram-init-data');
+      if (authHeader?.startsWith('tma ') || initDataHeader) {
+        const initData = authHeader?.startsWith('tma ') ? authHeader.slice(4).trim() : initDataHeader?.trim() || '';
+        if (initData) {
+          const botToken = process.env.TELEGRAM_BOT_TOKEN;
+          if (botToken) {
+            const telegramUser = validateTelegramWebAppData(initData, botToken);
+            if (telegramUser) {
+              const telegramIdStr = telegramUser.id.toString();
+              const cacheKey = `tg:${telegramIdStr}`;
+              const cached = getCachedAdmin(cacheKey);
+              if (cached === true) return true; // Retour rapide si en cache
+            }
+          }
+        }
+      }
+    }
   }
 
   // initData (WebView Telegram — pas de cookies)
@@ -111,31 +134,49 @@ export async function checkAdminAccess(request?: NextRequest | null): Promise<bo
 async function checkUserAdminAccess(userId?: string, email?: string): Promise<boolean> {
   if (!userId && !email) return false;
   try {
-    const user = userId
-      ? await prisma.user.findUnique({
+    // Wrapper avec timeout de 8 secondes pour éviter les blocages
+    const userPromise = userId
+      ? prisma.user.findUnique({
           where: { id: userId },
           select: { id: true, telegramId: true, role: true },
         })
       : email
-        ? await prisma.user.findFirst({
+        ? prisma.user.findFirst({
             where: { email },
             select: { id: true, telegramId: true, role: true },
           })
-        : null;
+        : Promise.resolve(null);
+    
+    const timeoutPromise = new Promise<null>((_, reject) => 
+      setTimeout(() => reject(new Error('Database query timeout')), 8000)
+    );
+    
+    const user = await Promise.race([userPromise, timeoutPromise]);
     if (!user) return false;
 
     // config.json (bot) ou TelegramAdmin
     if (user.telegramId) {
       if (isBotAdmin(user.telegramId)) return true;
-      const dbAdmin = await prisma.telegramAdmin.findFirst({
+      
+      // Vérifier TelegramAdmin avec timeout aussi
+      const dbAdminPromise = prisma.telegramAdmin.findFirst({
         where: { telegramId: user.telegramId, isActive: true },
       });
+      const dbAdmin = await Promise.race([
+        dbAdminPromise,
+        new Promise<null>((_, reject) => setTimeout(() => reject(new Error('Database query timeout')), 8000))
+      ]).catch(() => null);
+      
       if (dbAdmin) return true;
     }
 
     return false;
-  } catch (error) {
-    console.error('[checkUserAdminAccess] ERROR:', error);
+  } catch (error: any) {
+    console.error('[checkUserAdminAccess] ERROR:', error?.message || error);
+    // En cas de timeout, on retourne false mais on log pour debugging
+    if (error?.message?.includes('timeout')) {
+      console.error('[checkUserAdminAccess] Database timeout - vérifiez DATABASE_URL avec busy_timeout=10000');
+    }
     return false;
   }
 }

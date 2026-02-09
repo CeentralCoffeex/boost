@@ -1784,10 +1784,14 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
                     if not products:
                         await _admin_edit("📦 Aucun produit trouvé.", reply_markup=_with_back(None))
                         return
-                    txt = "📦 Liste des produits:\n\n"
-                    for i, p in enumerate(products[:15], 1):
+                    txt = f"📦 Liste des produits ({len(products)} total):\n\n"
+                    # Limiter à 50 pour éviter message trop long (limite Telegram 4096 caractères)
+                    display_limit = min(len(products), 50)
+                    for i, p in enumerate(products[:display_limit], 1):
                         prix_display = _format_product_prices(p)
                         txt += f"{i}. {p.get('title', 'Sans titre')}\n   💰 {prix_display}\n\n"
+                    if len(products) > display_limit:
+                        txt += f"\n... et {len(products) - display_limit} autres produits.\nUtilisez Modifier/Supprimer pour voir tous les produits."
                     await _admin_edit(txt, reply_markup=_with_back(None))
                 else:
                     await _admin_edit(f"❌ Erreur API: {resp.status_code}", reply_markup=_with_back(None))
@@ -1811,12 +1815,20 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
                     if not products:
                         await _admin_edit("📦 Aucun produit à modifier.", reply_markup=_with_back(None))
                         return
+                    # Afficher 2 boutons par ligne pour tous les produits
                     kb_rows = []
-                    for p in products[:10]:
+                    row = []
+                    for p in products:
                         pid = p.get("id", "")
-                        title = p.get("title", "Sans titre")[:25]
-                        kb_rows.append([InlineKeyboardButton(f"✏️ {title}", callback_data=f"adm_prod_sel_edit:{pid}")])
-                    await _admin_edit("✏️ Sélectionnez un produit à modifier:", reply_markup=_with_back(InlineKeyboardMarkup(kb_rows)))
+                        title = p.get("title", "Sans titre")[:20]
+                        row.append(InlineKeyboardButton(f"✏️ {title}", callback_data=f"adm_prod_sel_edit:{pid}"))
+                        if len(row) == 2:
+                            kb_rows.append(row)
+                            row = []
+                    # Ajouter le dernier bouton s'il est seul
+                    if row:
+                        kb_rows.append(row)
+                    await _admin_edit(f"✏️ Sélectionnez un produit à modifier:\n\n📦 Total: {len(products)} produits", reply_markup=_with_back(InlineKeyboardMarkup(kb_rows)))
                 else:
                     await _admin_edit(f"❌ Erreur API: {resp.status_code}", reply_markup=_with_back(None))
         except Exception as e:
@@ -1966,12 +1978,20 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
                     if not products:
                         await _admin_edit("📦 Aucun produit à supprimer.", reply_markup=_with_back(None))
                         return
+                    # Afficher 2 boutons par ligne pour tous les produits
                     kb_rows = []
-                    for p in products[:10]:
+                    row = []
+                    for p in products:
                         pid = p.get("id", "")
-                        title = p.get("title", "Sans titre")[:25]
-                        kb_rows.append([InlineKeyboardButton(f"🗑️ {title}", callback_data=f"adm_prod_confirm_del:{pid}")])
-                    await _admin_edit("🗑️ Sélectionnez un produit à supprimer:", reply_markup=_with_back(InlineKeyboardMarkup(kb_rows)))
+                        title = p.get("title", "Sans titre")[:20]
+                        row.append(InlineKeyboardButton(f"🗑️ {title}", callback_data=f"adm_prod_confirm_del:{pid}"))
+                        if len(row) == 2:
+                            kb_rows.append(row)
+                            row = []
+                    # Ajouter le dernier bouton s'il est seul
+                    if row:
+                        kb_rows.append(row)
+                    await _admin_edit(f"🗑️ Sélectionnez un produit à supprimer:\n\n📦 Total: {len(products)} produits", reply_markup=_with_back(InlineKeyboardMarkup(kb_rows)))
                 else:
                     await _admin_edit(f"❌ Erreur API: {resp.status_code}", reply_markup=_with_back(None))
         except Exception as e:
