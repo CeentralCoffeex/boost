@@ -47,7 +47,7 @@
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-  overflow: hidden;
+  overflow: visible;
 }
 .page-categorie-subcategory-trigger:hover {
   background: #e5e7eb;
@@ -65,13 +65,13 @@
   vertical-align: middle;
   line-height: 0;
 }
-/* Texte sur la même ligne que l'icône, centré verticalement */
+/* Texte sur la même ligne que l'icône, centré entre l'icône et la flèche */
 .page-categorie-subcategory-label {
   flex: 1;
   min-width: 0;
   margin: 0;
-  padding: 0;
-  text-align: left;
+  padding: 0 4px;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -81,6 +81,7 @@
   align-self: center;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
 }
 /* Flèche à droite : même ligne, centrée */
 .page-categorie-subcategory-chevron,

@@ -837,7 +837,7 @@ button.text-white * {
   line-height: 1;
 }
 
-/* Bouton Ajouter au panier : icône + texte sur la même ligne */
+/* Bouton Ajouter au panier : icône + texte sur la même ligne, tout en blanc */
 .page-product-add-to-cart-btn {
   display: flex;
   align-items: center;
@@ -848,7 +848,7 @@ button.text-white * {
   border-radius: 12px;
   border: none;
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-  color: #ffffff;
+  color: #ffffff !important;
   font-size: 14px;
   font-weight: 700;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -858,13 +858,16 @@ button.text-white * {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+.page-product-add-to-cart-btn-inner,
+.page-product-add-to-cart-btn-inner span {
+  color: #ffffff !important;
+}
 .page-product-add-to-cart-btn-inner {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   white-space: nowrap;
-  color: #ffffff;
 }
 /* Icône panier en contour blanc (pas remplie) */
 .page-product-add-to-cart-btn-inner svg,
