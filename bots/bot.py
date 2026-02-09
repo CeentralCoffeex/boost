@@ -2021,17 +2021,49 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
         return
     # Nouveaux handlers pour modification par étapes
     if data.startswith("adm_edit_btn_name:"):
-        _, _, kind, ident = data.split(":", 3)
-        context.user_data["await_action"] = "edit_btn_name"
-        context.user_data["editing_button"] = {"kind": kind, "id": ident}
-        await _admin_edit("📝 Envoyez le nouveau nom du bouton:", reply_markup=_with_back(None))
+        try:
+            parts = data.split(":", 3)
+            print(f"[DEBUG] adm_edit_btn_name parts: {parts}")
+            if len(parts) >= 4:
+                _, _, kind, ident = parts
+            else:
+                print(f"[ERROR] Pas assez de parties dans le callback: {parts}")
+                await _admin_edit("❌ Erreur de format. Réessayez.", reply_markup=_with_back(None))
+                return
+            
+            context.user_data["await_action"] = "edit_btn_name"
+            context.user_data["editing_button"] = {"kind": kind, "id": ident}
+            
+            try:
+                await query.message.reply_text("📝 Envoyez le nouveau nom du bouton:")
+                print("[DEBUG] Message envoyé avec succès")
+            except Exception as e:
+                print(f"[ERROR] Erreur lors de l'envoi du message: {e}")
+        except Exception as e:
+            print(f"[ERROR] Erreur dans adm_edit_btn_name: {e}")
         return
     
     if data.startswith("adm_edit_btn_url:"):
-        _, _, kind, ident = data.split(":", 3)
-        context.user_data["await_action"] = "edit_btn_url"
-        context.user_data["editing_button"] = {"kind": kind, "id": ident}
-        await _admin_edit("🔗 Envoyez la nouvelle URL du bouton:", reply_markup=_with_back(None))
+        try:
+            parts = data.split(":", 3)
+            print(f"[DEBUG] adm_edit_btn_url parts: {parts}")
+            if len(parts) >= 4:
+                _, _, kind, ident = parts
+            else:
+                print(f"[ERROR] Pas assez de parties dans le callback: {parts}")
+                await _admin_edit("❌ Erreur de format. Réessayez.", reply_markup=_with_back(None))
+                return
+            
+            context.user_data["await_action"] = "edit_btn_url"
+            context.user_data["editing_button"] = {"kind": kind, "id": ident}
+            
+            try:
+                await query.message.reply_text("🔗 Envoyez la nouvelle URL du bouton:")
+                print("[DEBUG] Message envoyé avec succès")
+            except Exception as e:
+                print(f"[ERROR] Erreur lors de l'envoi du message: {e}")
+        except Exception as e:
+            print(f"[ERROR] Erreur dans adm_edit_btn_url: {e}")
         return
     
     if data.startswith("adm_confirm_edit:"):
