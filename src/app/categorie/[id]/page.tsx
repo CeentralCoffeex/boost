@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-// Remplacement de Next/Image par balises img pour éviter l'optimizer
 import { ChevronLeft, ChevronDown, ShoppingCart, Cannabis, Check } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import ProductThumbnail from '@/components/product/ProductThumbnail';

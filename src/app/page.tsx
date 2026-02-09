@@ -7,7 +7,6 @@ import MobileHero from '@/components/home/MobileHero'
 import MobileServiceCarousel from '@/components/home/MobileServiceCarousel'
 import MenuBar from '@/components/home/MenuBar'
 import ProductThumbnail from '@/components/product/ProductThumbnail'
-import '@/styles/index-mobile.css'
 
 // Composant Carte Produit - étiquette sur image, bouton Détails redesigné, like
 const ProductCard = ({ 

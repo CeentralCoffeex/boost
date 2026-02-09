@@ -6,6 +6,8 @@ import "./globals.css";
 import "../styles/style.css";
 import "../styles/mobile-responsive.css";
 import "../styles/mobile-shell.css";
+import "../styles/index-mobile.css";
+import "../styles/category-page.css";
 import "../styles/theme.css";
 import AuthSessionProvider from '../components/auth/SessionProvider';
 import ClientLayout from '../components/layout/ClientLayout';
