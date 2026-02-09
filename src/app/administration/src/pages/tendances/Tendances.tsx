@@ -1,5 +1,5 @@
 import { ReactElement, useEffect, useState } from 'react';
-import { Box, Card, Stack, Typography, CircularProgress, Alert, Switch, FormControlLabel } from '@mui/material';
+import { Box, Card, Stack, Typography, CircularProgress, Alert, Switch } from '@mui/material';
 import IconifyIcon from '../../components/base/IconifyIcon';
 
 interface Product {
