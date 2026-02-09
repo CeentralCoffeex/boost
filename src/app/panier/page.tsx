@@ -65,11 +65,16 @@ export default function PanierPage() {
 
   return (
     <div className="page-panier" style={{
-      minHeight: '100vh',
+      height: '100vh',
       backgroundColor: '#f5f5f5',
       display: 'flex',
       flexDirection: 'column',
-      overflow: 'visible'
+      overflow: 'hidden',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
     }}>
       {/* Header avec bouton retour */}
       <div className="page-panier-header" style={{
@@ -116,14 +121,16 @@ export default function PanierPage() {
       {/* Liste des produits */}
       <div style={{
         flex: 1,
-        overflowY: 'visible',
+        overflowY: 'auto',
+        overflowX: 'hidden',
         padding: '20px',
         paddingTop: '20px',
-        paddingBottom: cartItems.length > 0 ? '180px' : '20px',
+        paddingBottom: cartItems.length > 0 ? '20px' : '20px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: cartItems.length === 0 ? 'center' : 'flex-start',
         alignItems: 'center',
+        WebkitOverflowScrolling: 'touch',
       }}>
         {cartItems.length === 0 ? (
           <div style={{
