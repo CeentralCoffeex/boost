@@ -103,7 +103,7 @@ export default function CategoryPage() {
 
   if (loading) {
     return (
-      <div className="page-categorie" style={{
+      <div className="page-categorie page-categorie-loading page-categorie-force-light" style={{
         minHeight: '100vh',
         backgroundColor: '#f5f5f5',
         padding: '20px',
@@ -141,7 +141,7 @@ export default function CategoryPage() {
 
   if (!category) {
     return (
-      <div className="page-categorie page-categorie-loading" style={{
+      <div className="page-categorie page-categorie-notfound page-categorie-force-light" style={{
         minHeight: '100vh',
         backgroundColor: '#f5f5f5',
         display: 'flex',

@@ -107,7 +107,7 @@ export default function MenuBar() {
               e.stopPropagation();
               const urlToNavigate = selectedUrl || (categories.length > 0 && categories[0] ? `/categorie/${categories[0].id}` : '');
               if (urlToNavigate) {
-                window.location.href = urlToNavigate;
+                router.push(urlToNavigate);
               }
             }}
           >
