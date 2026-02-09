@@ -77,18 +77,24 @@ export default async function RootLayout({
   return (
     <html lang="fr" data-theme="blanc" {...(nonce ? { nonce } : {})}>
       <head>
+        {/* CSS critique barre menu : premier bloc dans head pour affichage correct dès le 1er paint (pas de flash, pas de remontage) */}
         <style
           dangerouslySetInnerHTML={{
             __html: [
-              '/* Critical: appliqué dès le premier rendu, !important pour ne pas être écrasé */',
+              'body .menu-bar-section{width:100%!important;max-width:100%!important;box-sizing:border-box!important;position:relative!important;z-index:100!important;display:block!important;visibility:visible!important;opacity:1!important;}',
+              'body .menu-bar-wrapper{width:100%!important;max-width:100%!important;box-sizing:border-box!important;overflow:visible!important;position:relative!important;display:block!important;background:rgba(255,255,255,0.95)!important;backdrop-filter:blur(12px)!important;-webkit-backdrop-filter:blur(12px)!important;border-radius:12px!important;box-shadow:0 8px 30px rgba(0,0,0,0.12)!important;border:1px solid rgba(255,255,255,0.5)!important;}',
+              'body .menu-bar{width:100%!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;min-height:56px!important;position:relative!important;padding:8px 16px 8px 24px!important;}',
+              'body .menu-bar-voir-btn{position:absolute!important;right:16px!important;top:50%!important;transform:translateY(-50%)!important;background:#1a1a1a!important;color:#fff!important;padding:8px 16px!important;border:none!important;border-radius:8px!important;font-weight:600!important;font-size:12px!important;cursor:pointer!important;font-family:Montserrat,sans-serif!important;min-width:60px!important;max-width:70px!important;flex-shrink:0!important;appearance:none!important;-webkit-appearance:none!important;box-sizing:border-box!important;}',
+            ].join(''),
+          }}
+        />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: [
               'body .page-categorie{min-height:100vh!important;background:#f5f5f5!important;padding:20px!important;padding-top:80px!important;padding-bottom:120px!important;box-sizing:border-box!important;}',
               'body .page-categorie-header{position:fixed!important;top:0!important;left:0!important;right:0!important;background:#f5f5f5!important;padding:20px!important;z-index:100!important;display:flex!important;align-items:center!important;justify-content:center!important;box-shadow:0 2px 8px rgba(0,0,0,.05)!important;box-sizing:border-box!important;}',
               'body .page-categorie-back,body .page-categorie-back-btn{position:absolute!important;left:20px!important;background:transparent!important;border:none!important;border-radius:50%!important;width:48px!important;height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;}',
               'body .page-categorie-header h1{font-family:Orbitron,sans-serif!important;font-size:24px!important;font-weight:700!important;color:#333!important;margin:0!important;text-transform:uppercase!important;}',
-              'body .menu-bar-section{width:100%!important;max-width:100%!important;box-sizing:border-box!important;position:relative!important;z-index:100!important;}',
-              'body .menu-bar-wrapper{width:100%!important;max-width:100%!important;box-sizing:border-box!important;overflow:visible!important;position:relative!important;background:rgba(255,255,255,.95)!important;backdrop-filter:blur(12px)!important;-webkit-backdrop-filter:blur(12px)!important;border-radius:12px!important;box-shadow:0 8px 30px rgba(0,0,0,.12)!important;border:1px solid rgba(255,255,255,.5)!important;}',
-              'body .menu-bar{width:100%!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;min-height:56px!important;position:relative!important;padding:8px 16px 8px 24px!important;}',
-              'body .menu-bar-voir-btn{position:absolute!important;right:16px!important;top:50%!important;transform:translateY(-50%)!important;background:#1a1a1a!important;color:#fff!important;padding:8px 16px!important;border:none!important;border-radius:8px!important;font-weight:600!important;font-size:12px!important;cursor:pointer!important;font-family:Montserrat,sans-serif!important;min-width:60px!important;max-width:70px!important;flex-shrink:0!important;appearance:none!important;-webkit-appearance:none!important;}',
               'body .mobile-bottom-box{bottom:calc(30px + env(safe-area-inset-bottom,0))!important;}',
               'body .page-categorie.page-categorie-force-light,body .page-categorie.page-categorie-notfound{background-color:#f5f5f5!important;color:#333!important;}',
               'body .page-categorie.page-categorie-notfound{min-height:100vh!important;display:flex!important;align-items:center!important;justify-content:center!important;}',
@@ -117,17 +123,6 @@ export default async function RootLayout({
             </TelegramAccessGuard>
           </ErrorBoundary>
         </AuthSessionProvider>
-        <style
-          dangerouslySetInnerHTML={{
-            __html: [
-              '/* Dernier recours: menu bar + VOIR appliqués en fin de body */',
-              'body .menu-bar-section{width:100%!important;max-width:100%!important;}',
-              'body .menu-bar-wrapper{background:rgba(255,255,255,.95)!important;border-radius:12px!important;box-shadow:0 8px 30px rgba(0,0,0,.12)!important;}',
-              'body .menu-bar{display:flex!important;align-items:center!important;min-height:56px!important;position:relative!important;}',
-              'body .menu-bar-voir-btn{position:absolute!important;right:16px!important;top:50%!important;transform:translateY(-50%)!important;background:#1a1a1a!important;color:#fff!important;border:none!important;border-radius:8px!important;}',
-            ].join(''),
-          }}
-        />
       </body>
     </html>
   );
