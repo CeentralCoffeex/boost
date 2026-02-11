@@ -48,10 +48,16 @@ export default function MobileHero() {
     fetch('/api/settings', { headers: getTelegramFetchHeaders(), credentials: 'include' })
       .then(res => res.json())
       .then(data => {
-        setSettings(data);
-        // Mettre en cache
+        const safe = {
+          heroSubtitle1: data?.heroSubtitle1 ?? 'Exclusive',
+          heroSubtitle2: data?.heroSubtitle2 ?? 'Boutique',
+          heroSubtitle3: data?.heroSubtitle3 ?? 'Hotel',
+          heroTagline: data?.heroTagline ?? '',
+          ...data,
+        };
+        setSettings(safe);
         try {
-          localStorage.setItem('siteSettings', JSON.stringify(data));
+          localStorage.setItem('siteSettings', JSON.stringify(safe));
         } catch (e) {
           // Ignore storage errors
         }

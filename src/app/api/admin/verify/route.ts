@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateTelegramWebAppData } from '@/lib/telegram-webapp';
 import { isBotAdmin } from '@/lib/bot-admins';
+import { checkAdminAccess } from '@/lib/check-admin-access';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 5; // 5 secondes max
 
-/** Vérification admin RAPIDE - seulement config.json (pas de DB) */
+/** Vérification admin : session NextAuth (PC) OU initData Telegram (Mini App). */
 export async function GET(request: NextRequest) {
   try {
+    // Admin depuis PC (session NextAuth)
+    if (await checkAdminAccess(request)) {
+      return NextResponse.json({ allowed: true });
+    }
+
     const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
     const initDataHeader = request.headers.get('x-telegram-init-data');
     

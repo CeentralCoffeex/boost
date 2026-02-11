@@ -38,11 +38,11 @@ export default function MobileHeroClient({ settings }: MobileHeroClientProps) {
 
       {/* Contenu haut - position absolue sur l'image */}
       <div className="absolute top-0 left-0 right-0 z-10 px-4 pt-6 sm:px-6 sm:pt-8">
-        <h2 className={`hero-tagline-outline text-white drop-shadow-lg font-light leading-tight mb-1 font-display whitespace-pre-line ${settings.heroSubtitle1.length > 20 ? 'hero-subtitle-long' : 'hero-subtitle-default'}`}>{settings.heroSubtitle1}</h2>
-        <h2 className={`hero-tagline-outline text-white drop-shadow-lg font-bold leading-tight mb-2 font-display whitespace-pre-line ${settings.heroSubtitle3.length > 15 ? 'hero-subtitle-long' : 'hero-subtitle-default'}`}>{settings.heroSubtitle3}</h2>
+        <h2 className={`hero-tagline-outline text-white drop-shadow-lg font-light leading-tight mb-1 font-display whitespace-pre-line ${(settings.heroSubtitle1 ?? '').length > 20 ? 'hero-subtitle-long' : 'hero-subtitle-default'}`}>{settings.heroSubtitle1 ?? ''}</h2>
+        <h2 className={`hero-tagline-outline text-white drop-shadow-lg font-bold leading-tight mb-2 font-display whitespace-pre-line ${(settings.heroSubtitle3 ?? '').length > 15 ? 'hero-subtitle-long' : 'hero-subtitle-default'}`}>{settings.heroSubtitle3 ?? ''}</h2>
         
-        <p className={`text-white/90 uppercase tracking-[0.3em] mb-3 font-medium font-sans border-l-2 border-white/50 pl-3 hero-tagline-outline ${settings.heroTagline.length > 30 ? 'hero-tagline-small' : 'hero-tagline-default'}`}>
-          {settings.heroTagline}
+        <p className={`text-white/90 uppercase tracking-[0.3em] mb-3 font-medium font-sans border-l-2 border-white/50 pl-3 hero-tagline-outline ${(settings.heroTagline ?? '').length > 30 ? 'hero-tagline-small' : 'hero-tagline-default'}`}>
+          {settings.heroTagline ?? ''}
         </p>
       </div>
 
