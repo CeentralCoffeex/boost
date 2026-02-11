@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { getInitData } from '@/lib/telegram-client';
 
+/** Retry pour laisser le temps à Telegram.WebApp de charger (initData). */
+const RETRY_DELAYS_MS = [0, 200, 500, 1000];
+
 /**
  * Connexion automatique Telegram : dès qu'on ouvre la Mini App depuis le bot,
  * on récupère initData et on se connecte via NextAuth (CredentialsProvider telegram-login).
@@ -15,8 +18,19 @@ export default function TelegramLoginHandler() {
   const [initDataReady, setInitDataReady] = useState(false);
 
   useEffect(() => {
-    const id = getInitData();
-    setInitDataReady(!!id);
+    let attempt = 0;
+    function check() {
+      const id = getInitData();
+      if (id) {
+        setInitDataReady(true);
+        return;
+      }
+      attempt++;
+      if (attempt < RETRY_DELAYS_MS.length) {
+        setTimeout(check, RETRY_DELAYS_MS[attempt]);
+      }
+    }
+    check();
   }, []);
 
   useEffect(() => {

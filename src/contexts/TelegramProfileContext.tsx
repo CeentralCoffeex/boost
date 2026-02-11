@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
 import { getInitData } from '@/lib/telegram-client';
+import { getTelegramFetchHeaders } from '@/lib/telegram-fetch-headers';
 
 export interface TelegramInfo {
   linked: boolean;
@@ -18,27 +19,48 @@ const TelegramProfileContext = createContext<{
   loading: boolean;
 }>({ telegramInfo: null, loading: true });
 
+/** Délais de retry pour laisser le temps à Telegram.WebApp de charger (initData). */
+const RETRY_DELAYS_MS = [0, 300, 600, 1000, 1500];
+
 export function TelegramProfileProvider({ children }: { children: ReactNode }) {
   const [telegramInfo, setTelegramInfo] = useState<TelegramInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    const initData = getInitData();
-    if (!initData) {
-      setLoading(false);
-      return;
-    }
-    fetch('/api/telegram/me', {
-      headers: { Authorization: `tma ${initData}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.success && data?.telegramInfo) {
-          setTelegramInfo(data.telegramInfo);
-        }
+    mountedRef.current = true;
+    let attempt = 0;
+
+    function tryFetch() {
+      if (!mountedRef.current) return;
+      const initData = getInitData();
+      if (initData) {
+        const headers = getTelegramFetchHeaders();
+        fetch('/api/telegram/me', { headers, credentials: 'include' })
+          .then((res) => res.json())
+          .then((data) => {
+            if (mountedRef.current && data?.success && data?.telegramInfo) {
+              setTelegramInfo(data.telegramInfo);
+            }
+          })
+          .finally(() => {
+            if (mountedRef.current) setLoading(false);
+          });
+        return;
+      }
+      attempt++;
+      if (attempt < RETRY_DELAYS_MS.length) {
+        const delay = RETRY_DELAYS_MS[attempt];
+        setTimeout(tryFetch, delay);
+      } else {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    }
+
+    tryFetch();
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   return (
