@@ -2,6 +2,42 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { securityMiddleware } from '@/middleware/security';
 
+// --- Rate limit /api (10 req/min par IP, comme ancien middleware) ---
+const API_RATE_LIMIT = Number(process.env.API_RATE_LIMIT_PER_MIN) || 10;
+const WINDOW_MS = 60 * 1000;
+const apiRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function getClientIPForRateLimit(req: NextRequest): string {
+  const xff = req.headers.get('x-forwarded-for');
+  if (xff) return xff.split(',')[0]?.trim() || '0.0.0.0';
+  return req.headers.get('x-real-ip') || req.headers.get('cf-connecting-ip') || '0.0.0.0';
+}
+
+function getAllowedOriginsForCORS(req: NextRequest): string[] {
+  const origins: string[] = [
+    'https://web.telegram.org',
+    'https://web.telegram.org.kwin',
+    'https://telegram.org',
+  ];
+  try {
+    const url = req.nextUrl;
+    if (url.origin && url.origin !== 'null') origins.push(url.origin);
+  } catch {
+    // ignore
+  }
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL;
+  if (appUrl) {
+    const base = appUrl.startsWith('http') ? appUrl : `https://${appUrl}`;
+    origins.push(base.replace(/\/$/, ''));
+  }
+  return origins;
+}
+
+function isAllowedOrigin(origin: string | null, allowed: string[]): boolean {
+  if (!origin) return false;
+  return allowed.some((a) => origin === a || origin.startsWith(a + '/'));
+}
+
 // --- Nonce generator for CSP ---
 function generateNonce(): string {
   const array = new Uint8Array(16);
@@ -65,24 +101,26 @@ function applySecurityHeaders(
   if (pathname.startsWith('/_next/static/') || pathname.startsWith('/static/')) response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
 }
 
+// --- CORS pour /api (origines Telegram + app, headers X-Telegram-*) ---
+function applyApiCors(request: NextRequest, response: NextResponse): void {
+  const allowed = getAllowedOriginsForCORS(request);
+  const origin = request.headers.get('origin');
+  const allowOrigin = origin && isAllowedOrigin(origin, allowed) ? origin : (allowed[0] ?? '*');
+  response.headers.set('Access-Control-Allow-Origin', allowOrigin);
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Telegram-Init-Data, X-Telegram-Platform, X-Requested-With, x-csrf-token, x-api-key, x-file-name');
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  response.headers.set('Access-Control-Max-Age', '86400');
+}
+
 // --- Handle API requests ---
 function handleAPIRequest(request: NextRequest): NextResponse | null {
   const { pathname } = request.nextUrl;
   if (!pathname.startsWith('/api/')) return null;
 
   const response = NextResponse.next();
-  const origin = request.headers.get('origin');
-  const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:3001').split(',').map((o) => o.trim()).filter(Boolean);
-  if (origin && allowedOrigins.includes(origin)) {
-    response.headers.set('Access-Control-Allow-Origin', origin);
-  } else if (process.env.NODE_ENV !== 'production') {
-    response.headers.set('Access-Control-Allow-Origin', '*');
-  }
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, x-csrf-token, x-api-key, x-file-name');
-  response.headers.set('Access-Control-Allow-Credentials', 'true');
-  response.headers.set('Access-Control-Max-Age', '86400');
-  if (request.method === 'OPTIONS') return new NextResponse(null, { status: 200, headers: response.headers });
+  applyApiCors(request, response);
+  if (request.method === 'OPTIONS') return new NextResponse(null, { status: 204, headers: response.headers });
   return response;
 }
 
@@ -120,6 +158,30 @@ export async function proxy(request: NextRequest) {
 
   // Ignore static files
   if (pathname.startsWith('/_next/') || pathname.startsWith('/favicon.ico') || (pathname.includes('.') && !pathname.startsWith('/api/'))) return NextResponse.next();
+
+  // --- RATE LIMIT /api (10 req/min par IP, ex-auth/webhook/uploads) ---
+  if (pathname.startsWith('/api/')) {
+    const skip =
+      pathname.startsWith('/api/auth/') ||
+      pathname.startsWith('/api/telegram/webhook') ||
+      pathname.startsWith('/api/uploads/');
+    if (!skip) {
+      const ip = getClientIPForRateLimit(request);
+      const now = Date.now();
+      let entry = apiRateLimitMap.get(ip);
+      if (!entry || now > entry.resetAt) {
+        entry = { count: 1, resetAt: now + WINDOW_MS };
+        apiRateLimitMap.set(ip, entry);
+      } else {
+        entry.count++;
+      }
+      if (entry.count > API_RATE_LIMIT) {
+        const res = NextResponse.json({ error: 'Trop de requêtes. Ralentissez.' }, { status: 429 });
+        applyApiCors(request, res);
+        return res;
+      }
+    }
+  }
 
   // --- RATE LIMITING + BRUTE FORCE + IP FILTER ---
   const securityConfig = {
