@@ -59,8 +59,22 @@ export function signProductsUrls<T extends { image?: string | null; videoUrl?: s
   return items.map((item) => signProductUrls(item, ttlSec));
 }
 
+/** Signe l'icône (et image si présent) d'une catégorie pour affichage. */
+export function signCategoryIcon<T extends { icon?: string | null; image?: string | null }>(cat: T, ttlSec?: number): T {
+  const out = { ...cat } as T;
+  if (cat.icon) (out as any).icon = signUploadUrl(cat.icon, ttlSec) ?? cat.icon;
+  if (cat.image) (out as any).image = signUploadUrl(cat.image, ttlSec) ?? cat.image;
+  return out;
+}
+
+/** Signe les icônes d'une liste de catégories. */
+export function signCategoriesIcons<T extends { icon?: string | null; image?: string | null }[]>(categories: T, ttlSec?: number): T {
+  return categories.map((c) => signCategoryIcon(c, ttlSec)) as T;
+}
+
 /** Signe image/videoUrl des produits d'une catégorie (réponse API categories). */
-export function signCategoryProducts<T extends { products?: { image?: string | null; videoUrl?: string | null }[] }>(cat: T, ttlSec?: number): T {
-  if (!cat.products?.length) return cat;
-  return { ...cat, products: signProductsUrls(cat.products, ttlSec) } as T;
+export function signCategoryProducts<T extends { icon?: string | null; image?: string | null; products?: { image?: string | null; videoUrl?: string | null }[] }>(cat: T, ttlSec?: number): T {
+  let out = signCategoryIcon(cat, ttlSec) as T;
+  if (out.products?.length) out = { ...out, products: signProductsUrls(out.products, ttlSec) } as T;
+  return out;
 }

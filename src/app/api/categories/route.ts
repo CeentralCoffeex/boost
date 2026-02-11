@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminAccess } from '@/lib/check-admin-access';
 import { requireTelegramOrAdminOr403 } from '@/lib/require-telegram-app';
-import { signCategoryProducts } from '@/lib/upload-sign';
+import { signCategoryProducts, signCategoriesIcons } from '@/lib/upload-sign';
 import { categoryCreateSchema, validateAndSanitize, formatZodErrors } from '@/lib/validation';
 
 async function checkAuth(request: NextRequest) {
@@ -87,13 +87,14 @@ export async function GET(request: NextRequest) {
     ]);
 
     if (!usePagination) {
-      const response = NextResponse.json(categories);
+      const signed = signCategoriesIcons(categories as { icon?: string | null }[]);
+      const response = NextResponse.json(signed);
       response.headers.set('Cache-Control', 'no-store, max-age=0');
       return response;
     }
     const totalPages = Math.ceil((total as number) / limit);
     const response = NextResponse.json({
-      data: categories,
+      data: signCategoriesIcons(categories as { icon?: string | null }[]),
       total: total as number,
       page,
       limit,

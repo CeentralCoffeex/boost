@@ -221,48 +221,60 @@ export async function PUT(
       }
     }
 
-    const category = await prisma.category.update({
-      where: { id },
-      data: updateData,
-    });
-
-    // Synchroniser les sous-catégories (uniquement pour catégories parentes)
     const subcategoriesPayload = Array.isArray(body.subcategories) ? body.subcategories : [];
-    if (exists.parentId === null && subcategoriesPayload.length >= 0) {
-      const normalize = (s: string) =>
-        s.toLowerCase()
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-          .trim()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-+|-+$/g, '');
-      const existingSubs = await prisma.category.findMany({
-        where: { parentId: id },
-        select: { id: true }
-      });
-      const existingIds = new Set(existingSubs.map((s) => s.id));
-      const incomingIds = new Set(subcategoriesPayload.filter((s: { id?: string }) => s.id).map((s: { id: string }) => s.id));
+    const isParent = exists.parentId === null;
 
-      for (const sub of subcategoriesPayload) {
-        const name = String(sub.name || '').trim();
-        if (!name) continue;
-        const subUrl = '/' + normalize(name);
-        if (sub.id && existingIds.has(sub.id)) {
-          await prisma.category.update({
-            where: { id: sub.id },
-            data: { name, url: subUrl, subtitle: name }
-          });
-        } else if (!sub.id) {
-          let uniqueUrl = subUrl;
-          let suffix = 2;
-          while (await prisma.category.findFirst({ where: { url: uniqueUrl } })) {
-            uniqueUrl = `${subUrl}-${suffix}`;
-            suffix++;
+    const category = await prisma.$transaction(async (tx) => {
+      const updated = await tx.category.update({
+        where: { id },
+        data: updateData,
+      });
+
+      if (isParent && subcategoriesPayload.length >= 0) {
+        const normalizeSub = (s: string) =>
+          s.toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .trim()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+        const existingSubs = await tx.category.findMany({
+          where: { parentId: id },
+          select: { id: true }
+        });
+        const existingIds = new Set(existingSubs.map((s) => s.id));
+        const incomingIds = new Set(subcategoriesPayload.filter((s: { id?: string }) => s.id).map((s: { id: string }) => s.id));
+
+        const updates: Promise<unknown>[] = [];
+        const toCreate: { name: string; subUrl: string }[] = [];
+        const allUrls = await tx.category.findMany({ select: { url: true } }).then((r) => new Set(r.map((c) => c.url)));
+
+        for (const sub of subcategoriesPayload) {
+          const name = String(sub.name || '').trim();
+          if (!name) continue;
+          const subUrl = '/' + normalizeSub(name);
+          if (sub.id && existingIds.has(sub.id)) {
+            updates.push(tx.category.update({
+              where: { id: sub.id },
+              data: { name, url: subUrl, subtitle: name }
+            }));
+          } else if (!sub.id) {
+            let uniqueUrl = subUrl;
+            let suffix = 2;
+            while (allUrls.has(uniqueUrl)) {
+              uniqueUrl = `${subUrl}-${suffix}`;
+              suffix++;
+            }
+            allUrls.add(uniqueUrl);
+            toCreate.push({ name, subUrl: uniqueUrl });
           }
-          await prisma.category.create({
+        }
+        await Promise.all(updates);
+        for (const { name, subUrl } of toCreate) {
+          await tx.category.create({
             data: {
               name,
               subtitle: name,
-              url: uniqueUrl,
+              url: subUrl,
               parentId: id,
               order: 0,
               isActive: true,
@@ -270,16 +282,16 @@ export async function PUT(
             }
           });
         }
-      }
-      for (const oldId of Array.from(existingIds)) {
-        if (!incomingIds.has(oldId)) {
-          await prisma.product.updateMany({ where: { categoryId: oldId }, data: { categoryId: null } });
-          await prisma.category.delete({ where: { id: oldId } });
+        const toRemove = Array.from(existingIds).filter((oldId) => !incomingIds.has(oldId));
+        for (const oldId of toRemove) {
+          await tx.product.updateMany({ where: { categoryId: oldId }, data: { categoryId: null } });
+          await tx.category.delete({ where: { id: oldId } });
         }
       }
-    }
 
-    console.log('[Categories PUT] Updated:', id);
+      return updated;
+    });
+
     return NextResponse.json(category);
   } catch (error) {
     console.error('Error updating category:', error);

@@ -86,7 +86,7 @@ const Settings = (): ReactElement => {
       const response = await uploadWithProgress('/api/upload', file);
       const data = await response.json();
       if (data.success && data.url) {
-        setFormData({ ...formData, heroImage: data.url });
+        setFormData((prev) => ({ ...prev, heroImage: data.url }));
       } else {
         setError(data.message || 'Erreur lors de l\'upload');
       }
@@ -110,6 +110,22 @@ const Settings = (): ReactElement => {
       });
 
       if (response.ok) {
+        const updated = await response.json();
+        if (updated && typeof updated === 'object') {
+          setFormData((prev) => ({
+            ...prev,
+            heroTitle: updated.heroTitle ?? prev.heroTitle,
+            heroSubtitle1: updated.heroSubtitle1 ?? prev.heroSubtitle1,
+            heroSubtitle2: updated.heroSubtitle2 ?? prev.heroSubtitle2,
+            heroSubtitle3: updated.heroSubtitle3 ?? prev.heroSubtitle3,
+            heroTagline: updated.heroTagline ?? prev.heroTagline,
+            heroImage: updated.heroImage ?? prev.heroImage,
+            facebookUrl: updated.facebookUrl ?? prev.facebookUrl,
+            twitterUrl: updated.twitterUrl ?? prev.twitterUrl,
+            instagramUrl: updated.instagramUrl ?? prev.instagramUrl,
+            theme: (updated.theme as ThemeId) ?? prev.theme,
+          }));
+        }
         setSuccess('Paramètres sauvegardés avec succès');
         setTimeout(() => setSuccess(''), 3000);
         window.dispatchEvent(new Event('admin-theme-changed'));

@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
         
         return NextResponse.json({ 
           success: true, 
-          url: `/api/uploads/${webpName}`,
+          url: `/uploads/${webpName}`,
           fileName: webpName,
           type: 'image/webp',
           size: size, 
@@ -188,9 +188,10 @@ export async function POST(req: NextRequest) {
       }
     }
     
+    const publicUrl = isImage ? `/uploads/${cleanFilename}` : `/api/uploads/${cleanFilename}`;
     return NextResponse.json({ 
       success: true, 
-      url: `/api/uploads/${cleanFilename}`,
+      url: publicUrl,
       fileName: cleanFilename,
       type: mimeType,
       size: size,

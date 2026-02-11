@@ -233,7 +233,7 @@ const CategoryEdit = (): ReactElement => {
 
         if (response.ok) {
           setSuccess('Catégorie modifiée avec succès');
-          setTimeout(() => navigate('/categories'), 500);
+          navigate('/categories');
         } else {
           const result = await response.json();
           setError(result.error || 'Erreur lors de la modification');
@@ -252,7 +252,7 @@ const CategoryEdit = (): ReactElement => {
 
         if (response.ok) {
           setSuccess('Catégorie ajoutée avec succès');
-          setTimeout(() => navigate('/categories'), 500);
+          navigate('/categories');
         } else {
           const result = await response.json();
           setError(result.error || 'Erreur lors de l\'ajout');

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { checkAdminAccess } from '@/lib/check-admin-access';
 import { requireTelegramOrAdminOr403 } from '@/lib/require-telegram-app';
 import { settingsUpdateSchema, validateAndSanitize, formatZodErrors } from '@/lib/validation';
+import { signUploadUrl } from '@/lib/upload-sign';
 
 export async function GET(request: NextRequest) {
   const forbidden = await requireTelegramOrAdminOr403(request, checkAdminAccess);
@@ -38,10 +39,11 @@ export async function GET(request: NextRequest) {
     }
 
     const telegramOnly = process.env.TELEGRAM_ONLY === 'true';
-    return NextResponse.json({
-      ...settings,
-      telegramOnly,
-    });
+    const out: Record<string, unknown> = { ...settings, telegramOnly };
+    if (out.heroImage && String(out.heroImage).startsWith('/api/uploads/')) {
+      out.heroImage = signUploadUrl(String(out.heroImage)) ?? out.heroImage;
+    }
+    return NextResponse.json(out);
   } catch (error) {
     console.error('Error fetching settings:', error);
     return NextResponse.json(
