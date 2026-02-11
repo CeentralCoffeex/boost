@@ -61,10 +61,12 @@ export async function GET(request: NextRequest) {
 
     console.log(`[verify] Telegram ID ${telegramIdStr}: config=${fromConfig} db=${fromDb} => ${isAdmin ? 'ADMIN' : 'REFUSE'}`);
     if (!isAdmin) {
-      return NextResponse.json(
-        { allowed: false, telegramId: telegramIdStr, hint: 'Ajoutez cet ID dans bots/config.json (admin_ids) ou dans Administration > Admins Telegram.' },
-        { status: 403 }
-      );
+      // 200 + allowed: false pour que le client reçoive toujours le body (telegramId) et puisse l'afficher
+      return NextResponse.json({
+        allowed: false,
+        telegramId: telegramIdStr,
+        hint: 'Ajoutez cet ID dans bots/config.json (admin_ids), ou définissez ADMIN_TELEGRAM_IDS sur le serveur, ou ajoutez-le dans Administration > Admins Telegram.',
+      });
     }
     return NextResponse.json({ allowed: true });
   } catch (error: any) {

@@ -35,6 +35,7 @@ export default function CategoryPage() {
   const pathname = usePathname();
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string | null>(null);
   const [subcategoryDropdownOpen, setSubcategoryDropdownOpen] = useState(false);
   const subcategoryDropdownRef = useRef<HTMLDivElement>(null);
@@ -46,27 +47,45 @@ export default function CategoryPage() {
     if (!id) {
       setLoading(false);
       setCategory(null);
+      setAccessDenied(false);
       return;
     }
     const generation = ++fetchRef.current;
     setLoading(true);
-    fetch(`/api/categories/${encodeURIComponent(id)}`, { credentials: 'include', cache: 'no-store', headers: getTelegramFetchHeaders() })
-      .then(res => res.json())
-      .then(data => {
-        if (generation !== fetchRef.current) return;
-        if (data?.error) {
+    setAccessDenied(false);
+    const doFetch = (retry = 0) => {
+      fetch(`/api/categories/${encodeURIComponent(id)}`, { credentials: 'include', cache: 'no-store', headers: getTelegramFetchHeaders() })
+        .then(async res => {
+          if (generation !== fetchRef.current) return { data: null, skip: true };
+          if (res.status === 403 && retry < 1) {
+            setTimeout(() => doFetch(retry + 1), 400);
+            return { data: null, skip: true };
+          }
+          const data = await res.json();
+          return { data, skip: false };
+        })
+        .then(({ data, skip }) => {
+          if (generation !== fetchRef.current || skip || data === null) return;
+          if (data?.error === 'BOT_DETECTED' || (data?.error && data?.message?.includes('Telegram'))) {
+            setCategory(null);
+            setAccessDenied(true);
+          } else if (data?.error) {
+            setCategory(null);
+            setAccessDenied(false);
+          } else {
+            setCategory(data);
+            setSelectedSubcategoryId(null);
+            setAccessDenied(false);
+          }
+          setLoading(false);
+        })
+        .catch(() => {
+          if (generation !== fetchRef.current) return;
           setCategory(null);
-        } else {
-          setCategory(data);
-          setSelectedSubcategoryId(null);
-        }
-        setLoading(false);
-      })
-      .catch(() => {
-        if (generation !== fetchRef.current) return;
-        setCategory(null);
-        setLoading(false);
-      });
+          setLoading(false);
+        });
+    };
+    doFetch();
   }, [id]);
 
   const handleBack = () => {
@@ -138,17 +157,23 @@ export default function CategoryPage() {
     );
   }
 
-  if (!category) {
+  if (!category && !loading) {
     return (
       <div className="page-categorie page-categorie-notfound page-categorie-force-light" style={{
         minHeight: '100vh',
         backgroundColor: '#f5f5f5',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
+        gap: 16,
+        padding: 20,
         fontFamily: "'Montserrat', sans-serif"
       }}>
-        Catégorie non trouvée
+        <p style={{ margin: 0, color: '#333', textAlign: 'center' }}>
+          {accessDenied ? 'Accès refusé. Ouvrez cette page depuis le bot Telegram (Mini App).' : 'Catégorie non trouvée'}
+        </p>
+        <button type="button" onClick={() => router.push('/')} style={{ padding: '10px 20px', cursor: 'pointer' }}>Retour à l&apos;accueil</button>
       </div>
     );
   }

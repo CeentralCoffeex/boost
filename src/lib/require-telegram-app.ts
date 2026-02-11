@@ -52,7 +52,9 @@ export function getInitDataFromRequest(request: NextRequest): string | null {
 function isAllowedTelegramPlatform(request: NextRequest): boolean {
   if (!isStrictMobileAppEnabled()) return true;
   const platform = request.headers.get('x-telegram-platform')?.toLowerCase().trim() || '';
-  return ALLOWED_MOBILE_PLATFORMS.has(platform);
+  if (ALLOWED_MOBILE_PLATFORMS.has(platform)) return true;
+  if (!platform) return true; // initData valide suffit si le client n'envoie pas la plateforme
+  return false;
 }
 
 /**

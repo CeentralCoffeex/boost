@@ -72,34 +72,55 @@ export default function ProductDetail() {
     router.push('/panier');
   };
 
+  const [accessDenied, setAccessDenied] = useState(false);
+
   useEffect(() => {
     if (!productId) return;
     setLoadError(false);
+    setAccessDenied(false);
     let cancelled = false;
-    fetch(`/api/products/${productId}`, { cache: 'no-store', headers: getTelegramFetchHeaders(), credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        if (cancelled) return;
-        if (data?.error) {
-          setProduct(null);
-          setLoadError(true);
-          return;
-        }
-        setLoadError(false);
-        setProduct({ ...data, price: data.price || data.basePrice });
-        if (data.variants && data.variants.length > 0) {
-          const sorted = [...data.variants].sort((a: ProductVariant, b: ProductVariant) => (parseFloat(String(a.price).replace(',', '.')) || 0) - (parseFloat(String(b.price).replace(',', '.')) || 0));
-          setSelectedVariant(sorted[0]);
-        } else {
-          setSelectedVariant(null);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setProduct(null);
-          setLoadError(true);
-        }
-      });
+    const doFetch = (retry = 0) => {
+      fetch(`/api/products/${productId}`, { cache: 'no-store', headers: getTelegramFetchHeaders(), credentials: 'include' })
+        .then(async res => {
+          if (cancelled) return { data: null, skip: true };
+          if (res.status === 403 && retry < 1) {
+            setTimeout(() => doFetch(retry + 1), 400);
+            return { data: null, skip: true };
+          }
+          const data = await res.json();
+          return { data, skip: false };
+        })
+        .then(({ data, skip }) => {
+          if (cancelled || skip || data === null) return;
+          if (data?.error === 'BOT_DETECTED' || (data?.error && data?.message?.includes('Telegram'))) {
+            setProduct(null);
+            setLoadError(true);
+            setAccessDenied(true);
+            return;
+          }
+          if (data?.error) {
+            setProduct(null);
+            setLoadError(true);
+            return;
+          }
+          setLoadError(false);
+          setAccessDenied(false);
+          setProduct({ ...data, price: data.price || data.basePrice });
+          if (data.variants && data.variants.length > 0) {
+            const sorted = [...data.variants].sort((a: ProductVariant, b: ProductVariant) => (parseFloat(String(a.price).replace(',', '.')) || 0) - (parseFloat(String(b.price).replace(',', '.')) || 0));
+            setSelectedVariant(sorted[0]);
+          } else {
+            setSelectedVariant(null);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setProduct(null);
+            setLoadError(true);
+          }
+        });
+    };
+    doFetch();
     return () => { cancelled = true; };
   }, [productId]);
 
@@ -156,7 +177,9 @@ export default function ProductDetail() {
           <ArrowLeft size={32} />
         </button>
         <div style={{ padding: '80px 20px 20px', textAlign: 'center', fontFamily: "'Montserrat', sans-serif" }}>
-          <p style={{ margin: 0, color: '#666' }}>Produit introuvable.</p>
+          <p style={{ margin: 0, color: '#666' }}>
+            {accessDenied ? 'Accès refusé. Ouvrez cette page depuis le bot Telegram (Mini App).' : 'Produit introuvable.'}
+          </p>
           <button type="button" onClick={handleBack} style={{ marginTop: 16, padding: '10px 20px', cursor: 'pointer' }}>Retour</button>
         </div>
       </div>
