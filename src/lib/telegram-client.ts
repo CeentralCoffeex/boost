@@ -20,14 +20,19 @@ function looksLikeInitData(s: string): boolean {
   return Boolean(s && s.includes('auth_date=') && (s.includes('user=') || s.includes('hash=')));
 }
 
-/** Récupère initData : Telegram.WebApp ou hash URL (#tgWebAppData= ou hash brut) ou query ou storage. */
+/** Récupère initData : storage (déjà sauvegardé par le script inline) puis Telegram.WebApp, hash, query. */
 export function getInitData(): string {
   if (typeof window === 'undefined') return '';
+  
+  // 0. Storage en premier (rempli par le script inline du layout avant React)
+  try {
+    const stored = sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData');
+    if (stored && looksLikeInitData(stored)) return stored;
+  } catch {}
   
   // 1. Telegram.WebApp.initData (source principale)
   const tg = window.Telegram?.WebApp;
   if (tg?.initData?.trim()) {
-    // Sauvegarder dans storage pour réutilisation
     try {
       sessionStorage.setItem('tgInitData', tg.initData);
       localStorage.setItem('tgInitData', tg.initData);
@@ -83,14 +88,6 @@ export function getInitData(): string {
     } catch {}
     return initDataFromSearch;
   }
-  
-  // 4. Fallback : vérifier sessionStorage/localStorage (si déjà sauvegardé)
-  try {
-    const stored = sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData');
-    if (stored && looksLikeInitData(stored)) {
-      return stored;
-    }
-  } catch {}
   
   return '';
 }

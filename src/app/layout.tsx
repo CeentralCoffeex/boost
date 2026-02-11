@@ -110,8 +110,16 @@ export default async function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: [
-              '(function(){var n=0;function go(){try{var t=window.Telegram&&window.Telegram.WebApp;if(t){t.ready();t.expand();return;}}catch(e){}',
-              'n++;if(n<10)setTimeout(go,50);}go();})();',
+              '(function(){var n=0;function go(){try{var t=window.Telegram&&window.Telegram.WebApp;if(t){t.ready();t.expand();',
+              'var d=t.initData;if(d&&typeof d==="string"&&d.indexOf("auth_date=")!==-1){try{sessionStorage.setItem("tgInitData",d);localStorage.setItem("tgInitData",d);}catch(e){}}',
+              'return;}n++;if(n<60)setTimeout(go,100);}catch(e){n++;if(n<60)setTimeout(go,100);}}go();})();',
+            ].join(''),
+          }}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: [
+              '(function(){var c=0;function poll(){try{var t=window.Telegram&&window.Telegram.WebApp;if(t&&t.initData&&typeof t.initData==="string"&&t.initData.indexOf("auth_date=")!==-1){sessionStorage.setItem("tgInitData",t.initData);localStorage.setItem("tgInitData",t.initData);return;}c++;if(c<50)setTimeout(poll,100);}catch(e){c++;if(c<50)setTimeout(poll,100);}}setTimeout(poll,50);})();',
             ].join(''),
           }}
         />
