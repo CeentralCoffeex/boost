@@ -1,6 +1,6 @@
 /**
- * Sert les fichiers uploadés depuis public/uploads
- * URL: /api/uploads/filename.webp
+ * Sert les fichiers uploadés depuis public/uploads.
+ * Accès uniquement via URL signée : ?token=...&expires=... (générées côté serveur).
  * Supporte les requêtes Range (HTTP 206) pour la lecture vidéo.
  */
 import { NextRequest, NextResponse } from 'next/server';
@@ -8,6 +8,7 @@ import { readFile, stat } from 'fs/promises';
 import { createReadStream } from 'fs';
 import { join } from 'path';
 import { Readable } from 'stream';
+import { verifySignedToken } from '@/lib/upload-sign';
 
 function getUploadsDir(): string {
   const envDir = process.env.UPLOADS_DIR;
@@ -43,6 +44,12 @@ export async function GET(
     const baseName = filename.split(/[/\\]/).pop() || '';
     if (!baseName || baseName.includes('..')) {
       return NextResponse.json({ error: 'Chemin invalide' }, { status: 400 });
+    }
+
+    const token = request.nextUrl.searchParams.get('token');
+    const expires = request.nextUrl.searchParams.get('expires');
+    if (!token || !expires || !verifySignedToken(filename, token, expires)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const uploadDir = getUploadsDir();

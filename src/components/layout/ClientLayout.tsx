@@ -9,6 +9,7 @@ import NavGlow from '../NavGlow';
 import ServiceScrollBlock from '../ServiceScrollBlock';
 import SwipeBack from '../common/SwipeBack';
 import TelegramLoginHandler from '../auth/TelegramLoginHandler';
+import { getTelegramFetchHeaders } from '@/lib/telegram-fetch-headers';
 
 const HomePage = dynamic(() => import('@/app/page'), { ssr: false });
 
@@ -26,7 +27,7 @@ export default function ClientLayout({
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/settings')
+    fetch('/api/settings', { headers: getTelegramFetchHeaders(), credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;

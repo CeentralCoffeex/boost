@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stat, readFile, open } from 'fs/promises';
 import { join, resolve } from 'path';
+import { verifySignedToken } from '@/lib/upload-sign';
 
 /** Dossier des uploads : public/uploads à la racine du projet (pas dans src). Surcharge possible avec UPLOADS_DIR. */
 function getUploadsDir(): string {
@@ -38,6 +39,12 @@ export async function GET(
     const filename = sanitizeFilename(rawFilename);
     if (!filename) {
       return new NextResponse('Invalid filename', { status: 400 });
+    }
+
+    const token = req.nextUrl.searchParams.get('token');
+    const expires = req.nextUrl.searchParams.get('expires');
+    if (!token || !expires || !verifySignedToken(filename, token, expires)) {
+      return new NextResponse('Forbidden', { status: 403 });
     }
 
     const uploadsDir = resolve(getUploadsDir());

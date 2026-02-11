@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminAccess } from '@/lib/check-admin-access';
+import { requireTelegramOrAdminOr403 } from '@/lib/require-telegram-app';
+import { signCategoryProducts } from '@/lib/upload-sign';
 import { categoryCreateSchema, validateAndSanitize, formatZodErrors } from '@/lib/validation';
 
 async function checkAuth(request: NextRequest) {
@@ -14,6 +16,8 @@ async function checkAuth(request: NextRequest) {
 
 // GET - Récupérer toutes les catégories ou une catégorie par id/url
 export async function GET(request: NextRequest) {
+  const forbidden = await requireTelegramOrAdminOr403(request, checkAuth);
+  if (forbidden) return forbidden;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
@@ -55,7 +59,7 @@ export async function GET(request: NextRequest) {
         category = all.find(c => normalize(c.url) === normalize(param) || normalize(c.name) === normalize(param)) || null;
       }
       if (!category) return NextResponse.json({ error: 'Catégorie non trouvée' }, { status: 404 });
-      return NextResponse.json(category);
+      return NextResponse.json(signCategoryProducts(category as { products?: { image?: string | null; videoUrl?: string | null }[] }));
     }
 
     const allParam = searchParams.get('all');
@@ -65,13 +69,36 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    const categories = await prisma.category.findMany({
-      where: wantAll ? whereClause : { ...whereClause, parentId: null },
-      orderBy: { order: 'asc' },
-      include: wantAll ? { subcategories: { orderBy: { order: 'asc' } } } : undefined,
-    });
+    const usePagination = searchParams.has('page') || searchParams.has('limit');
+    const DEFAULT_LIMIT_CAT = 20;
+    const MAX_LIMIT_CAT = 100;
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+    const limit = Math.min(MAX_LIMIT_CAT, Math.max(1, parseInt(searchParams.get('limit') || String(DEFAULT_LIMIT_CAT), 10) || DEFAULT_LIMIT_CAT));
+    const skip = (page - 1) * limit;
 
-    const response = NextResponse.json(categories);
+    const [categories, total] = await Promise.all([
+      prisma.category.findMany({
+        where: wantAll ? whereClause : { ...whereClause, parentId: null },
+        orderBy: { order: 'asc' },
+        ...(usePagination && { skip, take: limit }),
+        include: wantAll ? { subcategories: { orderBy: { order: 'asc' } } } : undefined,
+      }),
+      usePagination ? prisma.category.count({ where: wantAll ? whereClause : { ...whereClause, parentId: null } }) : Promise.resolve(0)
+    ]);
+
+    if (!usePagination) {
+      const response = NextResponse.json(categories);
+      response.headers.set('Cache-Control', 'no-store, max-age=0');
+      return response;
+    }
+    const totalPages = Math.ceil((total as number) / limit);
+    const response = NextResponse.json({
+      data: categories,
+      total: total as number,
+      page,
+      limit,
+      totalPages
+    });
     response.headers.set('Cache-Control', 'no-store, max-age=0');
     return response;
   } catch (error) {

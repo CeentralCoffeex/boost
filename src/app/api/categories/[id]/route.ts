@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminAccess } from '@/lib/check-admin-access';
+import { requireTelegramOrAdminOr403 } from '@/lib/require-telegram-app';
+import { signCategoryProducts } from '@/lib/upload-sign';
 import { categoryUpdateSchema, validateAndSanitize, formatZodErrors, validateId } from '@/lib/validation';
 
 async function checkAuth(request: NextRequest) {
@@ -14,9 +16,11 @@ async function checkAuth(request: NextRequest) {
 
 // GET - Récupérer une catégorie avec ses produits (par id ou url)
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const forbidden = await requireTelegramOrAdminOr403(request, checkAuth);
+  if (forbidden) return forbidden;
   try {
     const { id } = await params;
     const raw = String(id || '').trim().replace(/^\/+/, '');
@@ -103,7 +107,8 @@ export async function GET(
       );
     }
 
-    const response = NextResponse.json(category);
+    const signed = signCategoryProducts(category as { products?: { image?: string | null; videoUrl?: string | null }[] });
+    const response = NextResponse.json(signed);
     response.headers.set('Cache-Control', 'no-store, max-age=0');
     return response;
   } catch (error) {

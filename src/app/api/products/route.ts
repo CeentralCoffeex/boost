@@ -1,26 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminAccess } from '@/lib/check-admin-access';
+import { requireTelegramOrAdminOr403 } from '@/lib/require-telegram-app';
+import { signProductsUrls } from '@/lib/upload-sign';
 import { productCreateSchema, validateAndSanitize, formatZodErrors } from '@/lib/validation';
 
-export async function GET() {
-  try {
-    const products = await (prisma.product as any).findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        category: {
-          include: { parent: { select: { id: true, name: true } } }
-        },
-        variants: {
-          orderBy: [
-            { type: 'asc' },
-            { name: 'asc' }
-          ]
-        }
-      }
-    });
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
 
-    const response = NextResponse.json(products);
+export async function GET(request: NextRequest) {
+  const forbidden = await requireTelegramOrAdminOr403(request, checkAdminAccess);
+  if (forbidden) return forbidden;
+  try {
+    const { searchParams } = new URL(request.url);
+    const usePagination = searchParams.has('page') || searchParams.has('limit');
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+    const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(searchParams.get('limit') || String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT));
+    const skip = (page - 1) * limit;
+
+    const [products, total] = await Promise.all([
+      (prisma.product as any).findMany({
+        ...(usePagination && { skip, take: limit }),
+        orderBy: { createdAt: 'desc' },
+        include: {
+          category: {
+            include: { parent: { select: { id: true, name: true } } }
+          },
+          variants: {
+            orderBy: [
+              { type: 'asc' },
+              { name: 'asc' }
+            ]
+          }
+        }
+      }),
+      usePagination ? (prisma.product as any).count() : Promise.resolve(0)
+    ]);
+
+    const signed = signProductsUrls(products as { image?: string | null; videoUrl?: string | null }[]);
+    if (!usePagination) {
+      const response = NextResponse.json(signed);
+      response.headers.set('Cache-Control', 'no-store, max-age=0');
+      return response;
+    }
+    const totalCount = total as number;
+    const totalPages = Math.ceil(totalCount / limit);
+    const response = NextResponse.json({
+      data: signed,
+      total: totalCount,
+      page,
+      limit,
+      totalPages
+    });
     response.headers.set('Cache-Control', 'no-store, max-age=0');
     return response;
   } catch (error) {

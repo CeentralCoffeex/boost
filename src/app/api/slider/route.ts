@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminAccess } from '@/lib/check-admin-access';
+import { requireTelegramOrAdminOr403 } from '@/lib/require-telegram-app';
+import { signUploadUrl } from '@/lib/upload-sign';
 import { sliderCreateSchema, validateAndSanitize, formatZodErrors } from '@/lib/validation';
 
 async function checkAuth(request: NextRequest) {
@@ -13,14 +15,20 @@ async function checkAuth(request: NextRequest) {
 }
 
 // GET - Récupérer toutes les images du slider
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const forbidden = await requireTelegramOrAdminOr403(request, checkAuth);
+  if (forbidden) return forbidden;
   try {
     const images = await prisma.sliderImage.findMany({
       where: { isActive: true },
       orderBy: { order: 'asc' },
     });
+    const signed = images.map((img: { image?: string | null }) => ({
+      ...img,
+      image: img.image ? (signUploadUrl(img.image) ?? img.image) : img.image,
+    }));
 
-    return NextResponse.json(images);
+    return NextResponse.json(signed);
   } catch (error) {
     console.error('Error fetching slider images:', error);
     return NextResponse.json(

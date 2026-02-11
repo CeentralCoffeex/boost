@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getTelegramFetchHeaders } from '@/lib/telegram-fetch-headers';
 
 interface SliderImage {
   id: string;
@@ -27,7 +28,7 @@ export default function MobileServiceCarousel() {
 
   useEffect(() => {
     // Charger les images depuis l'API
-    fetch('/api/slider')
+    fetch('/api/slider', { headers: getTelegramFetchHeaders(), credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {

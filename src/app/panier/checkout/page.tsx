@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, Truck, Handshake } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { getTelegramFetchHeaders } from '@/lib/telegram-fetch-headers';
 
 interface CartItem {
   id: string;
@@ -38,7 +39,7 @@ export default function CheckoutPage() {
   }, [router]);
 
   useEffect(() => {
-    fetch('/api/order-telegram')
+    fetch('/api/order-telegram', { headers: getTelegramFetchHeaders(), credentials: 'include' })
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
         if (data?.orderTelegramUsername) setOrderTelegramUsername(data.orderTelegramUsername);

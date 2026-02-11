@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminAccess } from '@/lib/check-admin-access';
+import { requireTelegramOrAdminOr403 } from '@/lib/require-telegram-app';
+import { signProductUrls } from '@/lib/upload-sign';
 import { productUpdateSchema, productPatchSchema, validateAndSanitize, formatZodErrors, validateId } from '@/lib/validation';
 
 // GET - Récupérer un produit par ID
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const forbidden = await requireTelegramOrAdminOr403(request, checkAdminAccess);
+  if (forbidden) return forbidden;
   try {
     const { id: rawId } = await params;
     let id = typeof rawId === 'string' ? rawId.trim() : '';
@@ -45,7 +49,8 @@ export async function GET(
       return res;
     }
 
-    const res = NextResponse.json(product);
+    const signed = signProductUrls(product as { image?: string | null; videoUrl?: string | null });
+    const res = NextResponse.json(signed);
     res.headers.set('Cache-Control', 'no-store, max-age=0');
     return res;
   } catch (error) {

@@ -5,6 +5,7 @@ import { ChevronLeft, Share2, Send, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useTelegramProfile, type TelegramInfo } from '@/contexts/TelegramProfileContext';
+import { getTelegramFetchHeaders } from '@/lib/telegram-fetch-headers';
 
 interface ProfileClientProps {
   initialTelegramInfo: TelegramInfo | null;
@@ -127,13 +128,14 @@ export default function ProfileClient({ initialTelegramInfo }: ProfileClientProp
   const [separatorColor, setSeparatorColor] = useState<string>('');
 
   useEffect(() => {
-    fetch('/api/profile-blocks')
+    const headers = getTelegramFetchHeaders();
+    fetch('/api/profile-blocks', { headers, credentials: 'include' })
       .then((res) => res.json())
       .then((data) => setProfileBlocks(data))
       .catch(() => {});
     
     // Charger la couleur de la bordure depuis les settings
-    fetch('/api/settings')
+    fetch('/api/settings', { headers, credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
         setSeparatorColor(data.heroSeparatorColor || '#bef264');

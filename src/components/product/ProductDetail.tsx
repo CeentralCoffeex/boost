@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter, usePathname } from 'next/navigation';
 import { ArrowLeft, ShoppingCart, ShoppingBag } from 'lucide-react';
+import { getTelegramFetchHeaders } from '@/lib/telegram-fetch-headers';
 import { FormattedTextWithBreaks } from '@/lib/formatted-text';
 
 interface ProductVariant {
@@ -75,7 +76,7 @@ export default function ProductDetail() {
     if (!productId) return;
     setLoadError(false);
     let cancelled = false;
-    fetch(`/api/products/${productId}`, { cache: 'no-store' })
+    fetch(`/api/products/${productId}`, { cache: 'no-store', headers: getTelegramFetchHeaders(), credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         if (cancelled) return;

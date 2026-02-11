@@ -115,6 +115,14 @@ export default async function RootLayout({
             ].join(''),
           }}
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: [
+              '(function(){var h=typeof window!=="undefined"?window.location.hostname:"";if(h==="localhost"||h==="127.0.0.1"||h==="")return;',
+              'var noop=function(){};console.log=noop;console.info=noop;console.debug=noop;})();',
+            ].join(''),
+          }}
+        />
         <AuthSessionProvider>
           <ErrorBoundary>
             <TelegramAccessGuard>

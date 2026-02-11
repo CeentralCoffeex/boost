@@ -3,6 +3,7 @@
 import { ChevronDown } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { getTelegramFetchHeaders } from '@/lib/telegram-fetch-headers';
 
 interface Category {
   id: string;
@@ -20,16 +21,13 @@ export default function MenuBar() {
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/api/categories')
+    fetch('/api/categories', { credentials: 'include', headers: getTelegramFetchHeaders() })
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) {
-          setCategories(data);
-        } else {
-          setCategories([]);
-        }
+        const list = Array.isArray(data) ? data : (data?.data ?? []);
+        setCategories(list);
       })
-      .catch(() => {});
+      .catch(() => setCategories([]));
   }, []);
 
   useEffect(() => {

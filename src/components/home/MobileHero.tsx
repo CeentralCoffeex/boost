@@ -2,6 +2,7 @@
 
 import MobileHeroClient from './MobileHeroClient';
 import { useEffect, useState } from 'react';
+import { getTelegramFetchHeaders } from '@/lib/telegram-fetch-headers';
 
 interface SiteSettings {
   heroTitle: string;
@@ -44,7 +45,7 @@ export default function MobileHero() {
     }
 
     // Puis charger depuis l'API
-    fetch('/api/settings')
+    fetch('/api/settings', { headers: getTelegramFetchHeaders(), credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         setSettings(data);

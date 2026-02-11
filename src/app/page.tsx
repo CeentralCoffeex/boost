@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useRef } from 'react'
 import { Heart } from 'lucide-react'
+import { getTelegramFetchHeaders } from '@/lib/telegram-fetch-headers'
 import MobileHero from '@/components/home/MobileHero'
 import MobileServiceCarousel from '@/components/home/MobileServiceCarousel'
 import MenuBar from '@/components/home/MenuBar'
@@ -40,20 +41,9 @@ const ProductCard = ({
     
     const checkLikeStatus = async () => {
       try {
-        const headers: HeadersInit = {};
-        const tgWebApp = (window as any)?.Telegram?.WebApp;
-        const initData = tgWebApp?.initData || 
-          sessionStorage.getItem('tgInitData') || 
-          localStorage.getItem('tgInitData');
-        
-        if (initData) {
-          headers['Authorization'] = `tma ${initData}`;
-          headers['X-Telegram-Init-Data'] = initData;
-        }
-
         const res = await fetch(`/api/products/${productId}/like`, { 
           method: 'GET',
-          headers,
+          headers: getTelegramFetchHeaders(),
           credentials: 'include'
         });
         const data = await res.json();
@@ -79,17 +69,7 @@ const ProductCard = ({
     setLikes(prev => (prev || 0) + 1);
 
     try {
-      const headers: HeadersInit = { 'Content-Type': 'application/json' };
-      const tgWebApp = (window as any)?.Telegram?.WebApp;
-      const initData = tgWebApp?.initData || 
-        sessionStorage.getItem('tgInitData') || 
-        localStorage.getItem('tgInitData');
-      
-      if (initData) {
-        headers['Authorization'] = `tma ${initData}`;
-        headers['X-Telegram-Init-Data'] = initData;
-      }
-
+      const headers: HeadersInit = { 'Content-Type': 'application/json', ...getTelegramFetchHeaders() };
       const res = await fetch(`/api/products/${productId}/like`, { 
         method: 'POST',
         headers,
@@ -174,12 +154,19 @@ export default function HomePage() {
     let cancelled = false;
     
     // Données toujours fraîches pour que les modifs admin soient visibles tout de suite
+    const headers = getTelegramFetchHeaders();
     Promise.all([
-      fetch('/api/products', { cache: 'no-store' }).then(res => res.json()).then(data => {
-        if (!cancelled && Array.isArray(data)) setProducts(data);
+      fetch('/api/products', { cache: 'no-store', headers, credentials: 'include' }).then(res => res.json()).then(data => {
+        if (!cancelled) {
+          const list = Array.isArray(data) ? data : (data?.data ?? []);
+          setProducts(list);
+        }
       }).catch(() => {}),
-      fetch('/api/categories', { cache: 'no-store' }).then(res => res.json()).then(data => {
-        if (!cancelled && Array.isArray(data)) setCategories(data);
+      fetch('/api/categories', { cache: 'no-store', headers, credentials: 'include' }).then(res => res.json()).then(data => {
+        if (!cancelled) {
+          const list = Array.isArray(data) ? data : (data?.data ?? []);
+          setCategories(list);
+        }
       }).catch(() => {}),
     ]);
     return () => { cancelled = true; };

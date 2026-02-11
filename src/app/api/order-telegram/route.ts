@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import { checkAdminAccess } from '@/lib/check-admin-access';
+import { requireTelegramOrAdminOr403 } from '@/lib/require-telegram-app';
 import { getBotConfigPath } from '@/lib/bot-admins';
 
 function loadConfig(): Record<string, unknown> {
@@ -19,7 +20,9 @@ function sanitizeUsername(val: string): string {
   return val.replace(/^@/, '').replace(/[^a-zA-Z0-9_]/g, '').toLowerCase() || 'savpizz13';
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const forbidden = await requireTelegramOrAdminOr403(request, checkAdminAccess);
+  if (forbidden) return forbidden;
   try {
     const cfg = loadConfig();
     const username = (cfg.order_telegram_username as string) || 'savpizz13';

@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminAccess } from '@/lib/check-admin-access';
+import { requireTelegramOrAdminOr403 } from '@/lib/require-telegram-app';
 import { settingsUpdateSchema, validateAndSanitize, formatZodErrors } from '@/lib/validation';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const forbidden = await requireTelegramOrAdminOr403(request, checkAdminAccess);
+  if (forbidden) return forbidden;
   try {
     // Vérifier que le modèle SiteSettings existe
     if (!prisma.siteSettings) {

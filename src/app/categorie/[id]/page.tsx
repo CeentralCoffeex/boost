@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ShoppingCart, Cannabis } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
+import { getTelegramFetchHeaders } from '@/lib/telegram-fetch-headers';
 import ProductThumbnail from '@/components/product/ProductThumbnail';
 
 interface Product {
@@ -49,7 +50,7 @@ export default function CategoryPage() {
     }
     const generation = ++fetchRef.current;
     setLoading(true);
-    fetch(`/api/categories/${encodeURIComponent(id)}`, { credentials: 'include', cache: 'no-store' })
+    fetch(`/api/categories/${encodeURIComponent(id)}`, { credentials: 'include', cache: 'no-store', headers: getTelegramFetchHeaders() })
       .then(res => res.json())
       .then(data => {
         if (generation !== fetchRef.current) return;
