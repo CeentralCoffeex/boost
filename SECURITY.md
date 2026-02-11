@@ -1,5 +1,7 @@
 # Parcours sécurité API (du plus simple au plus robuste)
 
+**RÈGLE ABSOLUE : ne jamais enlever ni affaiblir la sécurité du site.** Toute modification (upload, API, proxy, auth) doit conserver ou renforcer les protections existantes. Les médias (images, vidéos) doivent toujours être servis via URLs signées (`/api/uploads/...?token=...&expires=...`), jamais en URL publique non protégée.
+
 Ce document décrit les **5 étapes** pour passer d’une API exposée type « glo » à un niveau de protection type « maisonp59 ». Chaque étape s’ajoute à la précédente.
 
 ---

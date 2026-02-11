@@ -4,6 +4,7 @@ import { checkAdminAccess } from '@/lib/check-admin-access';
 import { requireTelegramOrAdminOr403 } from '@/lib/require-telegram-app';
 import { signProductUrls } from '@/lib/upload-sign';
 import { productUpdateSchema, productPatchSchema, validateAndSanitize, formatZodErrors, validateId } from '@/lib/validation';
+import { getSafeErrorMessage, logApiError } from '@/lib/api-error';
 
 // GET - Récupérer un produit par ID
 export async function GET(
@@ -201,10 +202,9 @@ export async function PATCH(
 
     return NextResponse.json(product);
   } catch (error: unknown) {
-    console.error('Error patching product:', error);
-    const msg = error instanceof Error ? error.message : 'Erreur lors de la mise à jour du produit';
+    logApiError('Products PATCH', error);
     return NextResponse.json(
-      { error: msg },
+      { error: getSafeErrorMessage(error) },
       { status: 500 }
     );
   }

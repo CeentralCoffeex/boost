@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { checkAdminAccess } from '@/lib/check-admin-access';
+import { getSafeErrorMessage, logApiError } from '@/lib/api-error';
 
 /** Dossier des uploads : public/uploads. Surcharge : UPLOADS_DIR. Si nginx : proxy_request_buffering off; client_max_body_size 500m; */
 function getUploadsDir(): string {
@@ -197,9 +198,9 @@ export async function POST(req: NextRequest) {
     });
     
   } catch (error) {
-    console.error('Upload error:', error);
+    logApiError('Upload', error);
     return NextResponse.json(
-      { success: false, message: 'Upload failed: ' + (error instanceof Error ? error.message : String(error)) }, 
+      { success: false, message: getSafeErrorMessage(error) },
       { status: 500 }
     );
   }

@@ -21,9 +21,14 @@ export function validateTelegramWebAppData(
   const secretKey = crypto.createHmac('sha256', 'WebAppData').update(botToken).digest();
   const calculatedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
 
-  if (hash && calculatedHash.toLowerCase() === hash.toLowerCase()) {
-    const userStr = urlParams.get('user');
-    return userStr ? JSON.parse(userStr) : null;
+  // Comparaison à temps constant pour éviter les attaques par analyse temporelle (side-channel)
+  if (hash) {
+    const a = Buffer.from(calculatedHash.toLowerCase(), 'hex');
+    const b = Buffer.from(hash.toLowerCase(), 'hex');
+    if (a.length === 32 && b.length === 32 && crypto.timingSafeEqual(a, b)) {
+      const userStr = urlParams.get('user');
+      return userStr ? JSON.parse(userStr) : null;
+    }
   }
   return null;
 }

@@ -4,6 +4,7 @@ import { checkAdminAccess } from '@/lib/check-admin-access';
 import { requireTelegramOrAdminOr403 } from '@/lib/require-telegram-app';
 import { signUploadUrl } from '@/lib/upload-sign';
 import { sliderCreateSchema, validateAndSanitize, formatZodErrors } from '@/lib/validation';
+import { getSafeErrorMessage, logApiError } from '@/lib/api-error';
 
 async function checkAuth(request: NextRequest) {
   try {
@@ -74,9 +75,9 @@ export async function POST(request: NextRequest) {
     console.log('[Slider POST] Created:', image.id);
     return NextResponse.json(image);
   } catch (error) {
-    console.error('Error creating slider image:', error);
+    logApiError('Slider POST', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la création de l\'image: ' + (error instanceof Error ? error.message : String(error)) },
+      { error: getSafeErrorMessage(error) },
       { status: 500 }
     );
   }

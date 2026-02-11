@@ -4,6 +4,7 @@ import { checkAdminAccess } from '@/lib/check-admin-access';
 import { requireTelegramOrAdminOr403 } from '@/lib/require-telegram-app';
 import { signCategoryProducts, signCategoriesIcons } from '@/lib/upload-sign';
 import { categoryCreateSchema, validateAndSanitize, formatZodErrors } from '@/lib/validation';
+import { getSafeErrorMessage, logApiError } from '@/lib/api-error';
 
 async function checkAuth(request: NextRequest) {
   try {
@@ -228,9 +229,9 @@ export async function POST(request: NextRequest) {
     console.log('[Categories POST] Created:', category.id);
     return NextResponse.json(category, { status: 201 });
   } catch (error) {
-    console.error('Error creating category:', error);
+    logApiError('Categories POST', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la création de la catégorie: ' + (error instanceof Error ? error.message : String(error)) },
+      { error: getSafeErrorMessage(error) },
       { status: 500 }
     );
   }

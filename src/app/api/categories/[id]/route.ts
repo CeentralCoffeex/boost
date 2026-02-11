@@ -4,6 +4,7 @@ import { checkAdminAccess } from '@/lib/check-admin-access';
 import { requireTelegramOrAdminOr403 } from '@/lib/require-telegram-app';
 import { signCategoryProducts } from '@/lib/upload-sign';
 import { categoryUpdateSchema, validateAndSanitize, formatZodErrors, validateId } from '@/lib/validation';
+import { getSafeErrorMessage, logApiError } from '@/lib/api-error';
 
 async function checkAuth(request: NextRequest) {
   try {
@@ -294,9 +295,9 @@ export async function PUT(
 
     return NextResponse.json(category);
   } catch (error) {
-    console.error('Error updating category:', error);
+    logApiError('Categories PUT', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la mise à jour de la catégorie: ' + (error instanceof Error ? error.message : String(error)) },
+      { error: getSafeErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -342,9 +343,9 @@ export async function DELETE(
     console.log('[Categories DELETE] Deleted:', id);
     return NextResponse.json({ success: true, message: 'Catégorie supprimée' });
   } catch (error) {
-    console.error('Error deleting category:', error);
+    logApiError('Categories DELETE', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la suppression de la catégorie: ' + (error instanceof Error ? error.message : String(error)) },
+      { error: getSafeErrorMessage(error) },
       { status: 500 }
     );
   }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkAdminAccess } from '@/lib/check-admin-access';
 import { sliderUpdateSchema, validateAndSanitize, formatZodErrors, validateId } from '@/lib/validation';
+import { getSafeErrorMessage, logApiError } from '@/lib/api-error';
 
 async function checkAuth(request: NextRequest) {
   try {
@@ -62,9 +63,9 @@ export async function PUT(
     console.log('[Slider PUT] Updated:', id);
     return NextResponse.json(image);
   } catch (error) {
-    console.error('Error updating slider image:', error);
+    logApiError('Slider PUT', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la mise à jour de l\'image: ' + (error instanceof Error ? error.message : String(error)) },
+      { error: getSafeErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -92,15 +93,13 @@ export async function DELETE(
     console.log('[Slider DELETE] Deleted:', id);
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Error deleting slider image:', error);
-    
-    // Gérer le cas où l'enregistrement n'existe pas (Prisma P2025)
-    if (error.code === 'P2025' || error.message?.includes('Record to delete does not exist')) {
+    logApiError('Slider DELETE', error);
+    // Gérer le cas où l'enregistrement n'existe pas (Prisma P2025) — pas de fuite d'info, code connu
+    if (error?.code === 'P2025' || error?.message?.includes('Record to delete does not exist')) {
       return NextResponse.json({ error: 'Image introuvable' }, { status: 404 });
     }
-
     return NextResponse.json(
-      { error: 'Erreur lors de la suppression de l\'image: ' + (error instanceof Error ? error.message : String(error)) },
+      { error: getSafeErrorMessage(error) },
       { status: 500 }
     );
   }

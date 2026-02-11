@@ -54,19 +54,6 @@ export async function disconnectDatabase(): Promise<void> {
 }
 
 /**
- * Fonction pour exécuter des requêtes brutes SQL
- */
-export async function executeRawQuery(query: string, params?: any[]): Promise<any> {
-  try {
-    const result = await prisma.$queryRawUnsafe(query, ...(params || []));
-    return result;
-  } catch (error) {
-    console.error('❌ Erreur lors de l\'exécution de la requête:', error);
-    throw error;
-  }
-}
-
-/**
  * Fonction pour obtenir les statistiques de la base de données
  */
 export async function getDatabaseStats() {
