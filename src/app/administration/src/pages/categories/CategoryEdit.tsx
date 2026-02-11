@@ -51,6 +51,7 @@ const CategoryEdit = (): ReactElement => {
   const [subcategories, setSubcategories] = useState<SubcategoryItem[]>([]);
   const [categories, setCategories] = useState<{ id: string; name: string; order: number }[]>([]);
   const [previewIcon, setPreviewIcon] = useState<string>('');
+  const [iconPreviewObjectUrl, setIconPreviewObjectUrl] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -62,6 +63,12 @@ const CategoryEdit = (): ReactElement => {
       fetchCategory();
     }
   }, [id]);
+
+  useEffect(() => {
+    return () => {
+      if (iconPreviewObjectUrl) URL.revokeObjectURL(iconPreviewObjectUrl);
+    };
+  }, [iconPreviewObjectUrl]);
 
   const fetchCategories = async () => {
     try {
@@ -149,7 +156,12 @@ const CategoryEdit = (): ReactElement => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (iconPreviewObjectUrl) {
+      URL.revokeObjectURL(iconPreviewObjectUrl);
+      setIconPreviewObjectUrl('');
+    }
     const objectUrl = URL.createObjectURL(file);
+    setIconPreviewObjectUrl(objectUrl);
     setPreviewIcon(objectUrl);
     setUploading(true);
 
@@ -189,6 +201,7 @@ const CategoryEdit = (): ReactElement => {
     } finally {
       setUploading(false);
     }
+    event.target.value = '';
   };
 
   const handleSubmit = async () => {
@@ -483,6 +496,10 @@ const CategoryEdit = (): ReactElement => {
                 <IconButton
                   size="small"
                   onClick={() => {
+                    if (iconPreviewObjectUrl) {
+                      URL.revokeObjectURL(iconPreviewObjectUrl);
+                      setIconPreviewObjectUrl('');
+                    }
                     setFormData((prev) => ({ ...prev, icon: '' }));
                     setPreviewIcon('');
                   }}

@@ -51,10 +51,17 @@ const Settings = (): ReactElement => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [heroPreviewUrl, setHeroPreviewUrl] = useState<string>('');
 
   useEffect(() => {
     fetchSettings();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (heroPreviewUrl) URL.revokeObjectURL(heroPreviewUrl);
+    };
+  }, [heroPreviewUrl]);
 
   const fetchSettings = async () => {
     try {
@@ -81,6 +88,13 @@ const Settings = (): ReactElement => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (heroPreviewUrl) {
+      URL.revokeObjectURL(heroPreviewUrl);
+      setHeroPreviewUrl('');
+    }
+    const objectUrl = URL.createObjectURL(file);
+    setHeroPreviewUrl(objectUrl);
+
     setUploading(true);
     try {
       const response = await uploadWithProgress('/api/upload', file);
@@ -95,6 +109,7 @@ const Settings = (): ReactElement => {
     } finally {
       setUploading(false);
     }
+    e.target.value = '';
   };
 
   const handleSubmit = async () => {
@@ -125,6 +140,7 @@ const Settings = (): ReactElement => {
             instagramUrl: updated.instagramUrl ?? prev.instagramUrl,
             theme: (updated.theme as ThemeId) ?? prev.theme,
           }));
+          setHeroPreviewUrl('');
         }
         setSuccess('Paramètres sauvegardés avec succès');
         setTimeout(() => setSuccess(''), 3000);
@@ -201,10 +217,10 @@ const Settings = (): ReactElement => {
                 border: '2px solid rgba(255,255,255,0.2)',
               }}
             >
-              {/* Image de fond */}
-              {formData.heroImage && (
+              {/* Image de fond : aperçu immédiat (object URL) ou URL sauvegardée */}
+              {(heroPreviewUrl || formData.heroImage) && (
                 <img
-                  src={formData.heroImage}
+                  src={heroPreviewUrl || formData.heroImage}
                   alt="Hero"
                   style={{
                     position: 'absolute',

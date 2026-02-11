@@ -67,6 +67,8 @@ const ProductEdit = (): ReactElement => {
 
   const [previewImage, setPreviewImage] = useState<string>('');
   const [previewVideo, setPreviewVideo] = useState<string>('');
+  const [imagePreviewObjectUrl, setImagePreviewObjectUrl] = useState<string>('');
+  const [videoPreviewObjectUrl, setVideoPreviewObjectUrl] = useState<string>('');
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
@@ -84,6 +86,13 @@ const ProductEdit = (): ReactElement => {
     if (!previewImage && formData.image) setPreviewImage(formData.image);
     if (!previewVideo && formData.videoUrl) setPreviewVideo(formData.videoUrl);
   }, [formData.image, formData.videoUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreviewObjectUrl) URL.revokeObjectURL(imagePreviewObjectUrl);
+      if (videoPreviewObjectUrl) URL.revokeObjectURL(videoPreviewObjectUrl);
+    };
+  }, [imagePreviewObjectUrl, videoPreviewObjectUrl]);
 
   const fetchCategories = async () => {
     try {
@@ -138,7 +147,12 @@ const ProductEdit = (): ReactElement => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (imagePreviewObjectUrl) {
+      URL.revokeObjectURL(imagePreviewObjectUrl);
+      setImagePreviewObjectUrl('');
+    }
     const objectUrl = URL.createObjectURL(file);
+    setImagePreviewObjectUrl(objectUrl);
     setPreviewImage(objectUrl);
     setUploading(true);
     setUploadProgress(0);
@@ -149,8 +163,7 @@ const ProductEdit = (): ReactElement => {
       });
       const result = await response.json();
       if (result.success && result.url) {
-        setFormData({ ...formData, image: result.url });
-        setPreviewImage(result.url);
+        setFormData((prev) => ({ ...prev, image: result.url }));
       } else {
         setError(result.message || 'Erreur lors de l\'upload');
       }
@@ -161,13 +174,19 @@ const ProductEdit = (): ReactElement => {
       setUploading(false);
       setUploadProgress(0);
     }
+    event.target.value = '';
   };
 
   const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (videoPreviewObjectUrl) {
+      URL.revokeObjectURL(videoPreviewObjectUrl);
+      setVideoPreviewObjectUrl('');
+    }
     const objectUrl = URL.createObjectURL(file);
+    setVideoPreviewObjectUrl(objectUrl);
     setPreviewVideo(objectUrl);
     setUploading(true);
     setUploadProgress(0);
@@ -178,8 +197,7 @@ const ProductEdit = (): ReactElement => {
       });
       const result = await response.json();
       if (result.success && result.url) {
-        setFormData({ ...formData, videoUrl: result.url });
-        setPreviewVideo(result.url);
+        setFormData((prev) => ({ ...prev, videoUrl: result.url }));
       } else {
         setError(result.message || 'Erreur lors de l\'upload');
       }
@@ -190,6 +208,7 @@ const ProductEdit = (): ReactElement => {
       setUploading(false);
       setUploadProgress(0);
     }
+    event.target.value = '';
   };
 
   const addVariant = () => {
@@ -363,7 +382,7 @@ const ProductEdit = (): ReactElement => {
                   {previewImage ? (
                     <>
                       <img src={previewImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); setFormData({ ...formData, image: '' }); setPreviewImage(''); }} sx={{ position: 'absolute', top: 4, right: 4, bgcolor: 'rgba(0,0,0,0.7)', color: 'white' }}>
+                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); if (imagePreviewObjectUrl) { URL.revokeObjectURL(imagePreviewObjectUrl); setImagePreviewObjectUrl(''); } setFormData((prev) => ({ ...prev, image: '' })); setPreviewImage(''); }} sx={{ position: 'absolute', top: 4, right: 4, bgcolor: 'rgba(0,0,0,0.7)', color: 'white' }}>
                         <IconifyIcon icon="material-symbols:close" width={16} />
                       </IconButton>
                     </>
@@ -398,7 +417,7 @@ const ProductEdit = (): ReactElement => {
                       <video style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted playsInline controls preload="auto">
                         <source src={previewVideo} type={getVideoMimeType(previewVideo)} />
                       </video>
-                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); setFormData({ ...formData, videoUrl: '' }); setPreviewVideo(''); }} sx={{ position: 'absolute', top: 4, right: 4, bgcolor: 'rgba(0,0,0,0.7)', color: 'white' }}>
+                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); if (videoPreviewObjectUrl) { URL.revokeObjectURL(videoPreviewObjectUrl); setVideoPreviewObjectUrl(''); } setFormData((prev) => ({ ...prev, videoUrl: '' })); setPreviewVideo(''); }} sx={{ position: 'absolute', top: 4, right: 4, bgcolor: 'rgba(0,0,0,0.7)', color: 'white' }}>
                         <IconifyIcon icon="material-symbols:close" width={16} />
                       </IconButton>
                     </>
