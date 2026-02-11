@@ -4,6 +4,19 @@ import Topbar from './Topbar/Topbar';
 import Sidebar from './Sidebar/Sidebar';
 import { useLocation } from 'react-router-dom';
 
+function getTelegramHeaders(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  const tg = (window as any)?.Telegram?.WebApp;
+  const initData = tg?.initData || sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData');
+  if (!initData) return {};
+  const h: Record<string, string> = {
+    Authorization: `tma ${initData}`,
+    'X-Telegram-Init-Data': initData,
+  };
+  if (tg?.platform) h['X-Telegram-Platform'] = tg.platform;
+  return h;
+}
+
 export const drawerOpenWidth = 240;
 export const drawerCloseWidth = 110;
 
@@ -41,23 +54,9 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
   }, [open]);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuth = async (retryCount = 0): Promise<void> => {
       try {
-        const initData = typeof sessionStorage !== 'undefined'
-          ? sessionStorage.getItem('tgInitData') || localStorage.getItem('tgInitData')
-          : null;
-        
-        if (!initData) {
-          setError('❌ Accès refusé : ouvrez depuis le bot Telegram');
-          setIsLoading(false);
-          return;
-        }
-
-        const headers: Record<string, string> = {
-          'Authorization': `tma ${initData}`,
-          'X-Telegram-Init-Data': initData,
-          'Cache-Control': 'no-cache'
-        };
+        const headers: Record<string, string> = { 'Cache-Control': 'no-cache', ...getTelegramHeaders() };
 
         const res = await fetch('/api/admin/verify', {
           credentials: 'include',
@@ -73,7 +72,14 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
           }
         }
         
-        setError('❌ Accès refusé : vous n\'êtes pas administrateur');
+        const hasTelegram = typeof window !== 'undefined' && !!(window as any)?.Telegram?.WebApp;
+        const hasInitData = !!headers['Authorization'];
+        if (!hasInitData && hasTelegram && retryCount < 2) {
+          setTimeout(() => checkAuth(retryCount + 1), 400);
+          return;
+        }
+        
+        setError(hasInitData ? '❌ Vous n\'êtes pas autorisé (votre compte n\'est pas admin)' : '❌ Ouvrez l\'admin depuis le bot Telegram ou connectez-vous (session)');
         setIsLoading(false);
       } catch (err: any) {
         console.error('[admin] Error:', err);

@@ -86,8 +86,8 @@ export default function MobileHeroClient({ settings }: MobileHeroClientProps) {
         </div>
 
         <div className="hero-footer-text w-full text-center pt-2 pb-1">
-          <h1 className={`hero-title-outline text-white font-black uppercase italic tracking-tighter drop-shadow-lg font-orbitron whitespace-nowrap text-sm sm:text-base ${settings.heroTitle.length > 30 ? 'hero-title-long' : 'hero-title-default'}`}>
-            {settings.heroTitle}
+          <h1 className={`hero-title-outline text-white font-black uppercase italic tracking-tighter drop-shadow-lg font-orbitron whitespace-nowrap text-sm sm:text-base ${(settings.heroTitle ?? '').length > 30 ? 'hero-title-long' : 'hero-title-default'}`}>
+            {settings.heroTitle ?? ''}
           </h1>
         </div>
       </div>

@@ -110,7 +110,9 @@ export async function checkAdminAccess(request?: NextRequest | null): Promise<bo
     }
   }
   if (!userId && !email) {
-    const session = await getServerSession(authOptions);
+    const session = request
+      ? await getServerSession(request as any, null as any, authOptions)
+      : await getServerSession(authOptions);
     if (session?.user) {
       userId = session.user.id;
       email = session.user.email ?? undefined;

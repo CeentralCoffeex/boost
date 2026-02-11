@@ -49,11 +49,17 @@ export default function MobileHero() {
       .then(res => res.json())
       .then(data => {
         const safe = {
+          ...data,
+          heroTitle: data?.heroTitle ?? '',
           heroSubtitle1: data?.heroSubtitle1 ?? 'Exclusive',
           heroSubtitle2: data?.heroSubtitle2 ?? 'Boutique',
           heroSubtitle3: data?.heroSubtitle3 ?? 'Hotel',
           heroTagline: data?.heroTagline ?? '',
-          ...data,
+          heroImage: data?.heroImage ?? '/hero.png',
+          heroSeparatorColor: data?.heroSeparatorColor,
+          facebookUrl: data?.facebookUrl ?? 'https://facebook.com',
+          twitterUrl: data?.twitterUrl ?? 'https://twitter.com',
+          instagramUrl: data?.instagramUrl ?? 'https://instagram.com',
         };
         setSettings(safe);
         try {
