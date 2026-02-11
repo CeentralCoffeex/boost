@@ -151,12 +151,21 @@ export async function proxy(request: NextRequest) {
   // Ignore static files
   if (pathname.startsWith('/_next/') || pathname.startsWith('/favicon.ico') || (pathname.includes('.') && !pathname.startsWith('/api/'))) return NextResponse.next();
 
-  // --- BLOQUER ACCÈS PC (site réservé Telegram / mobile) — sauf admin, auth, API ---
+  // --- BLOQUER ACCÈS PC : tout le site (pages + API) sauf webhook Telegram ---
   const blockPc = process.env.TELEGRAM_ONLY === 'true' || process.env.BLOCK_PC_ACCESS === 'true';
-  if (blockPc && !pathname.startsWith('/api/') && !pathname.startsWith('/administration') && !pathname.startsWith('/admin') && !pathname.startsWith('/auth')) {
+  if (blockPc) {
     const ua = (request.headers.get('user-agent') || '').toLowerCase();
     const isMobileOrTelegram = /telegram|android|iphone|ipad|webapp|mobile/i.test(ua);
-    if (!isMobileOrTelegram) {
+    const isWebhook = pathname.startsWith('/api/telegram/webhook');
+    if (!isWebhook && !isMobileOrTelegram) {
+      if (pathname.startsWith('/api/')) {
+        const res = NextResponse.json(
+          { error: 'BOT_DETECTED', message: 'Ouvrez depuis l\'application Telegram (Mini App).' },
+          { status: 403 }
+        );
+        applyApiCors(request, res);
+        return res;
+      }
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Accès réservé</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#1a1a1a;color:#fff;font-family:system-ui,sans-serif;text-align:center;padding:20px;}h1{font-size:1.5rem;}p{opacity:.9;max-width:320px;}</style></head><body><div><h1>Accès réservé</h1><p>Ouvrez ce site uniquement depuis l’application Telegram (Mini App du bot), pas depuis un navigateur sur PC.</p></div></body></html>`;
       return new NextResponse(html, { status: 403, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }

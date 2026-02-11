@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateTelegramWebAppData } from '@/lib/telegram-webapp';
 import { isBotAdmin } from '@/lib/bot-admins';
 import { checkAdminAccess } from '@/lib/check-admin-access';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 5; // 5 secondes max
 
-/** Vérification admin : session NextAuth (PC) OU initData Telegram (Mini App). */
+/** Vérification admin : session NextAuth (PC) OU initData Telegram (config.json OU table TelegramAdmin). */
 export async function GET(request: NextRequest) {
   try {
     // Admin depuis PC (session NextAuth)
@@ -38,12 +39,34 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ allowed: false }, { status: 401 });
     }
 
-    // Vérifier si admin dans config.json
     const telegramIdStr = telegramUser.id.toString();
-    const isAdmin = isBotAdmin(telegramIdStr);
+    const fromConfig = isBotAdmin(telegramIdStr);
+    let fromDb = false;
+    if (!fromConfig) {
+      try {
+        const admin = await Promise.race([
+          prisma.telegramAdmin.findFirst({
+            where: { telegramId: telegramIdStr, isActive: true },
+          }),
+          new Promise<null>((_, reject) =>
+            setTimeout(() => reject(new Error('timeout')), 5000)
+          ),
+        ]).catch(() => null);
+        fromDb = !!admin;
+      } catch {
+        fromDb = false;
+      }
+    }
+    const isAdmin = fromConfig || fromDb;
 
-    console.log(`[verify] Telegram ID ${telegramIdStr}: ${isAdmin ? 'ADMIN' : 'REFUSE'}`);
-    return NextResponse.json({ allowed: isAdmin });
+    console.log(`[verify] Telegram ID ${telegramIdStr}: config=${fromConfig} db=${fromDb} => ${isAdmin ? 'ADMIN' : 'REFUSE'}`);
+    if (!isAdmin) {
+      return NextResponse.json(
+        { allowed: false, telegramId: telegramIdStr, hint: 'Ajoutez cet ID dans bots/config.json (admin_ids) ou dans Administration > Admins Telegram.' },
+        { status: 403 }
+      );
+    }
+    return NextResponse.json({ allowed: true });
   } catch (error: any) {
     console.error('[verify] ERROR:', error?.message);
     return NextResponse.json({ allowed: false }, { status: 500 });

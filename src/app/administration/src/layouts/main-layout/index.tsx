@@ -28,6 +28,7 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [errorDetail, setErrorDetail] = useState<string>('');
   const location = useLocation();
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -62,15 +63,22 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
           credentials: 'include',
           headers,
         });
-        
-        if (res.ok) {
-          const data = await res.json();
-          if (data.allowed) {
-            setIsAuthenticated(true);
-            setIsLoading(false);
-            return;
-          }
+        let data: { allowed?: boolean; telegramId?: string; hint?: string } = {};
+        try {
+          data = await res.json();
+        } catch {
+          /* ignore */
         }
+        if (res.ok && data.allowed) {
+          setIsAuthenticated(true);
+          setIsLoading(false);
+          return;
+        }
+
+        const detail = data.telegramId
+          ? `Votre ID Telegram : ${data.telegramId}. ${data.hint || ''}`
+          : '';
+        setErrorDetail(detail);
         
         const hasTelegram = typeof window !== 'undefined' && !!(window as any)?.Telegram?.WebApp;
         const hasInitData = !!headers['Authorization'];
@@ -101,6 +109,7 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
     return <Box sx={{ width: 1, height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#1a1a1a', color: '#fff', padding: 3, textAlign: 'center', flexDirection: 'column', gap: 2 }}>
       <div style={{ fontSize: '48px' }}>🚫</div>
       <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{error || '❌ Accès refusé'}</div>
+      {errorDetail && <div style={{ fontSize: '13px', opacity: 0.9, maxWidth: 360 }}>{errorDetail}</div>}
       <div style={{ fontSize: '14px', opacity: 0.7 }}>Contactez un administrateur si vous pensez que c'est une erreur</div>
     </Box>;
   }

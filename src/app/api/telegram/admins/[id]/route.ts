@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { checkAdminAccess, invalidateAdminCacheForUser } from '@/lib/check-admin-access';
+import { checkAdminAccess, invalidateAdminCacheForUser, invalidateAdminCacheForTelegramId } from '@/lib/check-admin-access';
 import { telegramAdminUpdateSchema, validateAndSanitize, formatZodErrors, validateId } from '@/lib/validation';
 import { addAdminIdToConfig, removeAdminIdFromConfig } from '@/lib/sync-bot-config';
 
@@ -59,6 +59,7 @@ export async function PUT(
     });
     if (before?.telegramId && !admin.isActive) removeAdminIdFromConfig(before.telegramId);
     else if (admin.telegramId && admin.isActive) addAdminIdToConfig(admin.telegramId);
+    if (admin.telegramId) invalidateAdminCacheForTelegramId(admin.telegramId);
 
     return NextResponse.json(admin);
   } catch (error) {

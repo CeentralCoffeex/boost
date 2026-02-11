@@ -54,10 +54,23 @@ Ce document décrit les **5 étapes** pour passer d’une API exposée type « g
 
 | Action sur glo | Code / Config |
 |----------------|----------------|
-| **Rate limiting** sur `/api/*` pour limiter le débit par IP (anti-scraping). | **Option A (Cloudflare) :** Dashboard → Security → WAF → Rate limiting (ex. 10 req/min par IP sur `*/api/*`). **Option B (appliqué dans ce repo) :** `src/middleware.ts` → 10 req/min par IP sur `/api/*` (hors auth, webhook, uploads). Variable `API_RATE_LIMIT_PER_MIN` dans `.env`. |
+| **Rate limiting** sur `/api/*` pour limiter le débit par IP (anti-scraping). | **Option A (Cloudflare) :** Dashboard → Security → WAF → Rate limiting (ex. 10 req/min par IP sur `*/api/*`). **Option B (appliqué dans ce repo) :** `src/proxy.ts` → 10 req/min par IP sur `/api/*` (hors auth, webhook, uploads). Variable `API_RATE_LIMIT_PER_MIN` dans `.env`. |
 | **CSP renforcé** (anti-XSS, contrôle des sources de script/requêtes). | **next.config.js** : `headers()` applique déjà des en-têtes de sécurité (X-Frame-Options, HSTS, X-Content-Type-Options, Referrer-Policy). Pour la zone `/administration` une CSP stricte est définie. Pour le reste du site, on peut ajouter une CSP globale dans le même `headers()` si besoin (ex. `default-src 'self'; script-src 'self' https://telegram.org; ...`). |
 
 **Niveau de protection atteint :** **Anti-scraping** (rate limit) + **anti-XSS** et contrôle des ressources (CSP).
+
+---
+
+## Blocage accès PC (TELEGRAM_ONLY / BLOCK_PC_ACCESS)
+
+| Action | Code / Config |
+|--------|----------------|
+| Quand `TELEGRAM_ONLY=true` ou `BLOCK_PC_ACCESS=true`, **tout le site** est bloqué depuis un navigateur PC (User-Agent sans Telegram/Android/iPhone/iPad). | **Fichier :** `src/proxy.ts` — détection User-Agent, exception uniquement pour `/api/telegram/webhook` (appelé par les serveurs Telegram). |
+| **Pages** : réponse 403 + page HTML « Ouvrez depuis l’application Telegram ». | Même proxy. |
+| **API** (`/api/products`, `/api/categories`, `/api/settings`, etc.) : réponse 403 JSON `{ error: 'BOT_DETECTED', message: '...' }`. | Aucune donnée API n’est servie depuis un PC. |
+| En plus, chaque route API catalogue exige **initData valide** (hash HMAC) ou **session admin**. | Voir étape 2 ; routes dans `src/app/api/*` utilisent `requireTelegramOrAdminOr403(request, checkAdminAccess)`. |
+
+**Résultat :** Depuis un PC, impossible d’accéder aux pages ni aux données API (produits, catégories, settings, etc.). Seul le webhook Telegram reste accessible pour que le bot fonctionne.
 
 ---
 
@@ -70,5 +83,6 @@ Ce document décrit les **5 étapes** pour passer d’une API exposée type « g
 | 3 | Bloque depuis desktop / curl (mobile-only) |
 | 4 | Médias non publics (signed URLs, option R2) |
 | 5 | Anti-scraping + anti-XSS (rate limit + CSP) |
+| **PC** | **Blocage total site + API depuis PC** (sauf webhook) |
 
-Dans ce dépôt, les **étapes 2, 3, 4 et 5 (rate limit)** sont déjà implémentées. Il reste à **activer l’étape 1** dans le dashboard Cloudflare et, en production, à envisager **R2 + signed URLs** (étape 4) et **CSP globale** (étape 5) si vous souhaitez durcir encore la politique des contenus.
+Dans ce dépôt, les **étapes 2, 3, 4 et 5 (rate limit)** et le **blocage PC total** sont déjà implémentés. Il reste à **activer l’étape 1** dans le dashboard Cloudflare et, en production, à envisager **R2 + signed URLs** (étape 4) et **CSP globale** (étape 5) si vous souhaitez durcir encore la politique des contenus.

@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { getBotConfigPath } from '@/lib/bot-admins';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { checkAdminAccess } from '@/lib/check-admin-access';
+import { checkAdminAccess, invalidateAdminCacheForTelegramId } from '@/lib/check-admin-access';
 import { telegramAdminCreateSchema, validateAndSanitize, formatZodErrors } from '@/lib/validation';
 import { addAdminIdToConfig, removeAdminIdFromConfig } from '@/lib/sync-bot-config';
 
@@ -168,6 +168,7 @@ export async function POST(request: NextRequest) {
     if (admin.telegramId && admin.isActive) {
       addAdminIdToConfig(admin.telegramId);
     }
+    if (admin.telegramId) invalidateAdminCacheForTelegramId(admin.telegramId);
 
     return NextResponse.json(admin);
   } catch (error) {

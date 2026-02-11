@@ -16,6 +16,11 @@ export function invalidateAdminCacheForUser(userId?: string, email?: string): vo
   if (email) adminCache.delete(email);
 }
 
+/** Invalide le cache admin pour un telegramId (appelé après ajout/activation d'un admin Telegram) */
+export function invalidateAdminCacheForTelegramId(telegramId: string): void {
+  if (telegramId) adminCache.delete(`tg:${telegramId}`);
+}
+
 function getCachedAdmin(key: string): boolean | null {
   const entry = adminCache.get(key);
   if (!entry || Date.now() > entry.expires) {
@@ -83,10 +88,16 @@ export async function checkAdminAccess(request?: NextRequest | null): Promise<bo
           const cached = getCachedAdmin(cacheKey);
           if (cached !== null) return cached;
           
-          // Vérifier UNIQUEMENT config.json (pas de DB pour éviter timeout)
+          // config.json OU table TelegramAdmin (actif)
           const isBotAdm = isBotAdmin(telegramIdStr);
-          setCachedAdmin(cacheKey, isBotAdm);
-          return isBotAdm;
+          if (isBotAdm) {
+            setCachedAdmin(cacheKey, true);
+            return true;
+          }
+          const dbAdmin = await isTelegramIdAdminInDb(telegramIdStr);
+          const allowed = dbAdmin;
+          setCachedAdmin(cacheKey, allowed);
+          return allowed;
         }
       }
     }
@@ -132,6 +143,23 @@ export async function checkAdminAccess(request?: NextRequest | null): Promise<bo
   }
 
   return false;
+}
+
+/** Vérifie si un telegramId est admin via la table TelegramAdmin (isActive). */
+async function isTelegramIdAdminInDb(telegramIdStr: string): Promise<boolean> {
+  try {
+    const admin = await Promise.race([
+      prisma.telegramAdmin.findFirst({
+        where: { telegramId: telegramIdStr, isActive: true },
+      }),
+      new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error('Database query timeout')), 5000)
+      ),
+    ]).catch(() => null);
+    return !!admin;
+  } catch {
+    return false;
+  }
 }
 
 /** Accès admin : config.json OU TelegramAdmin (actif) OU rôle ADMIN en base (secours si config.json absent sur serveur). */
