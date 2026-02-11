@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useRef } from 'react'
 import { Heart } from 'lucide-react'
-import { getTelegramFetchHeaders } from '@/lib/telegram-fetch-headers'
+import { getTelegramFetchHeaders, waitForTelegramHeaders } from '@/lib/telegram-fetch-headers'
 import MobileHero from '@/components/home/MobileHero'
 import MobileServiceCarousel from '@/components/home/MobileServiceCarousel'
 import MenuBar from '@/components/home/MenuBar'
@@ -153,22 +153,25 @@ export default function HomePage() {
   useEffect(() => {
     let cancelled = false;
     
-    // Données toujours fraîches pour que les modifs admin soient visibles tout de suite
-    const headers = getTelegramFetchHeaders();
-    Promise.all([
-      fetch('/api/products', { cache: 'no-store', headers, credentials: 'include' }).then(res => res.json()).then(data => {
-        if (!cancelled) {
-          const list = Array.isArray(data) ? data : (data?.data ?? []);
-          setProducts(list);
-        }
-      }).catch(() => {}),
-      fetch('/api/categories', { cache: 'no-store', headers, credentials: 'include' }).then(res => res.json()).then(data => {
-        if (!cancelled) {
-          const list = Array.isArray(data) ? data : (data?.data ?? []);
-          setCategories(list);
-        }
-      }).catch(() => {}),
-    ]);
+    // Attendre initData puis charger produits/catégories (évite 403 et "introuvable")
+    waitForTelegramHeaders(2500).then((headers) => {
+      if (cancelled) return;
+      const h = Object.keys(headers).length ? headers : getTelegramFetchHeaders();
+      Promise.all([
+        fetch('/api/products', { cache: 'no-store', headers: h, credentials: 'include' }).then(res => res.json()).then(data => {
+          if (!cancelled) {
+            const list = Array.isArray(data) ? data : (data?.data ?? []);
+            setProducts(list);
+          }
+        }).catch(() => {}),
+        fetch('/api/categories', { cache: 'no-store', headers: h, credentials: 'include' }).then(res => res.json()).then(data => {
+          if (!cancelled) {
+            const list = Array.isArray(data) ? data : (data?.data ?? []);
+            setCategories(list);
+          }
+        }).catch(() => {}),
+      ]);
+    });
     return () => { cancelled = true; };
   }, []);
 

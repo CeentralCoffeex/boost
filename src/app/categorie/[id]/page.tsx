@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ShoppingCart, Cannabis } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
-import { getTelegramFetchHeaders } from '@/lib/telegram-fetch-headers';
+import { getTelegramFetchHeaders, waitForTelegramHeaders } from '@/lib/telegram-fetch-headers';
 import ProductThumbnail from '@/components/product/ProductThumbnail';
 
 interface Product {
@@ -53,39 +53,43 @@ export default function CategoryPage() {
     const generation = ++fetchRef.current;
     setLoading(true);
     setAccessDenied(false);
-    const doFetch = (retry = 0) => {
-      fetch(`/api/categories/${encodeURIComponent(id)}`, { credentials: 'include', cache: 'no-store', headers: getTelegramFetchHeaders() })
-        .then(async res => {
-          if (generation !== fetchRef.current) return { data: null, skip: true };
-          if (res.status === 403 && retry < 1) {
-            setTimeout(() => doFetch(retry + 1), 400);
-            return { data: null, skip: true };
-          }
-          const data = await res.json();
-          return { data, skip: false };
-        })
-        .then(({ data, skip }) => {
-          if (generation !== fetchRef.current || skip || data === null) return;
-          if (data?.error === 'BOT_DETECTED' || (data?.error && data?.message?.includes('Telegram'))) {
+    waitForTelegramHeaders(2500).then((headers) => {
+      if (generation !== fetchRef.current) return;
+      const doOne = (retry = 0) => {
+        const h = Object.keys(headers).length ? headers : getTelegramFetchHeaders();
+        fetch(`/api/categories/${encodeURIComponent(id)}`, { credentials: 'include', cache: 'no-store', headers: h })
+          .then(async res => {
+            if (generation !== fetchRef.current) return { data: null, skip: true };
+            if (res.status === 403 && retry < 1) {
+              setTimeout(() => doOne(retry + 1), 300);
+              return { data: null, skip: true };
+            }
+            const data = await res.json();
+            return { data, skip: false };
+          })
+          .then(({ data, skip }) => {
+            if (generation !== fetchRef.current || skip || data === null) return;
+            if (data?.error === 'BOT_DETECTED' || (data?.error && data?.message?.includes('Telegram'))) {
+              setCategory(null);
+              setAccessDenied(true);
+            } else if (data?.error) {
+              setCategory(null);
+              setAccessDenied(false);
+            } else {
+              setCategory(data);
+              setSelectedSubcategoryId(null);
+              setAccessDenied(false);
+            }
+            setLoading(false);
+          })
+          .catch(() => {
+            if (generation !== fetchRef.current) return;
             setCategory(null);
-            setAccessDenied(true);
-          } else if (data?.error) {
-            setCategory(null);
-            setAccessDenied(false);
-          } else {
-            setCategory(data);
-            setSelectedSubcategoryId(null);
-            setAccessDenied(false);
-          }
-          setLoading(false);
-        })
-        .catch(() => {
-          if (generation !== fetchRef.current) return;
-          setCategory(null);
-          setLoading(false);
-        });
-    };
-    doFetch();
+            setLoading(false);
+          });
+      };
+      doOne();
+    });
   }, [id]);
 
   const handleBack = () => {

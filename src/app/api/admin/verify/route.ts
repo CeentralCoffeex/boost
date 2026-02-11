@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
             where: { telegramId: telegramIdStr, isActive: true },
           }),
           new Promise<null>((_, reject) =>
-            setTimeout(() => reject(new Error('timeout')), 5000)
+            setTimeout(() => reject(new Error('timeout')), 2000)
           ),
         ]).catch(() => null);
         fromDb = !!admin;

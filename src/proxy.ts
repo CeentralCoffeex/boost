@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { securityMiddleware } from '@/middleware/security';
 
-// --- Rate limit /api (10 req/min par IP, comme ancien middleware) ---
-const API_RATE_LIMIT = Number(process.env.API_RATE_LIMIT_PER_MIN) || 10;
+// --- Rate limit /api (60 req/min par IP par défaut pour ne pas bloquer Mini App) ---
+const API_RATE_LIMIT = Number(process.env.API_RATE_LIMIT_PER_MIN) || 60;
 const WINDOW_MS = 60 * 1000;
 const apiRateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
@@ -154,10 +154,11 @@ export async function proxy(request: NextRequest) {
   // --- BLOQUER ACCÈS PC : tout le site (pages + API) sauf webhook Telegram ---
   const blockPc = process.env.TELEGRAM_ONLY === 'true' || process.env.BLOCK_PC_ACCESS === 'true';
   if (blockPc) {
-    const ua = (request.headers.get('user-agent') || '').toLowerCase();
-    const isMobileOrTelegram = /telegram|android|iphone|ipad|webapp|mobile/i.test(ua);
     const isWebhook = pathname.startsWith('/api/telegram/webhook');
-    if (!isWebhook && !isMobileOrTelegram) {
+    const hasInitData = request.headers.get('authorization')?.startsWith('tma ') || (request.headers.get('x-telegram-init-data')?.trim().length ?? 0) > 0;
+    const ua = (request.headers.get('user-agent') || '').toLowerCase();
+    const isMobileOrTelegram = /telegram|android|iphone|ipad|webapp|weba|mobile|miniapp/i.test(ua);
+    if (!isWebhook && !hasInitData && !isMobileOrTelegram) {
       if (pathname.startsWith('/api/')) {
         const res = NextResponse.json(
           { error: 'BOT_DETECTED', message: 'Ouvrez depuis l\'application Telegram (Mini App).' },

@@ -153,7 +153,7 @@ async function isTelegramIdAdminInDb(telegramIdStr: string): Promise<boolean> {
         where: { telegramId: telegramIdStr, isActive: true },
       }),
       new Promise<null>((_, reject) =>
-        setTimeout(() => reject(new Error('Database query timeout')), 5000)
+        setTimeout(() => reject(new Error('Database query timeout')), 2000)
       ),
     ]).catch(() => null);
     return !!admin;

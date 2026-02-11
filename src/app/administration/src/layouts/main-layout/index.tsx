@@ -17,6 +17,21 @@ function getTelegramHeaders(): Record<string, string> {
   return h;
 }
 
+function waitForInitData(maxMs = 3000): Promise<Record<string, string>> {
+  return new Promise((resolve) => {
+    const start = Date.now();
+    const tick = () => {
+      const h = getTelegramHeaders();
+      if (Object.keys(h).length > 0 || Date.now() - start >= maxMs) {
+        resolve(getTelegramHeaders());
+        return;
+      }
+      setTimeout(tick, 120);
+    };
+    tick();
+  });
+}
+
 export const drawerOpenWidth = 240;
 export const drawerCloseWidth = 110;
 
@@ -56,9 +71,17 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
   }, [open]);
 
   useEffect(() => {
+    const loadingTimeout = setTimeout(() => {
+      setIsLoading((prev) => {
+        if (prev) setError('Chargement trop long. Vérifiez votre connexion et réessayez.');
+        return false;
+      });
+    }, 8000);
+
     const checkAuth = async (retryCount = 0): Promise<void> => {
       try {
-        const headers: Record<string, string> = { 'Cache-Control': 'no-cache', ...getTelegramHeaders() };
+        const baseHeaders = await waitForInitData(2500);
+        const headers: Record<string, string> = { 'Cache-Control': 'no-cache', ...baseHeaders };
 
         const res = await fetch('/api/admin/verify', {
           credentials: 'include',
@@ -98,7 +121,12 @@ const MainLayout = ({ children }: PropsWithChildren): ReactElement => {
       }
     };
 
-    checkAuth();
+    waitForInitData(2500).then(() => {
+      checkAuth();
+    });
+    return () => {
+      clearTimeout(loadingTimeout);
+    };
   }, []);
 
   if (isLoading) {

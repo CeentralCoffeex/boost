@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter, usePathname } from 'next/navigation';
 import { ArrowLeft, ShoppingCart, ShoppingBag } from 'lucide-react';
-import { getTelegramFetchHeaders } from '@/lib/telegram-fetch-headers';
+import { getTelegramFetchHeaders, waitForTelegramHeaders } from '@/lib/telegram-fetch-headers';
 import { FormattedTextWithBreaks } from '@/lib/formatted-text';
 
 interface ProductVariant {
@@ -79,48 +79,49 @@ export default function ProductDetail() {
     setLoadError(false);
     setAccessDenied(false);
     let cancelled = false;
-    const doFetch = (retry = 0) => {
-      fetch(`/api/products/${productId}`, { cache: 'no-store', headers: getTelegramFetchHeaders(), credentials: 'include' })
-        .then(async res => {
-          if (cancelled) return { data: null, skip: true };
-          if (res.status === 403 && retry < 1) {
-            setTimeout(() => doFetch(retry + 1), 400);
-            return { data: null, skip: true };
-          }
-          const data = await res.json();
-          return { data, skip: false };
-        })
-        .then(({ data, skip }) => {
-          if (cancelled || skip || data === null) return;
-          if (data?.error === 'BOT_DETECTED' || (data?.error && data?.message?.includes('Telegram'))) {
-            setProduct(null);
-            setLoadError(true);
-            setAccessDenied(true);
-            return;
-          }
-          if (data?.error) {
-            setProduct(null);
-            setLoadError(true);
-            return;
-          }
-          setLoadError(false);
-          setAccessDenied(false);
-          setProduct({ ...data, price: data.price || data.basePrice });
-          if (data.variants && data.variants.length > 0) {
-            const sorted = [...data.variants].sort((a: ProductVariant, b: ProductVariant) => (parseFloat(String(a.price).replace(',', '.')) || 0) - (parseFloat(String(b.price).replace(',', '.')) || 0));
-            setSelectedVariant(sorted[0]);
-          } else {
-            setSelectedVariant(null);
-          }
-        })
-        .catch(() => {
-          if (!cancelled) {
-            setProduct(null);
-            setLoadError(true);
-          }
-        });
-    };
-    doFetch();
+    waitForTelegramHeaders(2500).then((headers) => {
+      if (cancelled) return;
+      const doOne = (retry = 0) => {
+        if (cancelled) return;
+        fetch(`/api/products/${productId}`, { cache: 'no-store', headers: Object.keys(headers).length ? headers : getTelegramFetchHeaders(), credentials: 'include' })
+          .then(async res => {
+            if (cancelled) return { data: null, skip: true };
+            if (res.status === 403 && retry < 1) {
+              setTimeout(() => doOne(retry + 1), 300);
+              return { data: null, skip: true };
+            }
+            const data = await res.json();
+            return { data, skip: false };
+          })
+          .then(({ data, skip }) => {
+            if (cancelled || skip || data === null) return;
+            if (data?.error === 'BOT_DETECTED' || (data?.error && data?.message?.includes('Telegram'))) {
+              setProduct(null);
+              setLoadError(true);
+              setAccessDenied(true);
+              return;
+            }
+            if (data?.error) {
+              setProduct(null);
+              setLoadError(true);
+              return;
+            }
+            setLoadError(false);
+            setAccessDenied(false);
+            setProduct({ ...data, price: data.price || data.basePrice });
+            if (data.variants && data.variants.length > 0) {
+              const sorted = [...data.variants].sort((a: ProductVariant, b: ProductVariant) => (parseFloat(String(a.price).replace(',', '.')) || 0) - (parseFloat(String(b.price).replace(',', '.')) || 0));
+              setSelectedVariant(sorted[0]);
+            } else {
+              setSelectedVariant(null);
+            }
+          })
+          .catch(() => {
+            if (!cancelled) { setProduct(null); setLoadError(true); }
+          });
+      };
+      doOne();
+    });
     return () => { cancelled = true; };
   }, [productId]);
 
