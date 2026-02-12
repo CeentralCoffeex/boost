@@ -922,9 +922,15 @@ async def page_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
 
     # Envoyer l'accueil dans le canal avec journalisation
-    # Légende limitée à 1024 caractères pour send_photo (limite API Telegram)
-    CAPTION_MAX = 1024
-    caption = (main_caption or "")[:CAPTION_MAX]
+    # Nettoyer la légende (caractères de contrôle / null = erreur "format" Telegram)
+    raw_caption = (main_caption or "").strip()
+    raw_caption = "".join(c for c in raw_caption if c >= " " or c in "\n\r\t")
+    # Limite 1000 caractères (Telegram max 1024, emojis = 2 en UTF-16 donc marge)
+    CAPTION_MAX = 1000
+    if len(raw_caption) > CAPTION_MAX:
+        caption = raw_caption[: CAPTION_MAX - 1].rstrip() + "…"
+    else:
+        caption = raw_caption
     media = await _get_welcome_media()
     try:
         if media is not None:
