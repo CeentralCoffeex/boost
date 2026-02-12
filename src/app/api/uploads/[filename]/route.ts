@@ -41,10 +41,9 @@ export async function GET(
       return new NextResponse('Invalid filename', { status: 400 });
     }
 
-    // Token optionnel : si absent ou invalide, on sert quand même le fichier pour que photos/vidéos s'affichent
     const token = req.nextUrl.searchParams.get('token');
     const expires = req.nextUrl.searchParams.get('expires');
-    if (token && expires && !verifySignedToken(rawFilename, token, expires)) {
+    if (!token || !expires || !verifySignedToken(rawFilename, token, expires)) {
       return new NextResponse('Forbidden', { status: 403 });
     }
 
