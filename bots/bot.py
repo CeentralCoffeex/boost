@@ -487,19 +487,22 @@ def _inc_click(name: str, amount: int = 1):
 
 
 async def _get_welcome_media():
-    """Charge l'image locale IMG.jpg depuis le dossier du script; sinon télécharge depuis l'URL."""
+    """Charge l'image locale IMG.jpg en mémoire (BytesIO) pour envoi fiable; max 10MB (limite Telegram)."""
     base_dir = os.path.dirname(__file__)
-    # Gérer un chemin configuré via env; par défaut IMG.jpg
     local_path = (
         WELCOME_IMAGE_PATH if os.path.isabs(WELCOME_IMAGE_PATH) else os.path.join(base_dir, WELCOME_IMAGE_PATH)
     )
-    if os.path.exists(local_path):
-        try:
-            return InputFile(open(local_path, "rb"), filename=os.path.basename(local_path))
-        except Exception:
-            pass
-    # Aucun fallback distant: retourner None si l'image locale est introuvable
-    return None
+    if not os.path.exists(local_path):
+        return None
+    try:
+        with open(local_path, "rb") as f:
+            data = f.read()
+        # Telegram: photo max 10MB
+        if len(data) > 10 * 1024 * 1024:
+            return None
+        return InputFile(BytesIO(data), filename=os.path.basename(local_path))
+    except Exception:
+        return None
 
 
 def _get_default_button_label(cfg, key):
@@ -921,59 +924,79 @@ async def page_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         cfg2, cfg2.get("hidden_buttons"), getattr(context.bot, "username", None)
     )
 
-    # Envoyer l'accueil dans le canal avec journalisation
-    # Nettoyer la légende (caractères de contrôle / null = erreur "format" Telegram)
+    # Préparer la légende (nettoyage + limite stricte pour éviter erreur Telegram)
     raw_caption = (main_caption or "").strip()
     raw_caption = "".join(c for c in raw_caption if c >= " " or c in "\n\r\t")
-    # Limite 1000 caractères (Telegram max 1024, emojis = 2 en UTF-16 donc marge)
-    CAPTION_MAX = 1000
+    CAPTION_MAX = 512
     if len(raw_caption) > CAPTION_MAX:
         caption = raw_caption[: CAPTION_MAX - 1].rstrip() + "…"
     else:
-        caption = raw_caption
+        caption = raw_caption or "Bienvenue."
     media = await _get_welcome_media()
-    try:
-        if media is not None:
-            m = await context.bot.send_photo(chat_id=chat_id, photo=media, caption=caption, reply_markup=reply_markup)
-        else:
-            m = await context.bot.send_message(chat_id=chat_id, text=caption, reply_markup=reply_markup)
+
+    sent = False
+    # 1) Photo + légende + boutons
+    if media and not sent:
         try:
-            _append_sent_log(chat_id, m.message_id)
-        except Exception:
-            pass
-    except Forbidden as e:
-        try:
-            print(f"[ERROR] page_command: accès refusé (chat_id={chat_id}): {e}")
-        except Exception:
-            pass
-        try:
-            await context.bot.send_message(
-                chat_id=chat_id,
-                text="Impossible de publier la page d'accueil. Vérifiez que le bot est administrateur du canal avec la permission « Publier des messages ».",
+            m = await context.bot.send_photo(
+                chat_id=chat_id, photo=media, caption=caption, reply_markup=reply_markup, parse_mode=None
             )
-        except Exception:
-            pass
-    except BadRequest as e:
+            sent = True
+            try:
+                _append_sent_log(chat_id, m.message_id)
+            except Exception:
+                pass
+        except Exception as e:
+            print(f"[ERROR] page_command send_photo+markup: {type(e).__name__}: {e}")
+    # 2) Photo + légende seulement (sans boutons)
+    if media and not sent:
         try:
-            print(f"[ERROR] page_command: requête invalide (chat_id={chat_id}): {e}")
-        except Exception:
-            pass
-        try:
-            await context.bot.send_message(
-                chat_id=chat_id,
-                text="Erreur d'envoi (légende trop longue ou format invalide). Réduisez le texte d'accueil dans l'admin ou consultez les logs du bot.",
+            m = await context.bot.send_photo(
+                chat_id=chat_id, photo=media, caption=caption, parse_mode=None
             )
-        except Exception:
-            pass
-    except Exception as e:
+            sent = True
+            try:
+                _append_sent_log(chat_id, m.message_id)
+            except Exception:
+                pass
+            # Envoyer les boutons dans un 2e message juste en dessous
+            try:
+                m2 = await context.bot.send_message(chat_id=chat_id, text="👇", reply_markup=reply_markup)
+                _append_sent_log(chat_id, m2.message_id)
+            except Exception:
+                pass
+        except Exception as e:
+            print(f"[ERROR] page_command send_photo only: {type(e).__name__}: {e}")
+    # 3) Message texte + boutons (sans photo)
+    if not sent:
         try:
-            print(f"[ERROR] page_command: envoi échoué (chat_id={chat_id}), type={type(e).__name__}: {e}")
-        except Exception:
-            pass
+            m = await context.bot.send_message(
+                chat_id=chat_id, text=caption, reply_markup=reply_markup, parse_mode=None
+            )
+            sent = True
+            try:
+                _append_sent_log(chat_id, m.message_id)
+            except Exception:
+                pass
+        except Exception as e:
+            print(f"[ERROR] page_command send_message+markup: {type(e).__name__}: {e}")
+    # 4) Message texte seul (sans boutons)
+    if not sent:
+        try:
+            short = (caption[:4000] + "…") if len(caption) > 4000 else caption
+            m = await context.bot.send_message(chat_id=chat_id, text=short or "Bienvenue.", parse_mode=None)
+            sent = True
+            try:
+                _append_sent_log(chat_id, m.message_id)
+            except Exception:
+                pass
+        except Exception as e:
+            print(f"[ERROR] page_command send_message only: {type(e).__name__}: {e}")
+    if not sent:
         try:
             await context.bot.send_message(
                 chat_id=chat_id,
-                text="Erreur technique lors de la publication. Consultez les logs du bot pour le détail.",
+                text="Impossible de publier (voir les logs du bot). Vérifiez que le bot est admin du canal.",
             )
         except Exception:
             pass
