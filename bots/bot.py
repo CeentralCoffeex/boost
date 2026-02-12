@@ -531,9 +531,10 @@ def _build_welcome_keyboard_layout(cfg, hidden=None, bot_username=None, for_chan
         hidden = list(cfg.get("hidden_buttons", [])) if isinstance(cfg.get("hidden_buttons"), list) else []
 
         # ordre: "row1" = WhatsApp|Contact, "row2" = Potato|Telegram, "long" = MiniApp, "grid" = reste
+        # Contact = URL configurable (contact_link), pas un message
         default_buttons = [
             ("whatsapp", "url", lambda c: c.get("whatsapp_url", ""), "row1"),
-            ("contact", "message", lambda c: c.get("contact_text", ""), "row1"),
+            ("contact", "url", lambda c: c.get("contact_link", ""), "row1"),
             ("potato", "url", lambda c: c.get("potato_url", ""), "row2"),
             ("tg", "url", lambda c: c.get("telegram_channel_url", ""), "row2"),
             ("miniapp", "url", lambda c: c.get("miniapp_url", ""), "long"),
@@ -1496,7 +1497,7 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
         except Exception:
             pass
         return
-    # Contact : même flux que Message accueil (photo + contact actuel avec ---- + Changer, puis "Entrez un nouveau @ de contact")
+    # Contact : URL configurable (contact_link) — affichage et édition
     if data == "adm_edit_contact":
         try:
             await query.message.delete()
@@ -1504,11 +1505,11 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
             pass
         try:
             cfg = _load_config()
-            current = (cfg.get("contact_text") or "").strip() or "(vide)"
+            current = (cfg.get("contact_link") or "").strip() or "(vide)"
             media = await _get_welcome_media()
-            caption = f"☎️ Contact actuel:\n\n----\n{current}\n----"
+            caption = f"☎️ URL Contact (bouton à l'accueil):\n\n----\n{current}\n----\n\nLe bouton ouvrira ce lien (t.me, WhatsApp, etc.)."
             kb = InlineKeyboardMarkup([
-                [InlineKeyboardButton("Changer le contact", callback_data="adm_contact_ask_new")],
+                [InlineKeyboardButton("Changer l'URL", callback_data="adm_contact_ask_new")],
                 [InlineKeyboardButton("⬅️ Retour", callback_data="adm_back")],
             ])
             if media:
@@ -1526,9 +1527,9 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
         context.user_data["await_action"] = "edit_contact"
         try:
             cfg = _load_config()
-            current = (cfg.get("contact_text") or "").strip() or "(vide)"
+            current = (cfg.get("contact_link") or "").strip() or "(vide)"
             media = await _get_welcome_media()
-            prompt = f"Entrez un nouveau @ de contact.\n\nContact actuel:\n----\n{current}\n----"
+            prompt = "Entrez l'URL du bouton Contact (ex: https://t.me/votrecontact ou https://wa.me/…).\n\nURL actuelle:\n----\n{current}\n----".format(current=current)
             kb = InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Retour", callback_data="adm_back")]])
             if media:
                 await context.bot.send_photo(chat_id=query.message.chat_id, photo=media, caption=prompt, reply_markup=kb)
@@ -2194,7 +2195,7 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
             # Bouton par défaut
             label_map = {
                 "infos": (_get_default_button_label(cfgv, "infos"), "message", cfgv.get("infos_text", "")),
-                "contact": (_get_default_button_label(cfgv, "contact"), "message", cfgv.get("contact_text", "")),
+                "contact": (_get_default_button_label(cfgv, "contact"), "url", cfgv.get("contact_link", "")),
                 "miniapp": (_get_default_button_label(cfgv, "miniapp"), "url", cfgv.get("miniapp_url", "")),
                 "instagram": (_get_default_button_label(cfgv, "instagram"), "url", cfgv.get("instagram_url", "")),
                 "potato": (_get_default_button_label(cfgv, "potato"), "url", cfgv.get("potato_url", "")),
@@ -2295,6 +2296,7 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
         # défauts
         key_map = {
             "miniapp": "miniapp_url",
+            "contact": "contact_link",
             "instagram": "instagram_url",
             "potato": "potato_url",
             "linktree": "linktree_url",
@@ -2303,10 +2305,9 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
             "ig_backup": "instagram_backup_url",
             "bots": "bots_url",
         }
-        if ident in ("infos", "contact"):
-            context.user_data["await_action"] = "edit_infos" if ident == "infos" else "edit_contact"
-            prompt = "Envoyez le nouveau texte pour Infos" if ident == "infos" else "Envoyez le nouveau texte pour Contact"
-            await _admin_edit(prompt, reply_markup=_with_back(None))
+        if ident == "infos":
+            context.user_data["await_action"] = "edit_infos"
+            await _admin_edit("Envoyez le nouveau texte pour Infos", reply_markup=_with_back(None))
             return
         edit_key = key_map.get(ident)
         if edit_key:
@@ -2396,7 +2397,7 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
         key_map = {
             "adm_link_miniapp": ("miniapp_url", "MiniApp (URL)"),
             "adm_link_potato": ("potato_url", "Potato"),
-            "adm_link_contact": ("contact_text", "Contact"),
+            "adm_link_contact": ("contact_link", "Contact (URL)"),
             "adm_link_tg": ("telegram_channel_url", "Telegram"),
             "adm_link_whatsapp": ("whatsapp_url", "WhatsApp"),
         }
@@ -2999,14 +3000,18 @@ async def handle_admin_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
             except Exception:
                 pass
             return
-        # edit_contact
-        cfg["contact_text"] = new_text
+        # edit_contact : URL du bouton Contact (contact_link)
+        nv = new_text.lower().strip()
+        if not (nv.startswith("http://") or nv.startswith("https://")):
+            await msg.reply_text("URL invalide. Envoyez une adresse commençant par http:// ou https://")
+            return
+        cfg["contact_link"] = new_text.strip()
         _save_config(cfg)
         try:
             context.user_data.pop("await_action", None)
         except Exception:
             pass
-        await msg.reply_text("Sauvegardé avec succès.")
+        await msg.reply_text("URL Contact enregistrée.")
         try:
             media = await _get_welcome_media()
             panel_caption = _admin_panel_caption()

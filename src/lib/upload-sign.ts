@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-const DEFAULT_TTL_SEC = 60 * 60; // 1h
+const DEFAULT_TTL_SEC = 60 * 60 * 24 * 7; // 7 jours pour photos/vidéos
 
 function getSecret(): string {
   const secret = process.env.UPLOADS_SIGNING_SECRET || process.env.TELEGRAM_BOT_TOKEN;
@@ -38,12 +38,14 @@ export function verifySignedToken(path: string, token: string, expiresStr: strin
 export function signUploadUrl(url: string | null | undefined, ttlSec?: number): string | null {
   if (!url || typeof url !== 'string') return null;
   const trimmed = url.trim();
-  const match = trimmed.match(/^\/api\/uploads\/(.+)$/);
+  // Extraire le chemin sans query (évite double signature path?token=...)
+  const withoutQuery = trimmed.split('?')[0].trim();
+  const match = withoutQuery.match(/^\/api\/uploads\/(.+)$/);
   if (!match) return trimmed; // externe ou déjà signée
   const path = match[1];
   const { token, expires } = createSignedToken(path, ttlSec);
-  const sep = trimmed.includes('?') ? '&' : '?';
-  return `${trimmed}${sep}token=${encodeURIComponent(token)}&expires=${expires}`;
+  const base = withoutQuery;
+  return `${base}?token=${encodeURIComponent(token)}&expires=${expires}`;
 }
 
 /** Signe image et videoUrl d'un objet produit/catégorie pour l'API. */

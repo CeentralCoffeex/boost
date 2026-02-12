@@ -36,19 +36,19 @@ export async function GET(
 ) {
   try {
     const { filename: rawFilename } = await params;
-    const filename = sanitizeFilename(rawFilename);
-    if (!filename) {
+    const safeFilename = sanitizeFilename(rawFilename);
+    if (!safeFilename) {
       return new NextResponse('Invalid filename', { status: 400 });
     }
 
     const token = req.nextUrl.searchParams.get('token');
     const expires = req.nextUrl.searchParams.get('expires');
-    if (!token || !expires || !verifySignedToken(filename, token, expires)) {
+    if (!token || !expires || !verifySignedToken(rawFilename, token, expires)) {
       return new NextResponse('Forbidden', { status: 403 });
     }
 
     const uploadsDir = resolve(getUploadsDir());
-    const filePath = resolve(uploadsDir, filename);
+    const filePath = resolve(uploadsDir, safeFilename);
 
     // Prevent path traversal (public/uploads uniquement, jamais dans src)
     if (!filePath.startsWith(uploadsDir)) {
