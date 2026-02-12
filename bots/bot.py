@@ -517,13 +517,14 @@ def _get_default_button_label(cfg, key):
     return cfg.get(cfg_key) or defaults.get(key, "Bouton")
 
 
-def _build_welcome_keyboard_layout(cfg, hidden=None, bot_username=None):
+def _build_welcome_keyboard_layout(cfg, hidden=None, bot_username=None, for_channel=False):
     """
     Clavier d'accueil :
     - Ligne 1: WhatsApp | Contact
     - Ligne 2: MiniApp (bouton large pleine largeur)
     - Ligne 3: Potato | Telegram
     - Lignes suivantes: reste en grille 2 colonnes
+    - for_channel=True : n'utilise jamais web_app (interdit dans les canaux), uniquement url.
     """
     try:
         rows = []
@@ -545,14 +546,14 @@ def _build_welcome_keyboard_layout(cfg, hidden=None, bot_username=None):
 
         def make_btn(key, btype, value, label):
             if btype == "url" and value and str(value).strip():
-                if key == "miniapp":
+                # Dans les canaux, web_app est interdit (BUTTON_TYPE_INVALID) → toujours url
+                if key == "miniapp" and not for_channel:
                     try:
                         mode = os.getenv("MINIAPP_OPEN_MODE", "webapp").lower()
                         if mode == "webapp":
                             return InlineKeyboardButton(label, web_app=WebAppInfo(url=str(value).strip()))
                     except Exception:
                         pass
-                    return InlineKeyboardButton(label, url=str(value).strip())
                 return InlineKeyboardButton(label, url=str(value).strip())
             elif btype == "message":
                 return InlineKeyboardButton(label, callback_data=key)
@@ -920,8 +921,9 @@ async def page_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         cfg2 = _load_config()
     except Exception:
         cfg2 = {}
+    # for_channel=True : bouton Mini App en URL uniquement (web_app interdit dans les canaux)
     reply_markup = _build_welcome_keyboard_layout(
-        cfg2, cfg2.get("hidden_buttons"), getattr(context.bot, "username", None)
+        cfg2, cfg2.get("hidden_buttons"), getattr(context.bot, "username", None), for_channel=True
     )
 
     # Préparer la légende (nettoyage + limite stricte pour éviter erreur Telegram)
