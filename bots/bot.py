@@ -887,13 +887,23 @@ async def handle_category(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 async def page_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Dans un canal, répond à /page en supprimant la commande et en postant l'accueil avec boutons."""
+    if not update.effective_chat:
+        try:
+            print("[ERROR] page_command: effective_chat is None")
+        except Exception:
+            pass
+        return
+    chat_id = update.effective_chat.id
     # Supprimer le message de commande pour ne pas montrer que vous l'avez envoyé
     try:
         if update.effective_message:
-            await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.effective_message.message_id)
-    except Exception:
-        # Ignorer erreurs (permissions manquantes, bot non admin, etc.)
-        pass
+            await context.bot.delete_message(chat_id=chat_id, message_id=update.effective_message.message_id)
+    except Exception as e:
+        # Ignorer erreurs (permissions manquantes, bot non admin, etc.) mais logger
+        try:
+            print(f"[WARN] page_command: impossible de supprimer le message: {e}")
+        except Exception:
+            pass
     # Construire le même clavier que /start
     main_caption = WELCOME_CAPTION_TEXT
     try:
@@ -916,15 +926,26 @@ async def page_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     caption = main_caption
     try:
         if media is not None:
-            m = await context.bot.send_photo(chat_id=update.effective_chat.id, photo=media, caption=caption, reply_markup=reply_markup)
+            m = await context.bot.send_photo(chat_id=chat_id, photo=media, caption=caption, reply_markup=reply_markup)
         else:
-            m = await context.bot.send_message(chat_id=update.effective_chat.id, text=caption, reply_markup=reply_markup)
+            m = await context.bot.send_message(chat_id=chat_id, text=caption, reply_markup=reply_markup)
         try:
-            _append_sent_log(update.effective_chat.id, m.message_id)
+            _append_sent_log(chat_id, m.message_id)
         except Exception:
             pass
-    except Exception:
-        pass
+    except Exception as e:
+        try:
+            print(f"[ERROR] page_command: envoi échoué (chat_id={chat_id}): {e}")
+        except Exception:
+            pass
+        # Envoyer un message d'erreur visible dans le canal pour guider l'utilisateur
+        try:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="Impossible de publier la page d'accueil. Vérifiez que le bot est administrateur du canal avec la permission « Publier des messages ».",
+            )
+        except Exception:
+            pass
 
 async def _purge_privates_background(context: ContextTypes.DEFAULT_TYPE, notify_chat_id: int) -> None:
     """Tâche de fond: purge globale des conversations privées pour tous les utilisateurs.
