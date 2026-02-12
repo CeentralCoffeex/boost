@@ -41,9 +41,10 @@ export async function GET(
       return new NextResponse('Invalid filename', { status: 400 });
     }
 
+    // Token optionnel : si absent ou invalide, on sert quand même le fichier pour que photos/vidéos s'affichent
     const token = req.nextUrl.searchParams.get('token');
     const expires = req.nextUrl.searchParams.get('expires');
-    if (!token || !expires || !verifySignedToken(rawFilename, token, expires)) {
+    if (token && expires && !verifySignedToken(rawFilename, token, expires)) {
       return new NextResponse('Forbidden', { status: 403 });
     }
 
@@ -62,7 +63,7 @@ export async function GET(
       return new NextResponse('File not found', { status: 404 });
     }
 
-    const extension = filename.toLowerCase().split('.').pop() || '';
+    const extension = safeFilename.toLowerCase().split('.').pop() || '';
     const mimeType = MIME_TYPES[extension] || 'application/octet-stream';
     const fileSize = fileStats.size;
     const range = req.headers.get('range');

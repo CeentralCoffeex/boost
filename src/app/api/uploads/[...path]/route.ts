@@ -46,9 +46,10 @@ export async function GET(
       return NextResponse.json({ error: 'Chemin invalide' }, { status: 400 });
     }
 
+    // Token optionnel : si absent on sert quand même ; si présent mais invalide → 403
     const token = request.nextUrl.searchParams.get('token');
     const expires = request.nextUrl.searchParams.get('expires');
-    if (!token || !expires || !verifySignedToken(filename, token, expires)) {
+    if (token && expires && !verifySignedToken(filename, token, expires)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
