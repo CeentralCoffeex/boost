@@ -15,7 +15,7 @@ import httpx
 import json
 import time
 import asyncio
-from telegram.error import RetryAfter
+from telegram.error import RetryAfter, BadRequest, Forbidden
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
 
 
@@ -922,8 +922,10 @@ async def page_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
 
     # Envoyer l'accueil dans le canal avec journalisation
+    # Légende limitée à 1024 caractères pour send_photo (limite API Telegram)
+    CAPTION_MAX = 1024
+    caption = (main_caption or "")[:CAPTION_MAX]
     media = await _get_welcome_media()
-    caption = main_caption
     try:
         if media is not None:
             m = await context.bot.send_photo(chat_id=chat_id, photo=media, caption=caption, reply_markup=reply_markup)
@@ -933,16 +935,39 @@ async def page_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             _append_sent_log(chat_id, m.message_id)
         except Exception:
             pass
-    except Exception as e:
+    except Forbidden as e:
         try:
-            print(f"[ERROR] page_command: envoi échoué (chat_id={chat_id}): {e}")
+            print(f"[ERROR] page_command: accès refusé (chat_id={chat_id}): {e}")
         except Exception:
             pass
-        # Envoyer un message d'erreur visible dans le canal pour guider l'utilisateur
         try:
             await context.bot.send_message(
                 chat_id=chat_id,
-                text="Impossible de publier la page d'accueil. Vérifiez que le bot est administrateur du canal avec la permission « Publier des messages ».",
+                text="Impossible de publier la page d'accueil. Vérifiez que le bot est administrateur du canal avec la permission « Publier des messages ».",
+            )
+        except Exception:
+            pass
+    except BadRequest as e:
+        try:
+            print(f"[ERROR] page_command: requête invalide (chat_id={chat_id}): {e}")
+        except Exception:
+            pass
+        try:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="Erreur d'envoi (légende trop longue ou format invalide). Réduisez le texte d'accueil dans l'admin ou consultez les logs du bot.",
+            )
+        except Exception:
+            pass
+    except Exception as e:
+        try:
+            print(f"[ERROR] page_command: envoi échoué (chat_id={chat_id}), type={type(e).__name__}: {e}")
+        except Exception:
+            pass
+        try:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="Erreur technique lors de la publication. Consultez les logs du bot pour le détail.",
             )
         except Exception:
             pass
